@@ -547,7 +547,8 @@ function updateSide(sideNum) {
 
         elTrackTitle.style.animation = titleAnimation;
         elTrackTitle.onanimationiteration = () => {
-            elTrackTitle.style.animationPlayState = "paused";
+            if (document.hasFocus())
+                elTrackTitle.style.animationPlayState = "paused";
             setTimeout(() => {
                 elTrackTitle.style.animationPlayState = "running";
             }, SCROLL_PAUSE_DURATION * 1000);
@@ -602,7 +603,8 @@ function updateSide(sideNum) {
 
         elArtist.style.animation = artistAnimation;
         elArtist.onanimationiteration = () => {
-            elArtist.style.animationPlayState = "paused";
+            if (document.hasFocus())
+                elArtist.style.animationPlayState = "paused";
             setTimeout(() => {
                 elArtist.style.animationPlayState = "running";
             }, SCROLL_PAUSE_DURATION * 1000);
