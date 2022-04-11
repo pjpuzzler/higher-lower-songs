@@ -310,6 +310,14 @@ label {
     left: 2vmin;
 }
 
+#title {
+    text-align: center;
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%);
+}
+
 #user_info {
     position: fixed;
     top: 2vmin;
@@ -340,6 +348,13 @@ label {
     width: 60%;
     height: 60%;
     fill: #fff;
+}
+
+#change_user {
+    position: fixed;
+    color: #fff;
+    right: 2vmin;
+    top: 8vmin;
 }
 
 #score {

@@ -299,9 +299,11 @@ async function loadUrls() {
         document.getElementById("source_img_search").style.display = "none";
         elSourceImg.style.display = "initial";
         elSourceImg.src = userPlayListData.images[0].url;
-        document.getElementById(
-            "source_text"
-        ).innerText = `${userPlayListData.name} (${maxOffset})`;
+        document.getElementById("source_text").innerText = `${
+            userPlayListData.name.length >= 20
+                ? userPlayListData.name.substring(0, 19) + "..."
+                : userPlayListData.name
+        } (${maxOffset})`;
 
         for (let offset = 0; offset < maxOffset; ++offset)
             urlsLeft.push(
@@ -347,9 +349,11 @@ async function loadUrls() {
         document.getElementById("source_img_search").style.display = "none";
         elSourceImg.style.display = "initial";
         elSourceImg.src = playlistData.images[0].url;
-        document.getElementById(
-            "source_text"
-        ).innerText = `${playlistData.name} (${maxOffset})`;
+        document.getElementById("source_text").innerText = `${
+            playlistData.name.length >= 20
+                ? playlistData.name.substring(0, 19) + "..."
+                : playlistData.name
+        } (${maxOffset})`;
 
         for (let offset = 0; offset < maxOffset; ++offset)
             urlsLeft.push(
@@ -1115,4 +1119,10 @@ function toggleAdvancedParams() {
         "advanced_params_visibility",
         elAdvancedParams.style.visibility
     );
+}
+
+function changeUser() {
+    window.location = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${SCOPES.join(
+        "%20"
+    )}&response_type=token&show_dialog=true`;
 }
