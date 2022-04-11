@@ -299,14 +299,22 @@ async function loadUrls() {
         document.getElementById("source_img_search").style.display = "none";
         elSourceImg.style.display = "initial";
         elSourceImg.src = userPlayListData.images[0].url;
-        document.getElementById("source_text").innerText =
-            userPlayListData.name;
+        document.getElementById(
+            "source_text"
+        ).innerText = `${userPlayListData.name} (${maxOffset})`;
 
         for (let offset = 0; offset < maxOffset; ++offset)
             urlsLeft.push(
                 `https://api.spotify.com/v1/playlists/${params.userPlaylistId}/tracks?fields=items&limit=1&offset=${offset}`
             );
     } else if (params.use === "liked_songs") {
+        const maxOffset = (
+            await getData(
+                `https://api.spotify.com/v1/me/tracks?limit=1&offset=0`,
+                false
+            )
+        ).total;
+
         const elSourceImg = document.getElementById("source_img");
 
         document.getElementById("source").href =
@@ -315,14 +323,9 @@ async function loadUrls() {
         elSourceImg.style.display = "initial";
         elSourceImg.src =
             "https://t.scdn.co/images/3099b3803ad9496896c43f22fe9be8c4.png";
-        document.getElementById("source_text").innerText = "Liked Songs";
-
-        const maxOffset = (
-            await getData(
-                `https://api.spotify.com/v1/me/tracks?limit=1&offset=0`,
-                false
-            )
-        ).total;
+        document.getElementById(
+            "source_text"
+        ).innerText = `Liked Songs (${maxOffset})`;
 
         for (let offset = 0; offset < maxOffset; ++offset)
             urlsLeft.push(
@@ -344,7 +347,9 @@ async function loadUrls() {
         document.getElementById("source_img_search").style.display = "none";
         elSourceImg.style.display = "initial";
         elSourceImg.src = playlistData.images[0].url;
-        document.getElementById("source_text").innerText = playlistData.name;
+        document.getElementById(
+            "source_text"
+        ).innerText = `${playlistData.name} (${maxOffset})`;
 
         for (let offset = 0; offset < maxOffset; ++offset)
             urlsLeft.push(
@@ -369,11 +374,11 @@ async function loadUrls() {
         document.getElementById("source_img_search").style.display = "initial";
 
         document.getElementById("source").href =
-            "https://open.spotify.com/search/" + queryString;
+            "https://open.spotify.com/search/" + queryString + "/tracks";
         document.getElementById("source_text").innerText =
             JSON.stringify(params.query) == JSON.stringify(DEFAULT_PARAMS.query)
-                ? "Last Decade"
-                : "Custom Search";
+                ? `Last Decade (${lastOffset})`
+                : `Custom Search (${lastOffset})`;
 
         for (let offset = 0; offset < lastOffset; ++offset)
             urlsLeft.push(
@@ -722,9 +727,12 @@ function likeTrack(elLikeBtn, sideNum) {
 }
 
 function checkGuess(higher) {
-    const correct = higher
-            ? trackData2.popularity >= trackData1.popularity
-            : trackData2.popularity <= trackData1.popularity,
+    const correct =
+            !trackData2.preview_url && !trackData2.popularity
+                ? true
+                : higher
+                ? trackData2.popularity >= trackData1.popularity
+                : trackData2.popularity <= trackData1.popularity,
         outOfUrls = !urlsLeft.length;
 
     revealTrackPopularity(2, true, correct);

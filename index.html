@@ -164,7 +164,7 @@
         <div id="params">
             <div id="advanced_params">
                 <input id="use_search" name="use" type="radio" onchange="changeParams({use: 'search'})" />
-                <label for="use_search">Use Search</label>
+                <label for="use_search">Search</label>
                 <br />
                 <div class="params_indent">
                     <input id="max_search_results" type="range" min="0" max="1000" value="1000" oninput="changeParams({maxSearchResults: this.value}); this.nextElementSibling.innerText = `Max Search Results (${this.value})`" />
@@ -190,7 +190,7 @@
                 </div>
                 <br />
                 <input id="use_playlist" name="use" type="radio" onchange="changeParams({use: 'playlist'})" />
-                <label for="use_playlist">Use Playlist</label>
+                <label for="use_playlist">Playlist</label>
                 <br />
                 <div class="params_indent">
                     <input id="playlist_id" type="text" placeholder="spotify:playlist:" oninput="changeParams({playlistId: this.value.trim()})">
@@ -198,7 +198,7 @@
                 </div>
                 <br />
                 <input id="use_user_playlist" name="use" type="radio" onchange="changeParams({use: 'user_playlist'})" />
-                <label for="use_user_playlist">Use User Playlist</label>
+                <label for="use_user_playlist">User Playlist</label>
                 <br />
                 <div class="params_indent">
                     <select id="user_playlist" onchange="changeParams({userPlaylistId: this.value})"></select>
@@ -207,7 +207,7 @@
                 </div>
                 <br />
                 <input id="use_liked_songs" name="use" type="radio" onchange="changeParams({use: 'liked_songs'})" />
-                <label for="use_liked_songs">Use Liked Songs</label>
+                <label for="use_liked_songs">Liked Songs</label>
                 <br />
                 <br />
                 <button class="param_button" onclick="resetParams()">Reset</button>
