@@ -1,9 +1,9 @@
 const REDIRECT_URIS = [
-        "http://192.168.68.123:5500",
+        "http://192.168.68.117:5500",
         "http://129.21.125.207:5500",
         "http://192.168.0.213:5500",
     ],
-    REDIRECT_URI = REDIRECT_URIS[2],
+    REDIRECT_URI = REDIRECT_URIS[0],
     CLIENT_ID = "32b5db6ab5bc4a64bf2b230b131120dc",
     SCOPES = [
         "user-library-read",
@@ -11,6 +11,7 @@ const REDIRECT_URIS = [
         "playlist-read-private",
     ],
     CURR_YEAR = new Date().getFullYear(),
+    VOLUME_FRACTION = 0.1,
     SAMPLE_DURATION = 30,
     SAMPLE_FADE_DURATION = 2,
     POPULARITY_ANIMATION_DURATION = 1.25,

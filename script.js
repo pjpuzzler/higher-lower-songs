@@ -84,7 +84,9 @@ window.onload = () => {
 
     elToYear.max = CURR_YEAR;
 
-    setVolume(Number(localStorage.getItem("volume") ?? 0.5));
+    setVolume(
+        Number(localStorage.getItem("volume") ?? (2 / 3) * VOLUME_FRACTION)
+    );
 
     highScore = Number(localStorage.getItem("highScore") ?? 0);
     document.getElementById("current_high_score").innerText =
@@ -731,12 +733,9 @@ function likeTrack(elLikeBtn, sideNum) {
 }
 
 function checkGuess(higher) {
-    const correct =
-            !trackData2.preview_url && !trackData2.popularity
-                ? true
-                : higher
-                ? trackData2.popularity >= trackData1.popularity
-                : trackData2.popularity <= trackData1.popularity,
+    const correct = higher
+            ? trackData2.popularity >= trackData1.popularity
+            : trackData2.popularity <= trackData1.popularity,
         outOfUrls = !urlsLeft.length;
 
     revealTrackPopularity(2, true, correct);
@@ -811,7 +810,9 @@ function revealTrackPopularity(sideNum, animation = false, correct = false) {
 }
 
 async function getNextTrackData() {
-    trackDataTmp = await getData(getRandomUrl());
+    do {
+        trackDataTmp = await getData(getRandomUrl());
+    } while (trackDataTmp.popularity > 0 || trackDataTmp.preview_url);
 }
 
 function nextRound() {
@@ -958,7 +959,8 @@ function setVolume(newVolume) {
         elMuteBtn = document.getElementById("mute_btn");
 
     volume = newVolume;
-    document.getElementById("volume_slider").value = volume * 100;
+    document.getElementById("volume_slider").value =
+        (volume / VOLUME_FRACTION) * 100;
     localStorage.setItem("volume", volume);
 
     if (!fadeInNext && currVolume < oldVolume) {
@@ -974,10 +976,10 @@ function setVolume(newVolume) {
         fadeOut();
     } else if (currVolume === oldVolume) $elTrackPlayer[0].volume = volume;
 
-    if (volume * 2 > 2 / 3) {
+    if (volume / VOLUME_FRACTION > 2 / 3) {
         elMuteBtn.innerHTML =
             '<svg id="mute_img" viewBox="0 0 16 16"><path d="M9.741.85a.75.75 0 01.375.65v13a.75.75 0 01-1.125.65l-6.925-4a3.642 3.642 0 01-1.33-4.967 3.639 3.639 0 011.33-1.332l6.925-4a.75.75 0 01.75 0zm-6.924 5.3a2.139 2.139 0 000 3.7l5.8 3.35V2.8l-5.8 3.35zm8.683 4.29V5.56a2.75 2.75 0 010 4.88z"></path><path d="M11.5 13.614a5.752 5.752 0 000-11.228v1.55a4.252 4.252 0 010 8.127v1.55z"></path></svg>';
-    } else if (volume * 2 > 1 / 3) {
+    } else if (volume / VOLUME_FRACTION > 1 / 3) {
         elMuteBtn.innerHTML =
             '<svg id="mute_img" viewBox="0 0 16 16"><path d="M9.741.85a.75.75 0 01.375.65v13a.75.75 0 01-1.125.65l-6.925-4a3.642 3.642 0 01-1.33-4.967 3.639 3.639 0 011.33-1.332l6.925-4a.75.75 0 01.75 0zm-6.924 5.3a2.139 2.139 0 000 3.7l5.8 3.35V2.8l-5.8 3.35zm8.683 6.087a4.502 4.502 0 000-8.474v1.65a2.999 2.999 0 010 5.175v1.649z"></path></svg>';
     } else if (volume > 0) {
@@ -990,15 +992,15 @@ function setVolume(newVolume) {
 
     document.documentElement.style.setProperty(
         "--pulse_size",
-        volume === 0 ? 1 : 0.025 * volume * 2 + 1.025
+        volume === 0 ? 1 : (0.025 * volume) / VOLUME_FRACTION + 1.025
     );
     document.documentElement.style.setProperty(
         "--volume_slider_offset",
-        volume * 2 * 100 + "%"
+        (volume / VOLUME_FRACTION) * 100 + "%"
     );
     document.documentElement.style.setProperty(
         "--volume_slider_thumb_margin",
-        2 * volume * 2 - 1 + "vh"
+        (2 * volume) / VOLUME_FRACTION - 1 + "vh"
     );
 }
 

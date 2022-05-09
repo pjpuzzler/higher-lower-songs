@@ -97,6 +97,10 @@ span {
     display: inline-block;
 }
 
+select {
+    max-width: 25vh;
+}
+
 label {
     color: #fff;
 }

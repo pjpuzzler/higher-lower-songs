@@ -143,8 +143,8 @@
                 id="volume_slider"
                 type="range"
                 min="0"
-                max="50"
-                oninput="setVolume(this.value / 100)"
+                max="100"
+                oninput="setVolume(this.value * VOLUME_FRACTION / 100)"
             />
         </div>
 
