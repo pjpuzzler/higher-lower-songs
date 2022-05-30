@@ -1,8 +1,4 @@
-const REDIRECT_URIS = [
-        "http://192.168.68.117:5500",
-        "http://129.21.125.207:5500",
-        "http://192.168.0.213:5500",
-    ],
+const REDIRECT_URIS = ["http://192.168.68.100:5500"],
     REDIRECT_URI = REDIRECT_URIS[0],
     CLIENT_ID = "32b5db6ab5bc4a64bf2b230b131120dc",
     SCOPES = [

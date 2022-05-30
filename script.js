@@ -267,8 +267,8 @@ async function play() {
     if (urlsLeft.length < 2) return notEnoughResults();
 
     [trackData1, trackData2] = await Promise.all([
-        getData(getRandomUrl()),
-        getData(getRandomUrl()),
+        getRandomTrackData(),
+        getRandomTrackData(),
     ]);
 
     document.getElementsByTagName("body")[0].className = "adaptive";
@@ -733,28 +733,38 @@ function likeTrack(elLikeBtn, sideNum) {
 }
 
 function checkGuess(higher) {
-    const correct = higher
-            ? trackData2.popularity >= trackData1.popularity
-            : trackData2.popularity <= trackData1.popularity,
-        outOfUrls = !urlsLeft.length;
+    try {
+        const correct = higher
+                ? trackData2.popularity >= trackData1.popularity
+                : trackData2.popularity <= trackData1.popularity,
+            outOfUrls = !urlsLeft.length;
 
-    revealTrackPopularity(2, true, correct);
+        revealTrackPopularity(2, true, correct);
 
-    let checkPromises = [
-        new Promise((resolve) =>
-            setTimeout(
-                resolve,
-                (POPULARITY_ANIMATION_DURATION + SHOW_POPULARITY_DURATION) *
-                    1000
-            )
-        ),
-    ];
+        let checkPromises = [
+            new Promise((resolve) =>
+                setTimeout(
+                    resolve,
+                    (POPULARITY_ANIMATION_DURATION + SHOW_POPULARITY_DURATION) *
+                        1000
+                )
+            ),
+        ];
 
-    if (correct && !outOfUrls) checkPromises.push(getNextTrackData());
+        if (correct && !outOfUrls)
+            checkPromises.push(
+                new Promise(async (resolve) => {
+                    trackDataTmp = await getRandomTrackData();
+                    resolve();
+                })
+            );
 
-    Promise.all(checkPromises).then(
-        correct ? (outOfUrls ? noMoreTracks : nextRound) : gameOver
-    );
+        Promise.all(checkPromises).then(
+            correct ? (outOfUrls ? noMoreTracks : nextRound) : gameOver
+        );
+    } catch (e) {
+        alert(e);
+    }
 }
 
 function revealTrackPopularity(sideNum, animation = false, correct = false) {
@@ -809,10 +819,14 @@ function revealTrackPopularity(sideNum, animation = false, correct = false) {
     }
 }
 
-async function getNextTrackData() {
+async function getRandomTrackData() {
+    let trackData;
+
     do {
-        trackDataTmp = await getData(getRandomUrl());
-    } while (trackDataTmp.popularity > 0 || trackDataTmp.preview_url);
+        trackData = await getData(getRandomUrl());
+    } while (!trackData.popularity && !trackData.preview_url);
+
+    return trackData;
 }
 
 function nextRound() {
