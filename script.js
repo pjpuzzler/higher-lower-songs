@@ -30,7 +30,7 @@ let params,
     volume,
     highScore,
     score = 0,
-    prevVolume = 2 / 3 / 2,
+    prevVolume = 2 / 3 * VOLUME_FRACTION,
     muted = false;
 
 window.onload = () => {
