@@ -30,7 +30,7 @@ let params,
     volume,
     highScore,
     score = 0,
-    prevVolume = 2 / 3 * VOLUME_FRACTION,
+    prevVolume,
     muted = false;
 
 window.onload = () => {
@@ -85,8 +85,10 @@ window.onload = () => {
     elToYear.max = CURR_YEAR;
 
     setVolume(
-        Number(localStorage.getItem("volume") ?? (2 / 3) * VOLUME_FRACTION)
+        Number(localStorage.getItem("volume") ?? DEFAULT_VOLUME)
     );
+    
+    prevVolume = volume || DEFAULT_VOLUME;
 
     highScore = Number(localStorage.getItem("highScore") ?? 0);
     document.getElementById("current_high_score").innerText =
