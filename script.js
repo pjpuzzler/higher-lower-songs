@@ -1246,10 +1246,10 @@ function resetParams() {
 
 function clearParams() {
     changeParams({
+        albumPlaylistURI: "",
         featuredPlaylistId: "",
         maxSearchResults: params.maxSearchResults,
         muteExplicit: params.muteExplicit,
-        playlistId: "",
         query: {
             album: "",
             artist: "",
