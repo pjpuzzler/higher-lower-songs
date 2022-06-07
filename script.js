@@ -262,7 +262,8 @@ async function play() {
     ).style.display = "none";
 
     urlsLeft = [];
-    await loadUrls();
+    if (await loadUrls())
+        return;
 
     if (urlsLeft.length < 2) return notEnoughResults();
 
@@ -349,23 +350,32 @@ async function loadUrls() {
                 isAlbum = false;
 
             if (albumPlaylistString === "album") {
-                albumPlaylistData = await getData(
-                    `https://api.spotify.com/v1/albums/${albumPlaylistId}`,
-                    false
-                );
-                alert(albumPlaylistData);
+                try {
+                    albumPlaylistData = await getData(
+                        `https://api.spotify.com/v1/albums/${albumPlaylistId}`,
+                        false
+                    );
+                } catch (e) {
+                    alert("Invalid album ID");
+                    return true;
+                }
                 albumCover = albumPlaylistData.images[0].url;
                 isAlbum = true;
-            } else if (albumPlaylistString === "playlist")
-                albumPlaylistData = await getData(
-                    `https://api.spotify.com/v1/playlists/${albumPlaylistId}?fields=external_urls%2Cimages%2Cname%2Ctracks(total)`,
-                    false
-                );
-            else {
+            } else if (albumPlaylistString === "playlist") {
+                try {
+                    albumPlaylistData = await getData(
+                        `https://api.spotify.com/v1/playlists/${albumPlaylistId}?fields=external_urls%2Cimages%2Cname%2Ctracks(total)`,
+                        false
+                    );
+                } catch {
+                    alert("Invalid playlist ID");
+                    return true;
+                }
+            } else {
                 alert(
-                    "Invalid album/playlist id (format: spotify:<album/playlist>:{id})"
+                    "Invalid album/playlist URI (format: spotify:<album/playlist>:{id})"
                 );
-                return;
+                return true;
             }
 
             const maxOffset = albumPlaylistData.tracks.total;
@@ -428,7 +438,7 @@ async function loadUrls() {
 }
 
 function getData(url, returnFirstTrack = true) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         $.ajax({
             url,
             type: "GET",
@@ -462,6 +472,7 @@ function getData(url, returnFirstTrack = true) {
                     });
                 }
             },
+            error: reject,
         });
     });
 }
