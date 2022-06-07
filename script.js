@@ -353,6 +353,7 @@ async function loadUrls() {
                     `https://api.spotify.com/v1/albums/${albumPlaylistId}`,
                     false
                 );
+                alert(albumPlaylistData);
                 albumCover = albumPlaylistData.images[0].url;
                 isAlbum = true;
             } else if (albumPlaylistString === "playlist")
@@ -1007,7 +1008,6 @@ function toggleMute() {
 }
 
 function setVolume(newVolume) {
-    alert(newVolume);
     const $elTrackPlayer = $("#track_player"),
         currVolume = $elTrackPlayer[0].volume,
         oldVolume = volume,
