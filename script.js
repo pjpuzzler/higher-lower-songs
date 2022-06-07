@@ -35,6 +35,8 @@ let params,
     muted = false;
 
 window.onload = () => {
+    $(document).tooltip({show: null});
+    
     params = JSON.parse(localStorage.getItem("params")) ?? DEFAULT_PARAMS;
 
     getGenres().then((data) => {
