@@ -83,6 +83,7 @@ window.onload = () => {
     });
     
     getFeaturedPlaylists().then((data) => {
+        alert("got data");
         const elFeaturedPlaylist = document.getElementById("featured_playlist");
 
         elFeaturedPlaylist.innerHTML = "<option selected></option>";
@@ -97,7 +98,8 @@ window.onload = () => {
         }
 
         elFeaturedPlaylist.value = params.featuredPlaylistId;
-    });
+        alert("finished data");
+    }).catch((e) => {alert(JSON.stringify(e));});
 
     const elFromYear = document.getElementById("from_year"),
         elToYear = document.getElementById("to_year");
