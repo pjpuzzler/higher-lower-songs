@@ -196,7 +196,7 @@
                 <br />
                 <div class="params_indent">
                     <input id="album_playlist_uri" type="text" placeholder="spotify:album/playlist:" oninput="changeParams({albumPlaylistURI: this.value.trim()})">
-                    <label for="album_playlist_uri">Album/Playlist URI</label>
+                    <label for="album_playlist_uri">URI</label>
                 </div>
                 <br />
                 <input id="use_user_playlist" name="use" type="radio" onchange="changeParams({use: 'user_playlist'})" />
@@ -204,7 +204,6 @@
                 <br />
                 <div class="params_indent">
                     <select id="user_playlist" onchange="changeParams({userPlaylistId: this.value})"></select>
-                    <label for="user_playlist">User Playlist</label>
                     <button id="user_playlist_random" class="param_button" onclick="randomUserPlaylist()">Random</button>
                 </div>
                 <br />
@@ -213,7 +212,6 @@
                 <br />
                 <div class="params_indent">
                     <select id="featured_playlist" onchange="changeParams({featuredPlaylistId: this.value})"></select>
-                    <label for="featured_playlist">Featured Playlist</label>
                     <button id="featured_playlist_random" class="param_button" onclick="randomFeaturedPlaylist()">Random</button>
                 </div>
                 <br />
