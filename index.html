@@ -191,12 +191,12 @@
                     <label for="track">Track</label>
                 </div>
                 <br />
-                <input id="use_playlist" name="use" type="radio" onchange="changeParams({use: 'playlist'})" />
-                <label for="use_playlist">Playlist</label>
+                <input id="use_album_playlist" name="use" type="radio" onchange="changeParams({use: 'album_playlist'})" />
+                <label for="use_album_playlist">Album/Playlist</label>
                 <br />
                 <div class="params_indent">
-                    <input id="playlist_id" type="text" placeholder="spotify:playlist:" oninput="changeParams({playlistId: this.value.trim()})">
-                    <label for="playlist_id">Playlist ID</label>
+                    <input id="album_playlist_uri" type="text" placeholder="spotify:album/playlist:" oninput="changeParams({albumPlaylistURI: this.value.trim()})">
+                    <label for="album_playlist_uri">Album/Playlist URI</label>
                 </div>
                 <br />
                 <input id="use_user_playlist" name="use" type="radio" onchange="changeParams({use: 'user_playlist'})" />

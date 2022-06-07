@@ -24,6 +24,7 @@ let params,
     userData,
     trackData1,
     trackData2,
+    albumCover,
     trackDataTmp,
     fadeInNext,
     urlsLeft,
@@ -84,10 +85,8 @@ window.onload = () => {
 
     elToYear.max = CURR_YEAR;
 
-    setVolume(
-        Number(localStorage.getItem("volume") ?? DEFAULT_VOLUME)
-    );
-    
+    setVolume(Number(localStorage.getItem("volume") ?? DEFAULT_VOLUME));
+
     prevVolume = volume || DEFAULT_VOLUME;
 
     highScore = Number(localStorage.getItem("highScore") ?? 0);
@@ -97,7 +96,8 @@ window.onload = () => {
     const elMaxSearchResults = document.getElementById("max_search_results");
 
     document.getElementById("mute_explicit").checked = params.muteExplicit;
-    document.getElementById("playlist_id").value = params.playlistId;
+    document.getElementById("album_playlist_uri").value =
+        params.albumPlaylistURI;
     elMaxSearchResults.value = params.maxSearchResults;
     document.getElementById("album").value = params.query.album;
     document.getElementById("artist").value = params.query.artist;
@@ -116,8 +116,8 @@ window.onload = () => {
         case "search":
             document.getElementById("use_search").checked = true;
             break;
-        case "playlist":
-            document.getElementById("use_playlist").checked = true;
+        case "album_playlist":
+            document.getElementById("use_album_playlist").checked = true;
             break;
         case "user_playlist":
             document.getElementById("use_user_playlist").checked = true;
@@ -289,109 +289,142 @@ async function play() {
 }
 
 async function loadUrls() {
-    if (params.use === "user_playlist") {
-        const userPlayListData = await getData(
-                `https://api.spotify.com/v1/playlists/${params.userPlaylistId}?fields=external_urls%2Cimages%2Cname%2Ctracks(total)`,
-                false
-            ),
-            maxOffset = userPlayListData.tracks.total;
+    switch (params.use) {
+        case "user_playlist": {
+            const userPlayListData = await getData(
+                    `https://api.spotify.com/v1/playlists/${params.userPlaylistId}?fields=external_urls%2Cimages%2Cname%2Ctracks(total)`,
+                    false
+                ),
+                maxOffset = userPlayListData.tracks.total;
 
-        const elSourceImg = document.getElementById("source_img");
+            const elSourceImg = document.getElementById("source_img");
 
-        document.getElementById("source").href =
-            userPlayListData.external_urls.spotify;
-        document.getElementById("source_img_search").style.display = "none";
-        elSourceImg.style.display = "initial";
-        elSourceImg.src = userPlayListData.images[0].url;
-        document.getElementById("source_text").innerText = `${
-            userPlayListData.name.length >= 20
-                ? userPlayListData.name.substring(0, 19) + "..."
-                : userPlayListData.name
-        } (${maxOffset})`;
+            document.getElementById("source").href =
+                userPlayListData.external_urls.spotify;
+            document.getElementById("source_img_search").style.display = "none";
+            elSourceImg.style.display = "initial";
+            elSourceImg.src = userPlayListData.images[0].url;
+            document.getElementById("source_text").innerText = `${
+                userPlayListData.name.length >= 20
+                    ? userPlayListData.name.substring(0, 19) + "..."
+                    : userPlayListData.name
+            } (${maxOffset})`;
 
-        for (let offset = 0; offset < maxOffset; ++offset)
-            urlsLeft.push(
-                `https://api.spotify.com/v1/playlists/${params.userPlaylistId}/tracks?fields=items&limit=1&offset=${offset}`
-            );
-    } else if (params.use === "liked_songs") {
-        const maxOffset = (
-            await getData(
-                `https://api.spotify.com/v1/me/tracks?limit=1&offset=0`,
-                false
-            )
-        ).total;
-
-        const elSourceImg = document.getElementById("source_img");
-
-        document.getElementById("source").href =
-            "https://open.spotify.com/collection/tracks";
-        document.getElementById("source_img_search").style.display = "none";
-        elSourceImg.style.display = "initial";
-        elSourceImg.src =
-            "https://t.scdn.co/images/3099b3803ad9496896c43f22fe9be8c4.png";
-        document.getElementById(
-            "source_text"
-        ).innerText = `Liked Songs (${maxOffset})`;
-
-        for (let offset = 0; offset < maxOffset; ++offset)
-            urlsLeft.push(
-                `https://api.spotify.com/v1/me/tracks?limit=1&offset=${offset}`
-            );
-    } else if (params.use === "playlist") {
-        const playlistIdParts = params.playlistId.split(":"),
-            playlistId = playlistIdParts[playlistIdParts.length - 1],
-            playlistData = await getData(
-                `https://api.spotify.com/v1/playlists/${playlistId}?fields=external_urls%2Cimages%2Cname%2Ctracks(total)`,
-                false
-            ),
-            maxOffset = playlistData.tracks.total;
-
-        const elSourceImg = document.getElementById("source_img");
-
-        document.getElementById("source").href =
-            playlistData.external_urls.spotify;
-        document.getElementById("source_img_search").style.display = "none";
-        elSourceImg.style.display = "initial";
-        elSourceImg.src = playlistData.images[0].url;
-        document.getElementById("source_text").innerText = `${
-            playlistData.name.length >= 20
-                ? playlistData.name.substring(0, 19) + "..."
-                : playlistData.name
-        } (${maxOffset})`;
-
-        for (let offset = 0; offset < maxOffset; ++offset)
-            urlsLeft.push(
-                `https://api.spotify.com/v1/playlists/${playlistId}/tracks?fields=items&limit=1&offset=${offset}`
-            );
-    } else {
-        const queryString = encodeURIComponent(
-                Object.keys(params.query)
-                    .filter((key) => params.query[key])
-                    .map((key) => `${key}:"${params.query[key]}"`)
-                    .join("+")
-            ),
-            maxOffset = (
+            for (let offset = 0; offset < maxOffset; ++offset)
+                urlsLeft.push(
+                    `https://api.spotify.com/v1/playlists/${params.userPlaylistId}/tracks?fields=items&limit=1&offset=${offset}`
+                );
+            break;
+        }
+        case "liked_songs": {
+            const maxOffset = (
                 await getData(
-                    `https://api.spotify.com/v1/search?q=${queryString}&type=track&limit=1&offset=0`,
+                    `https://api.spotify.com/v1/me/tracks?limit=1&offset=0`,
                     false
                 )
-            ).tracks.total,
-            lastOffset = Math.min(maxOffset, params.maxSearchResults);
+            ).total;
 
-        document.getElementById("source_img").style.display = "none";
-        document.getElementById("source_img_search").style.display = "initial";
+            const elSourceImg = document.getElementById("source_img");
 
-        document.getElementById("source").href =
-            "https://open.spotify.com/search/" + queryString + "/tracks";
-        document.getElementById("source_text").innerText =
-            JSON.stringify(params.query) == JSON.stringify(DEFAULT_PARAMS.query)
-                ? `Last Decade (${lastOffset})`
-                : `Custom Search (${lastOffset})`;
+            document.getElementById("source").href =
+                "https://open.spotify.com/collection/tracks";
+            document.getElementById("source_img_search").style.display = "none";
+            elSourceImg.style.display = "initial";
+            elSourceImg.src =
+                "https://t.scdn.co/images/3099b3803ad9496896c43f22fe9be8c4.png";
+            document.getElementById(
+                "source_text"
+            ).innerText = `Liked Songs (${maxOffset})`;
 
-        for (let offset = 0; offset < lastOffset; ++offset)
-            urlsLeft.push(
-                `https://api.spotify.com/v1/search?q=${queryString}&type=track&limit=1&offset=${offset}`
-            );
+            for (let offset = 0; offset < maxOffset; ++offset)
+                urlsLeft.push(
+                    `https://api.spotify.com/v1/me/tracks?limit=1&offset=${offset}`
+                );
+            break;
+        }
+        case "album_playlist": {
+            const albumPlaylistURIParts = params.albumPlaylistURI.split(":"),
+                albumPlaylistString = albumPlaylistURIParts[1],
+                albumPlaylistId = albumPlaylistURIParts[2];
+
+            let albumPlaylistData,
+                isAlbum = false;
+
+            if (albumPlaylistString === "album") {
+                albumPlaylistData = await getData(
+                    `https://api.spotify.com/v1/albums/${albumPlaylistId}`,
+                    false
+                );
+                albumCover = albumPlaylistData.images[0].url;
+                isAlbum = true;
+            } else if (albumPlaylistString === "playlist")
+                albumPlaylistData = await getData(
+                    `https://api.spotify.com/v1/playlists/${albumPlaylistId}?fields=external_urls%2Cimages%2Cname%2Ctracks(total)`,
+                    false
+                );
+            else {
+                alert(
+                    "Invalid album/playlist id (format: spotify:<album/playlist>:{id})"
+                );
+                return;
+            }
+
+            const maxOffset = albumPlaylistData.tracks.total;
+
+            const elSourceImg = document.getElementById("source_img");
+
+            document.getElementById("source").href =
+                albumPlaylistData.external_urls.spotify;
+            document.getElementById("source_img_search").style.display = "none";
+            elSourceImg.style.display = "initial";
+            elSourceImg.src = albumPlaylistData.images[0].url;
+            document.getElementById("source_text").innerText = `${
+                albumPlaylistData.name.length >= 20
+                    ? albumPlaylistData.name.substring(0, 19) + "..."
+                    : albumPlaylistData.name
+            } (${maxOffset})`;
+
+            for (let offset = 0; offset < maxOffset; ++offset)
+                urlsLeft.push(
+                    isAlbum
+                        ? `https://api.spotify.com/v1/albums/${albumPlaylistId}/tracks?limit=1&offset=${offset}`
+                        : `https://api.spotify.com/v1/playlists/${albumPlaylistId}/tracks?fields=items&limit=1&offset=${offset}`
+                );
+            break;
+        }
+        case "search": {
+            const queryString = encodeURIComponent(
+                    Object.keys(params.query)
+                        .filter((key) => params.query[key])
+                        .map((key) => `${key}:"${params.query[key]}"`)
+                        .join("+")
+                ),
+                maxOffset = (
+                    await getData(
+                        `https://api.spotify.com/v1/search?q=${queryString}&type=track&limit=1&offset=0`,
+                        false
+                    )
+                ).tracks.total,
+                lastOffset = Math.min(maxOffset, params.maxSearchResults);
+
+            document.getElementById("source_img").style.display = "none";
+            document.getElementById("source_img_search").style.display =
+                "initial";
+
+            document.getElementById("source").href =
+                "https://open.spotify.com/search/" + queryString + "/tracks";
+            document.getElementById("source_text").innerText =
+                JSON.stringify(params.query) ==
+                JSON.stringify(DEFAULT_PARAMS.query)
+                    ? `Last Decade (${lastOffset})`
+                    : `Custom Search (${lastOffset})`;
+
+            for (let offset = 0; offset < lastOffset; ++offset)
+                urlsLeft.push(
+                    `https://api.spotify.com/v1/search?q=${queryString}&type=track&limit=1&offset=${offset}`
+                );
+            break;
+        }
     }
 }
 
@@ -406,11 +439,13 @@ function getData(url, returnFirstTrack = true) {
             success: (data) => {
                 if (!returnFirstTrack) return resolve(data);
 
-                const trackData = data.tracks
-                    ? data.tracks.items[0]
-                    : data.items[0].track;
+                const trackData =
+                    data.tracks?.items[0] ??
+                    data.items[0].track ??
+                    data.items[0];
 
-                if (trackData.preview_url) resolve(trackData);
+                if (trackData.preview_url && trackData.popularity)
+                    resolve(trackData);
                 else {
                     $.ajax({
                         url:
@@ -447,195 +482,200 @@ function getBarColor(p) {
 }
 
 function updateSide(sideNum) {
-    const trackData = sideNum === 1 ? trackData1 : trackData2,
-        noAudio =
-            (params.muteExplicit && trackData.explicit) ||
-            !trackData.preview_url,
-        elAlbumArtBtn = document.getElementById(`album_art_${sideNum}_btn`),
-        elTrackPlayer = document.getElementById("track_player");
+    try {
+        const trackData = sideNum === 1 ? trackData1 : trackData2,
+            noAudio =
+                (params.muteExplicit && trackData.explicit) ||
+                !trackData.preview_url,
+            elAlbumArtBtn = document.getElementById(`album_art_${sideNum}_btn`),
+            elTrackPlayer = document.getElementById("track_player");
 
-    if (noAudio) {
-        elAlbumArtBtn.style.opacity = 0.5;
-        elAlbumArtBtn.disabled = true;
-        elAlbumArtBtn.className = "";
-        elAlbumArtBtn.style.animation = "initial";
-    } else {
-        elAlbumArtBtn.style.opacity = 1;
-        elAlbumArtBtn.disabled = false;
-        elAlbumArtBtn.className = "album_art_hover";
-    }
-
-    if (sideNum === 2 && !noAudio) playTrack(2);
-    else elTrackPlayer.src = "";
-
-    const elHalf = document.getElementById(
-            `${sideNum === 1 ? "left" : "right"}_half`
-        ),
-        elAlbumArt = document.getElementById(`album_art_${sideNum}`),
-        albumArtUrl = trackData.album.images[0].url;
-
-    elHalf.style.background = "initial";
-
-    const elTrackLeftGradient = document.getElementById(
-            `track_${sideNum}_left_gradient`
-        ),
-        elTrackRightGradient = document.getElementById(
-            `track_${sideNum}_right_gradient`
-        ),
-        elArtistLeftGradient = document.getElementById(
-            `artist_${sideNum}_left_gradient`
-        ),
-        elArtistRightGradient = document.getElementById(
-            `artist_${sideNum}_right_gradient`
-        );
-
-    if (sideNum === 1 && score > 0) {
-        elHalf.style.background =
-            document.getElementById("right_half").style.background;
-        elTrackLeftGradient.style.background = document.getElementById(
-            "track_2_left_gradient"
-        );
-        elTrackRightGradient.style.background = document.getElementById(
-            "track_2_right_gradient"
-        );
-        elArtistLeftGradient.style.background = document.getElementById(
-            "artist_2_left_gradient"
-        );
-        elArtistRightGradient.style.background = document.getElementById(
-            "artist_2_right_gradient"
-        );
-    } else
-        Vibrant.from(albumArtUrl)
-            .getPalette()
-            .then((palette) => {
-                const hsl = palette.Muted.getHsl();
-
-                elHalf.style.background = getLinearGradient(hsl);
-
-                if (trackTitleWidth > trackInfoWidth) {
-                    elTrackLeftGradient.style.background =
-                        getMarqueeLinearGradient(hsl, "right");
-                    elTrackRightGradient.style.background =
-                        getMarqueeLinearGradient(hsl, "left");
-                }
-
-                if (artistWidth > trackInfoWidth) {
-                    elArtistLeftGradient.style.background =
-                        getMarqueeLinearGradient(hsl, "right");
-                    elArtistRightGradient.style.background =
-                        getMarqueeLinearGradient(hsl, "left");
-                }
-            });
-
-    elAlbumArt.src = "";
-    elAlbumArt.src = albumArtUrl;
-
-    const elTrackTitle = document.getElementById(`track_title_${sideNum}`),
-        elTrackInfo = document.getElementById(
-            `${sideNum === 1 ? "left" : "right"}_track_info`
-        );
-
-    elTrackTitle.innerText = trackData.name;
-    elTrackTitle.href = trackData.external_urls.spotify;
-
-    const trackTitleWidth = elTrackTitle.scrollWidth,
-        trackInfoWidth = elTrackInfo.offsetWidth;
-
-    elTrackTitle.style.animation = "initial";
-    if (trackTitleWidth > trackInfoWidth) {
-        elTrackTitle.innerHTML += "<span>" + "\u00A0".repeat(17) + "</span>";
-
-        const trackTitleWidthSpaces = elTrackTitle.scrollWidth;
-
-        elTrackTitle.innerHTML += trackData.name;
-
-        document.documentElement.style.setProperty(
-            `--marquee_title_${sideNum}_distance`,
-            -(trackTitleWidthSpaces / elTrackTitle.scrollWidth) * 100 + "%"
-        );
-
-        const titleMarqueeDuration =
-                (trackTitleWidthSpaces / trackInfoWidth) * 8.25,
-            titleAnimation = `marquee_title_${sideNum} ${titleMarqueeDuration}s linear infinite`;
-
-        elTrackTitle.style.animation = titleAnimation;
-        elTrackTitle.onanimationiteration = () => {
-            if (document.hasFocus())
-                elTrackTitle.style.animationPlayState = "paused";
-            setTimeout(() => {
-                elTrackTitle.style.animationPlayState = "running";
-            }, SCROLL_PAUSE_DURATION * 1000);
-        };
-    } else
-        elTrackLeftGradient.style.background =
-            elTrackRightGradient.style.background = "initial";
-
-    const elArtist = document.getElementById(`artist_${sideNum}`);
-
-    elArtist.innerHTML = "";
-
-    for (let i = 0; i < trackData.artists.length; ++i) {
-        const artist = trackData.artists[i],
-            elA = document.createElement("a");
-
-        elA.innerText = artist.name;
-        elA.href = artist.external_urls.spotify;
-        elA.target = "_blank";
-        elA.className = "artist_link";
-        elA.draggable = false;
-
-        elArtist.appendChild(elA);
-
-        if (i != trackData.artists.length - 1) {
-            const elTextNode = document.createTextNode(",\u00A0");
-
-            elArtist.appendChild(elTextNode);
+        if (noAudio) {
+            elAlbumArtBtn.style.opacity = 0.5;
+            elAlbumArtBtn.disabled = true;
+            elAlbumArtBtn.className = "";
+            elAlbumArtBtn.style.animation = "initial";
+        } else {
+            elAlbumArtBtn.style.opacity = 1;
+            elAlbumArtBtn.disabled = false;
+            elAlbumArtBtn.className = "album_art_hover";
         }
+
+        if (sideNum === 2 && !noAudio) playTrack(2);
+        else elTrackPlayer.src = "";
+
+        const elHalf = document.getElementById(
+                `${sideNum === 1 ? "left" : "right"}_half`
+            ),
+            elAlbumArt = document.getElementById(`album_art_${sideNum}`),
+            albumArtUrl = trackData.album?.images[0].url ?? albumCover;
+
+        elHalf.style.background = "initial";
+
+        const elTrackLeftGradient = document.getElementById(
+                `track_${sideNum}_left_gradient`
+            ),
+            elTrackRightGradient = document.getElementById(
+                `track_${sideNum}_right_gradient`
+            ),
+            elArtistLeftGradient = document.getElementById(
+                `artist_${sideNum}_left_gradient`
+            ),
+            elArtistRightGradient = document.getElementById(
+                `artist_${sideNum}_right_gradient`
+            );
+
+        if (sideNum === 1 && score > 0) {
+            elHalf.style.background =
+                document.getElementById("right_half").style.background;
+            elTrackLeftGradient.style.background = document.getElementById(
+                "track_2_left_gradient"
+            );
+            elTrackRightGradient.style.background = document.getElementById(
+                "track_2_right_gradient"
+            );
+            elArtistLeftGradient.style.background = document.getElementById(
+                "artist_2_left_gradient"
+            );
+            elArtistRightGradient.style.background = document.getElementById(
+                "artist_2_right_gradient"
+            );
+        } else
+            Vibrant.from(albumArtUrl)
+                .getPalette()
+                .then((palette) => {
+                    const hsl = palette.Muted.getHsl();
+
+                    elHalf.style.background = getLinearGradient(hsl);
+
+                    if (trackTitleWidth > trackInfoWidth) {
+                        elTrackLeftGradient.style.background =
+                            getMarqueeLinearGradient(hsl, "right");
+                        elTrackRightGradient.style.background =
+                            getMarqueeLinearGradient(hsl, "left");
+                    }
+
+                    if (artistWidth > trackInfoWidth) {
+                        elArtistLeftGradient.style.background =
+                            getMarqueeLinearGradient(hsl, "right");
+                        elArtistRightGradient.style.background =
+                            getMarqueeLinearGradient(hsl, "left");
+                    }
+                });
+
+        elAlbumArt.src = "";
+        elAlbumArt.src = albumArtUrl;
+
+        const elTrackTitle = document.getElementById(`track_title_${sideNum}`),
+            elTrackInfo = document.getElementById(
+                `${sideNum === 1 ? "left" : "right"}_track_info`
+            );
+
+        elTrackTitle.innerText = trackData.name;
+        elTrackTitle.href = trackData.external_urls.spotify;
+
+        const trackTitleWidth = elTrackTitle.scrollWidth,
+            trackInfoWidth = elTrackInfo.offsetWidth;
+
+        elTrackTitle.style.animation = "initial";
+        if (trackTitleWidth > trackInfoWidth) {
+            elTrackTitle.innerHTML +=
+                "<span>" + "\u00A0".repeat(17) + "</span>";
+
+            const trackTitleWidthSpaces = elTrackTitle.scrollWidth;
+
+            elTrackTitle.innerHTML += trackData.name;
+
+            document.documentElement.style.setProperty(
+                `--marquee_title_${sideNum}_distance`,
+                -(trackTitleWidthSpaces / elTrackTitle.scrollWidth) * 100 + "%"
+            );
+
+            const titleMarqueeDuration =
+                    (trackTitleWidthSpaces / trackInfoWidth) * 8.25,
+                titleAnimation = `marquee_title_${sideNum} ${titleMarqueeDuration}s linear infinite`;
+
+            elTrackTitle.style.animation = titleAnimation;
+            elTrackTitle.onanimationiteration = () => {
+                if (document.hasFocus())
+                    elTrackTitle.style.animationPlayState = "paused";
+                setTimeout(() => {
+                    elTrackTitle.style.animationPlayState = "running";
+                }, SCROLL_PAUSE_DURATION * 1000);
+            };
+        } else
+            elTrackLeftGradient.style.background =
+                elTrackRightGradient.style.background = "initial";
+
+        const elArtist = document.getElementById(`artist_${sideNum}`);
+
+        elArtist.innerHTML = "";
+
+        for (let i = 0; i < trackData.artists.length; ++i) {
+            const artist = trackData.artists[i],
+                elA = document.createElement("a");
+
+            elA.innerText = artist.name;
+            elA.href = artist.external_urls.spotify;
+            elA.target = "_blank";
+            elA.className = "artist_link";
+            elA.draggable = false;
+
+            elArtist.appendChild(elA);
+
+            if (i != trackData.artists.length - 1) {
+                const elTextNode = document.createTextNode(",\u00A0");
+
+                elArtist.appendChild(elTextNode);
+            }
+        }
+
+        const artistWidth = elArtist.scrollWidth;
+
+        elArtist.style.animation = "initial";
+        if (artistWidth > trackInfoWidth) {
+            const artistInnerHTML = elArtist.innerHTML;
+
+            elArtist.innerHTML += "\u00A0".repeat(17);
+
+            const artistWidthSpaces = elArtist.scrollWidth;
+
+            elArtist.innerHTML += artistInnerHTML;
+
+            document.documentElement.style.setProperty(
+                `--marquee_artist_${sideNum}_distance`,
+                -(artistWidthSpaces / elArtist.scrollWidth) * 100 + "%"
+            );
+
+            const artistMarqueeDuration =
+                    (artistWidthSpaces / trackInfoWidth) * 8.25,
+                artistAnimation = `marquee_artist_${sideNum} ${artistMarqueeDuration}s linear infinite`;
+
+            elArtist.style.animation = artistAnimation;
+            elArtist.onanimationiteration = () => {
+                if (document.hasFocus())
+                    elArtist.style.animationPlayState = "paused";
+                setTimeout(() => {
+                    elArtist.style.animationPlayState = "running";
+                }, SCROLL_PAUSE_DURATION * 1000);
+            };
+        } else
+            elArtistLeftGradient.style.background =
+                elArtistRightGradient.style.background = "initial";
+
+        const elLikeBtn = document.getElementById(`like_btn_${sideNum}`);
+
+        hasTrackSaved(trackData.id).then((trackSaved) => {
+            if (trackSaved[0])
+                elLikeBtn.innerHTML =
+                    '<svg class="liked_svg" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>';
+            else
+                elLikeBtn.innerHTML =
+                    '<svg viewBox="0 0 16 16"><path d="M1.69 2A4.582 4.582 0 018 2.023 4.583 4.583 0 0111.88.817h.002a4.618 4.618 0 013.782 3.65v.003a4.543 4.543 0 01-1.011 3.84L9.35 14.629a1.765 1.765 0 01-2.093.464 1.762 1.762 0 01-.605-.463L1.348 8.309A4.582 4.582 0 011.689 2zm3.158.252A3.082 3.082 0 002.49 7.337l.005.005L7.8 13.664a.264.264 0 00.311.069.262.262 0 00.09-.069l5.312-6.33a3.043 3.043 0 00.68-2.573 3.118 3.118 0 00-2.551-2.463 3.079 3.079 0 00-2.612.816l-.007.007a1.501 1.501 0 01-2.045 0l-.009-.008a3.082 3.082 0 00-2.121-.861z"></path></svg>';
+        });
+    } catch (e) {
+        alert(e);
     }
-
-    const artistWidth = elArtist.scrollWidth;
-
-    elArtist.style.animation = "initial";
-    if (artistWidth > trackInfoWidth) {
-        const artistInnerHTML = elArtist.innerHTML;
-
-        elArtist.innerHTML += "\u00A0".repeat(17);
-
-        const artistWidthSpaces = elArtist.scrollWidth;
-
-        elArtist.innerHTML += artistInnerHTML;
-
-        document.documentElement.style.setProperty(
-            `--marquee_artist_${sideNum}_distance`,
-            -(artistWidthSpaces / elArtist.scrollWidth) * 100 + "%"
-        );
-
-        const artistMarqueeDuration =
-                (artistWidthSpaces / trackInfoWidth) * 8.25,
-            artistAnimation = `marquee_artist_${sideNum} ${artistMarqueeDuration}s linear infinite`;
-
-        elArtist.style.animation = artistAnimation;
-        elArtist.onanimationiteration = () => {
-            if (document.hasFocus())
-                elArtist.style.animationPlayState = "paused";
-            setTimeout(() => {
-                elArtist.style.animationPlayState = "running";
-            }, SCROLL_PAUSE_DURATION * 1000);
-        };
-    } else
-        elArtistLeftGradient.style.background =
-            elArtistRightGradient.style.background = "initial";
-
-    const elLikeBtn = document.getElementById(`like_btn_${sideNum}`);
-
-    hasTrackSaved(trackData.id).then((trackSaved) => {
-        if (trackSaved[0])
-            elLikeBtn.innerHTML =
-                '<svg class="liked_svg" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>';
-        else
-            elLikeBtn.innerHTML =
-                '<svg viewBox="0 0 16 16"><path d="M1.69 2A4.582 4.582 0 018 2.023 4.583 4.583 0 0111.88.817h.002a4.618 4.618 0 013.782 3.65v.003a4.543 4.543 0 01-1.011 3.84L9.35 14.629a1.765 1.765 0 01-2.093.464 1.762 1.762 0 01-.605-.463L1.348 8.309A4.582 4.582 0 011.689 2zm3.158.252A3.082 3.082 0 002.49 7.337l.005.005L7.8 13.664a.264.264 0 00.311.069.262.262 0 00.09-.069l5.312-6.33a3.043 3.043 0 00.68-2.573 3.118 3.118 0 00-2.551-2.463 3.079 3.079 0 00-2.612.816l-.007.007a1.501 1.501 0 01-2.045 0l-.009-.008a3.082 3.082 0 00-2.121-.861z"></path></svg>';
-    });
 }
 
 function clickTrack(elAlbumArtBtn, sideNum) {
@@ -976,7 +1016,7 @@ function setVolume(newVolume) {
 
     volume = newVolume;
     document.getElementById("volume_slider").value =
-        (volume / VOLUME_FRACTION) * 100;
+        (volume / MAX_VOLUME) * 100;
     localStorage.setItem("volume", volume);
 
     if (!fadeInNext && currVolume < oldVolume) {
@@ -992,10 +1032,10 @@ function setVolume(newVolume) {
         fadeOut();
     } else if (currVolume === oldVolume) $elTrackPlayer[0].volume = volume;
 
-    if (volume / VOLUME_FRACTION > 2 / 3) {
+    if (volume / MAX_VOLUME > 2 / 3) {
         elMuteBtn.innerHTML =
             '<svg id="mute_img" viewBox="0 0 16 16"><path d="M9.741.85a.75.75 0 01.375.65v13a.75.75 0 01-1.125.65l-6.925-4a3.642 3.642 0 01-1.33-4.967 3.639 3.639 0 011.33-1.332l6.925-4a.75.75 0 01.75 0zm-6.924 5.3a2.139 2.139 0 000 3.7l5.8 3.35V2.8l-5.8 3.35zm8.683 4.29V5.56a2.75 2.75 0 010 4.88z"></path><path d="M11.5 13.614a5.752 5.752 0 000-11.228v1.55a4.252 4.252 0 010 8.127v1.55z"></path></svg>';
-    } else if (volume / VOLUME_FRACTION > 1 / 3) {
+    } else if (volume / MAX_VOLUME > 1 / 3) {
         elMuteBtn.innerHTML =
             '<svg id="mute_img" viewBox="0 0 16 16"><path d="M9.741.85a.75.75 0 01.375.65v13a.75.75 0 01-1.125.65l-6.925-4a3.642 3.642 0 01-1.33-4.967 3.639 3.639 0 011.33-1.332l6.925-4a.75.75 0 01.75 0zm-6.924 5.3a2.139 2.139 0 000 3.7l5.8 3.35V2.8l-5.8 3.35zm8.683 6.087a4.502 4.502 0 000-8.474v1.65a2.999 2.999 0 010 5.175v1.649z"></path></svg>';
     } else if (volume > 0) {
@@ -1008,15 +1048,15 @@ function setVolume(newVolume) {
 
     document.documentElement.style.setProperty(
         "--pulse_size",
-        volume === 0 ? 1 : (0.025 * volume) / VOLUME_FRACTION + 1.025
+        volume === 0 ? 1 : (0.025 * volume) / MAX_VOLUME + 1.025
     );
     document.documentElement.style.setProperty(
         "--volume_slider_offset",
-        (volume / VOLUME_FRACTION) * 100 + "%"
+        (volume / MAX_VOLUME) * 100 + "%"
     );
     document.documentElement.style.setProperty(
         "--volume_slider_thumb_margin",
-        (2 * volume) / VOLUME_FRACTION - 1 + "vh"
+        (2 * volume) / MAX_VOLUME - 1 + "vh"
     );
 }
 
@@ -1028,8 +1068,8 @@ function changeParams(newParams) {
         newParams.maxSearchResults !== undefined
     )
         document.getElementById("use_search").click();
-    else if (newParams.playlistId !== undefined)
-        document.getElementById("use_playlist").click();
+    else if (newParams.albumPlaylistURI !== undefined)
+        document.getElementById("use_album_playlist").click();
 
     if (newParams.query && newParams.query.year && newParams.query.year === "-")
         newParams.query.year = "";
@@ -1060,7 +1100,7 @@ function updatePlayValidity() {
         (params.use === "search" &&
             Object.values(params.query).some((val) => val) &&
             validYearString(params.query.year)) ||
-        (params.use === "playlist" && params.playlistId)
+        (params.use === "album_playlist" && params.albumPlaylistURI)
     ) {
         elPlayBtn.disabled = false;
         elPlayBtn.className = "valid_play_btn";
