@@ -262,10 +262,11 @@ async function play() {
     ).style.display = "none";
 
     urlsLeft = [];
-    if (await loadUrls()) {
-        alert("foo");
-        return restart();
-    }
+    alert((await loardUrls()) === true);
+//     if (await loadUrls()) {
+//         alert("foo");
+//         return restart();
+//     }
 
     if (urlsLeft.length < 2) return notEnoughResults();
 
