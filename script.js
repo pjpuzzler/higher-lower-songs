@@ -87,10 +87,10 @@ window.onload = () => {
 
         elFeaturedPlaylist.innerHTML = "<option selected></option>";
 
-        if (!data.items.length)
+        if (!data.playlists.items.length)
             document.getElementById("featured_playlist_random").disabled = true;
         else {
-            for (const featuredPlaylist of data.items)
+            for (const featuredPlaylist of data.playlists.items)
                 elFeaturedPlaylist.add(
                     new Option(featuredPlaylist.name, featuredPlaylist.id)
                 );
