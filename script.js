@@ -262,7 +262,7 @@ async function play() {
     ).style.display = "none";
 
     urlsLeft = [];
-    alert((await loadUrls()) === true);
+    await loadUrls();
 //     if (await loadUrls()) {
 //         alert("foo");
 //         return restart();
