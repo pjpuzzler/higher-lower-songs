@@ -346,7 +346,6 @@ async function loadUrls() {
             break;
         }
         case "top_songs": {
-            try {
             const maxOffset = (
                 await getData(
                     `https://api.spotify.com/v1/me/top/tracks?limit=1&offset=0`,
@@ -370,7 +369,6 @@ async function loadUrls() {
                 urlsLeft.push(
                     `https://api.spotify.com/v1/me/top/tracks?limit=1&offset=${offset}`
                 );
-            } catch (e) {alert(JSON.stringify(e));}
             break;
         }
         case "album_playlist": {
