@@ -125,6 +125,9 @@ window.onload = () => {
         case "liked_songs":
             document.getElementById("use_liked_songs").checked = true;
             break;
+        case "top_songs":
+            document.getElementById("use_top_songs").checked = true;
+            break;
     }
 
     updatePlayValidity();
@@ -343,6 +346,32 @@ async function loadUrls() {
             for (let offset = 0; offset < maxOffset; ++offset)
                 urlsLeft.push(
                     `https://api.spotify.com/v1/me/tracks?limit=1&offset=${offset}`
+                );
+            break;
+        }
+        case "top_songs": {
+            const maxOffset = (
+                await getData(
+                    `https://api.spotify.com/v1/me/top/tracks?limit=1&offset=0`,
+                    false
+                )
+            ).total;
+
+            const elSourceImg = document.getElementById("source_img");
+
+            document.getElementById("source").href =
+                "https://open.spotify.com/collection";
+//             document.getElementById("source_img_search").style.display = "none";
+// //             elSourceImg.style.display = "initial";
+//             elSourceImg.src =
+//                 "https://t.scdn.co/images/3099b3803ad9496896c43f22fe9be8c4.png";
+            document.getElementById(
+                "source_text"
+            ).innerText = `Top Songs (${maxOffset})`;
+
+            for (let offset = 0; offset < maxOffset; ++offset)
+                urlsLeft.push(
+                    `https://api.spotify.com/v1/me/top/tracks?limit=1&offset=${offset}`
                 );
             break;
         }
@@ -1112,6 +1141,7 @@ function updatePlayValidity() {
     if (
         (params.use === "user_playlist" && params.userPlaylistId) ||
         params.use === "liked_songs" ||
+        params.use === "top_songs" ||
         (params.use === "search" &&
             Object.values(params.query).some((val) => val) &&
             validYearString(params.query.year)) ||
