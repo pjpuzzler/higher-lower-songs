@@ -380,7 +380,7 @@ async function loadUrls() {
         case "liked_songs": {
             const maxOffset = (
                 await getData(
-                    `https://api.spotify.com/v1/me/tracks?limit=1&offset=0`,
+                    `https://api.spotify.com/v1/me/tracks?limit=1`,
                     false
                 )
             ).total;
@@ -406,7 +406,7 @@ async function loadUrls() {
         case "top_songs": {
             const maxOffset = (
                 await getData(
-                    `https://api.spotify.com/v1/me/top/tracks?limit=1&offset=0`,
+                    `https://api.spotify.com/v1/me/top/tracks?limit=1`,
                     false
                 )
             ).total;
@@ -498,7 +498,7 @@ async function loadUrls() {
                 ),
                 maxOffset = (
                     await getData(
-                        `https://api.spotify.com/v1/search?q=${queryString}&type=track&limit=1&offset=0`,
+                        `https://api.spotify.com/v1/search?q=${queryString}&type=track&limit=1`,
                         false
                     )
                 ).tracks.total,
