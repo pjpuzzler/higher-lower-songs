@@ -370,7 +370,7 @@ async function loadUrls() {
                 urlsLeft.push(
                     `https://api.spotify.com/v1/me/top/tracks?limit=1&offset=${offset}`
                 );
-            } catch (e) {alert(e.message);}
+            } catch (e) {alert(JSON.stringify(e));}
             break;
         }
         case "album_playlist": {
