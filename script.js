@@ -262,8 +262,10 @@ async function play() {
     ).style.display = "none";
 
     urlsLeft = [];
-    if (await loadUrls())
+    if (await loadUrls()) {
+        alert("foo");
         return restart();
+    }
 
     if (urlsLeft.length < 2) return notEnoughResults();
 
@@ -355,7 +357,7 @@ async function loadUrls() {
                         `https://api.spotify.com/v1/albums/${albumPlaylistId}`,
                         false
                     );
-                } catch (e) {
+                } catch {
                     alert("Invalid album ID");
                     return true;
                 }
