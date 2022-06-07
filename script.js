@@ -81,6 +81,23 @@ window.onload = () => {
 
         elUserPlaylist.value = params.userPlaylistId;
     });
+    
+    getFeaturedPlaylists().then((data) => {
+        const elFeaturedPlaylist = document.getElementById("featured_playlist");
+
+        elFeaturedPlaylist.innerHTML = "<option selected></option>";
+
+        if (!data.items.length)
+            document.getElementById("featured_playlist_random").disabled = true;
+        else {
+            for (const featuredPlaylist of data.items)
+                elFeaturedPlaylist.add(
+                    new Option(featuredPlaylist.name, featuredPlaylist.id)
+                );
+        }
+
+        elFeaturedPlaylist.value = params.featuredPlaylistId;
+    });
 
     const elFromYear = document.getElementById("from_year"),
         elToYear = document.getElementById("to_year");
@@ -121,6 +138,9 @@ window.onload = () => {
             break;
         case "user_playlist":
             document.getElementById("use_user_playlist").checked = true;
+            break;
+        case "featured_playlist":
+            document.getElementById("use_featured_playlist").checked = true;
             break;
         case "liked_songs":
             document.getElementById("use_liked_songs").checked = true;
@@ -249,6 +269,18 @@ function getUserPlaylists() {
     );
 }
 
+function getFeaturedPlaylists() {
+    return Promise.resolve(
+        $.ajax({
+            url: "https://api.spotify.com/v1/browse/featured-playlists?limit=50",
+            type: "GET",
+            beforeSend: (xhr) => {
+                xhr.setRequestHeader("Authorization", "Bearer " + _token);
+            },
+        })
+    );
+}
+
 function getGenres() {
     return Promise.resolve(
         $.ajax({
@@ -316,6 +348,32 @@ async function loadUrls() {
             for (let offset = 0; offset < maxOffset; ++offset)
                 urlsLeft.push(
                     `https://api.spotify.com/v1/playlists/${params.userPlaylistId}/tracks?fields=items&limit=1&offset=${offset}`
+                );
+            break;
+        }
+        case "featured_playlist": {
+            const featuredPlayListData = await getData(
+                    `https://api.spotify.com/v1/playlists/${params.featuredPlaylistId}?fields=external_urls%2Cimages%2Cname%2Ctracks(total)`,
+                    false
+                ),
+                maxOffset = featuredPlayListData.tracks.total;
+
+            const elSourceImg = document.getElementById("source_img");
+
+            document.getElementById("source").href =
+                featuredPlayListData.external_urls.spotify;
+            document.getElementById("source_img_search").style.display = "none";
+            elSourceImg.style.display = "initial";
+            elSourceImg.src = featuredPlayListData.images[0].url;
+            document.getElementById("source_text").innerText = `${
+                featuredPlayListData.name.length >= 20
+                    ? featuredPlayListData.name.substring(0, 19) + "..."
+                    : featuredPlayListData.name
+            } (${maxOffset})`;
+
+            for (let offset = 0; offset < maxOffset; ++offset)
+                urlsLeft.push(
+                    `https://api.spotify.com/v1/playlists/${params.featuredPlaylistId}/tracks?fields=items&limit=1&offset=${offset}`
                 );
             break;
         }
@@ -1095,6 +1153,8 @@ function setVolume(newVolume) {
 function changeParams(newParams) {
     if (newParams.userPlaylistId !== undefined)
         document.getElementById("use_user_playlist").click();
+    else if (newParams.featuredPlaylistId !== undefined)
+        document.getElementById("use_featured_playlist").click();
     else if (
         newParams.query !== undefined ||
         newParams.maxSearchResults !== undefined
@@ -1128,6 +1188,7 @@ function updatePlayValidity() {
 
     if (
         (params.use === "user_playlist" && params.userPlaylistId) ||
+        (params.use === "featured_playlist" && params.featuredPlaylistId) ||
         params.use === "liked_songs" ||
         params.use === "top_songs" ||
         (params.use === "search" &&
@@ -1156,6 +1217,17 @@ function randomUserPlaylist() {
     changeParams({ userPlaylistId: elUserPlaylist.value });
 }
 
+function randomFeaturedPlaylist() {
+    const elFeaturedPlaylist = document.getElementById("featured_playlist");
+
+    if (elFeaturedPlaylist.length === 1) return;
+
+    elFeaturedPlaylist.selectedIndex = Math.floor(
+        Math.random() * (elFeaturedPlaylist.length - 1) + 1
+    );
+    changeParams({ featuredPlaylistId: elFeaturedPlaylist.value });
+}
+
 function randomGenre() {
     const elGenre = document.getElementById("genre");
 
@@ -1174,6 +1246,7 @@ function resetParams() {
 
 function clearParams() {
     changeParams({
+        featuredPlaylistId: "",
         maxSearchResults: params.maxSearchResults,
         muteExplicit: params.muteExplicit,
         playlistId: "",
