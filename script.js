@@ -263,7 +263,7 @@ async function play() {
 
     urlsLeft = [];
     if (await loadUrls())
-        return;
+        return restart();
 
     if (urlsLeft.length < 2) return notEnoughResults();
 
