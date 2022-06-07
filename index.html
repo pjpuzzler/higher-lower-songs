@@ -144,7 +144,7 @@
                 type="range"
                 min="0"
                 max="100"
-                oninput="setVolume(this.value * VOLUME_FRACTION / 100)"
+                oninput="setVolume(this.value / 100 * MAX_VOLUME)"
             />
         </div>
 
