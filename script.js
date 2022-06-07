@@ -1007,6 +1007,7 @@ function toggleMute() {
 }
 
 function setVolume(newVolume) {
+    alert(newVolume);
     const $elTrackPlayer = $("#track_player"),
         currVolume = $elTrackPlayer[0].volume,
         oldVolume = volume,
