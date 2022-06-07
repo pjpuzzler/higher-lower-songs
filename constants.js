@@ -20,6 +20,7 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
         maxSearchResults: 1000,
         muteExplicit: false,
         albumPlaylistURI: "",
+        featuredPlaylistId: "",
         query: {
             album: "",
             artist: "",
