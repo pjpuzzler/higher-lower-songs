@@ -31,7 +31,7 @@ let params,
     volume,
     highScore,
     score = 0,
-    prevVolume,
+    prevVolume = 2 / 3 * MAX_VOLUME,
     muted = false;
 
 window.onload = () => {
@@ -86,8 +86,6 @@ window.onload = () => {
     elToYear.max = CURR_YEAR;
 
     setVolume(Number(localStorage.getItem("volume") ?? DEFAULT_VOLUME));
-
-    prevVolume = volume || DEFAULT_VOLUME;
 
     highScore = Number(localStorage.getItem("highScore") ?? 0);
     document.getElementById("current_high_score").innerText =
@@ -414,7 +412,7 @@ async function loadUrls() {
             document.getElementById("source").href =
                 "https://open.spotify.com/search/" + queryString + "/tracks";
             document.getElementById("source_text").innerText =
-                JSON.stringify(params.query) ==
+                JSON.stringify(params.query) ===
                 JSON.stringify(DEFAULT_PARAMS.query)
                     ? `Last Decade (${lastOffset})`
                     : `Custom Search (${lastOffset})`;
