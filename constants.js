@@ -1,5 +1,4 @@
-const REDIRECT_URI = "http://127.0.0.1:5500/",
-    // "https://pjpuzzler.github.io/higher-lower-songs/",
+const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
     CLIENT_ID = "32b5db6ab5bc4a64bf2b230b131120dc",
     SCOPES = [
         "user-library-read",
