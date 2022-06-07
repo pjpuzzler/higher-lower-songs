@@ -83,6 +83,8 @@ window.onload = () => {
     });
     
     getFeaturedPlaylists().then((data) => {
+        document.getElementById("use_featured_playlist_label").innerText = data.message;
+        
         const elFeaturedPlaylist = document.getElementById("featured_playlist");
 
         elFeaturedPlaylist.innerHTML = "<option selected></option>";
@@ -272,7 +274,7 @@ function getUserPlaylists() {
 function getFeaturedPlaylists() {
     return Promise.resolve(
         $.ajax({
-            url: "https://api.spotify.com/v1/browse/featured-playlists?limit=50",
+            url: "https://api.spotify.com/v1/browse/featured-playlists?locale=en&limit=50",
             type: "GET",
             beforeSend: (xhr) => {
                 xhr.setRequestHeader("Authorization", "Bearer " + _token);
