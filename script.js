@@ -1246,25 +1246,6 @@ function resetParams() {
     window.onload();
 }
 
-function clearParams() {
-    changeParams({
-        albumPlaylistURI: "",
-        featuredPlaylistId: "",
-        maxSearchResults: params.maxSearchResults,
-        muteExplicit: params.muteExplicit,
-        query: {
-            album: "",
-            artist: "",
-            genre: "",
-            track: "",
-            year: "",
-        },
-        use: params.use,
-        userPlaylistId: "",
-    });
-    window.onload();
-}
-
 function toggleAdvancedParams() {
     const elAdvancedParams = document.getElementById("advanced_params");
 
