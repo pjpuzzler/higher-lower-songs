@@ -226,7 +226,7 @@
             </div>
             <br />
             <button id="toggle_advanced_params" class="param_button" onclick="toggleAdvancedParams()">Show Advanced</button>
-            <button class="param_button" onclick="changeParams({ ...DEFAULT_PARAMS, muteExplicit: params.muteExplicit })">Reset</button>
+            <button class="param_button" onclick="resetParams()">Reset</button>
             <br />
             <br />
             <input id="mute_explicit" type="checkbox" oninput="changeParams({muteExplicit: this.checked})" />
