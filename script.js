@@ -1268,3 +1268,12 @@ function changeUser() {
         "%20"
     )}&response_type=token&show_dialog=true`;
 }
+
+function clearSearch() {
+    
+}
+
+function resetParams() {
+    changeParams({ ...DEFAULT_PARAMS, muteExplicit: params.muteExplicit });
+    window.onload();
+}
