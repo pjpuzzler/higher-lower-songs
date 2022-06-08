@@ -1241,11 +1241,6 @@ function randomGenre() {
     changeParams({ query: { ...params.query, genre: elGenre.value } });
 }
 
-function resetParams() {
-    changeParams({ ...DEFAULT_PARAMS, muteExplicit: params.muteExplicit });
-    window.onload();
-}
-
 function toggleAdvancedParams() {
     const elAdvancedParams = document.getElementById("advanced_params");
 
