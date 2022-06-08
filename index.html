@@ -182,10 +182,10 @@
                     <button id="genre_random" class="param_button" onclick="randomGenre()">Random</button>
                     <br />
                     <input id="album" type="text" oninput="changeParams({query: {...params.query, album: this.value.trim()}})">
-                    <label for="album" title="For all songs from a specific album, use the Album/Playlist section"><u>Album</u></label>
+                    <label for="album" title="For all songs from a specific album, enter the album URI into the Album/Playlist section"><u>Album</u></label>
                     <br />
                     <input id="artist" type="text" oninput="changeParams({query: {...params.query, artist: this.value.trim()}})">
-                    <label for="artist" title="For all songs by a specific artist, search Spotify for '<artist> Complete Collection' playlist, and use that with the Album/Playlist section"><u>Artist</u></label>
+                    <label for="artist" title="For all songs by a specific artist, enter their complete collection playlist URI into the Album/Playlist section"><u>Artist</u></label>
                     <br />
                     <input id="track" type="text" oninput="changeParams({query: {...params.query, track: this.value.trim()}})">
                     <label for="track">Track</label>
