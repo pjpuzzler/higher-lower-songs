@@ -1270,7 +1270,8 @@ function changeUser() {
 }
 
 function clearSearch() {
-    
+    changeParams({query: {album: '', artist: '', genre: '', track: '', year: ''}});
+    window.onload();
 }
 
 function resetParams() {
