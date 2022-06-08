@@ -190,7 +190,7 @@
                     <input id="track" type="text" oninput="changeParams({query: {...params.query, track: this.value.trim()}})">
                     <label for="track">Track</label>
                     <br />
-                    <button class="param_button" onclick="changeParams({query: {album: "", artist: "", genre: "", track: "", year: ""}})">Clear</button>
+                    <button class="param_button" onclick="changeParams({query: {album: '', artist: '', genre: '', track: '', year: ''}})">Clear</button>
                 </div>
                 <br />
                 <input id="use_album_playlist" name="use" type="radio" onchange="changeParams({use: 'album_playlist'})" />
