@@ -28,6 +28,7 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
             track: "",
             year: `${CURR_YEAR - 10}-${CURR_YEAR}`,
         },
+        soundOnly: false,
         use: "search",
         userPlaylistId: "",
     };
