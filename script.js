@@ -669,7 +669,7 @@ function updateSide(sideNum) {
         elAlbumArt.src = albumArtUrl;
     else {
         elAlbumArt.style.visibility = "hidden";
-        elAlbumArtBtn.style.outline = "1vh solid #fff";
+        elAlbumArtBtn.style.outline = "0.5vh solid #fff";
     }
 
     const elTrackTitle = document.getElementById(`track_title_${sideNum}`),
