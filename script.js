@@ -108,6 +108,7 @@ window.onload = () => {
         "High: " + highScore;
 
     document.getElementById("mute_explicit").checked = params.muteExplicit;
+    document.getElementById("sound_only").checked = params.soundOnly;
     
     updateParams();
     updatePlayValidity();
@@ -1279,6 +1280,6 @@ function clearSearch() {
 }
 
 function resetParams() {
-    changeParams({ ...DEFAULT_PARAMS, muteExplicit: params.muteExplicit });
+    changeParams({ ...DEFAULT_PARAMS, muteExplicit: params.muteExplicit, soundOnly: params.soundOnly });
     updateParams();
 }
