@@ -118,6 +118,9 @@ window.onload = () => {
 
     const advancedParamsVisibility =
         document.getElementById("advanced_params").style.visibility;
+    
+    alert(localStorage.getItem("advanced_params_visibility") === "visible" &&
+        (!advancedParamsVisibility || advancedParamsVisibility === "hidden"));
 
     if (
         localStorage.getItem("advanced_params_visibility") === "visible" &&
