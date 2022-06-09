@@ -48,7 +48,6 @@ getUserData().then((data) => {
 });
 
 window.onload = () => {
-    try {
     params = JSON.parse(localStorage.getItem("params")) ?? DEFAULT_PARAMS;
     
     Promise.all([getGenres(), getUserPlaylists(), getFeaturedPlaylists()]).then((values) => {
@@ -112,22 +111,18 @@ window.onload = () => {
         "High: " + highScore;
 
     document.getElementById("mute_explicit").checked = params.muteExplicit;
-    document.getElementById("sound_only").checked = params.soundOnly;
+//     document.getElementById("sound_only").checked = params.soundOnly;
     
     updatePlayValidity();
 
     const advancedParamsVisibility =
         document.getElementById("advanced_params").style.visibility;
-    
-    alert(localStorage.getItem("advanced_params_visibility") === "visible" &&
-        (!advancedParamsVisibility || advancedParamsVisibility === "hidden"));
 
     if (
         localStorage.getItem("advanced_params_visibility") === "visible" &&
         (!advancedParamsVisibility || advancedParamsVisibility === "hidden")
     )
         toggleAdvancedParams();
-    } catch (e) {alert(e);}
 };
 
 function updateParams() {
