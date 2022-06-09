@@ -48,6 +48,7 @@ getUserData().then((data) => {
 });
 
 window.onload = () => {
+    try {
     params = JSON.parse(localStorage.getItem("params")) ?? DEFAULT_PARAMS;
     
     Promise.all([getGenres(), getUserPlaylists(), getFeaturedPlaylists()]).then((values) => {
@@ -123,6 +124,7 @@ window.onload = () => {
         (!advancedParamsVisibility || advancedParamsVisibility === "hidden")
     )
         toggleAdvancedParams();
+    } catch (e) {alert(e);}
 };
 
 function updateParams() {
