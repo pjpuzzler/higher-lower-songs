@@ -507,7 +507,7 @@ label {
 }
 
 #params input,
-select {
+select, label {
     margin: 2px 0;
 }
 
