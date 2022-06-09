@@ -592,11 +592,13 @@ select {
     body.adaptive #album_art_1_btn {
         height: 22.5vh;
         width: 22.5vh;
+        outline-width: 0.25vh;
     }
 
     body.adaptive #album_art_2_btn {
         height: 22.5vh;
         width: 22.5vh;
+        outline-width: 0.25vh;
     }
 
     body.adaptive #vs_container {
