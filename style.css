@@ -511,6 +511,10 @@ select {
     margin: 2px 0;
 }
 
+#use_featured_playlist_label {
+    font-style: italic;
+}
+
 @media (max-width: 950px) {
     body.adaptive h2 {
         font-size: 5vh;
