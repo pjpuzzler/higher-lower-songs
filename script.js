@@ -61,8 +61,6 @@ window.onload = () => {
                     )
                 );
         }
-
-        elGenre.value = params.query.genre;
     });
 
     getUserPlaylists().then((data) => {
@@ -78,8 +76,6 @@ window.onload = () => {
                     new Option(userPlaylist.name, userPlaylist.id)
                 );
         }
-
-        elUserPlaylist.value = params.userPlaylistId;
     });
     
     getFeaturedPlaylists().then((data) => {
@@ -97,8 +93,6 @@ window.onload = () => {
                     new Option(featuredPlaylist.name, featuredPlaylist.id)
                 );
         }
-
-        elFeaturedPlaylist.value = params.featuredPlaylistId;
     });
 
     setVolume(Number(localStorage.getItem("volume") ?? DEFAULT_VOLUME));
@@ -135,6 +129,10 @@ getUserData().then((data) => {
 });
 
 function updateParams() {
+    document.getElementById("genre").value = params.query.genre;
+    document.getElementById("user_playlist").value = params.userPlaylistId;
+    document.getElementById("featured_playlist").value = params.featuredPlaylistId;
+    
     const elFromYear = document.getElementById("from_year"),
         elToYear = document.getElementById("to_year");
 
