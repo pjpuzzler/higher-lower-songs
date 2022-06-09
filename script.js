@@ -624,54 +624,57 @@ function updateSide(sideNum) {
             `artist_${sideNum}_right_gradient`
         );
 
-    if (sideNum === 1 && score > 0) {
-        elHalf.style.background =
-            document.getElementById("right_half").style.background;
-        elTrackLeftGradient.style.background = document.getElementById(
-            "track_2_left_gradient"
-        );
-        elTrackRightGradient.style.background = document.getElementById(
-            "track_2_right_gradient"
-        );
-        elArtistLeftGradient.style.background = document.getElementById(
-            "artist_2_left_gradient"
-        );
-        elArtistRightGradient.style.background = document.getElementById(
-            "artist_2_right_gradient"
-        );
-    } else
-        Vibrant.from(albumArtUrl)
-            .getPalette()
-            .then((palette) => {
-                const hsl = palette.Muted.getHsl();
+    if (!params.soundOnly) {
+        if (sideNum === 1 && score > 0) {
+            elHalf.style.background =
+                document.getElementById("right_half").style.background;
+            elTrackLeftGradient.style.background = document.getElementById(
+                "track_2_left_gradient"
+            );
+            elTrackRightGradient.style.background = document.getElementById(
+                "track_2_right_gradient"
+            );
+            elArtistLeftGradient.style.background = document.getElementById(
+                "artist_2_left_gradient"
+            );
+            elArtistRightGradient.style.background = document.getElementById(
+                "artist_2_right_gradient"
+            );
+        } else
+            Vibrant.from(albumArtUrl)
+                .getPalette()
+                .then((palette) => {
+                    const hsl = palette.Muted.getHsl();
 
-                elHalf.style.background = getLinearGradient(hsl);
+                    elHalf.style.background = getLinearGradient(hsl);
 
-                if (trackTitleWidth > trackInfoWidth) {
-                    elTrackLeftGradient.style.background =
-                        getMarqueeLinearGradient(hsl, "right");
-                    elTrackRightGradient.style.background =
-                        getMarqueeLinearGradient(hsl, "left");
-                }
+                    if (trackTitleWidth > trackInfoWidth) {
+                        elTrackLeftGradient.style.background =
+                            getMarqueeLinearGradient(hsl, "right");
+                        elTrackRightGradient.style.background =
+                            getMarqueeLinearGradient(hsl, "left");
+                    }
 
-                if (artistWidth > trackInfoWidth) {
-                    elArtistLeftGradient.style.background =
-                        getMarqueeLinearGradient(hsl, "right");
-                    elArtistRightGradient.style.background =
-                        getMarqueeLinearGradient(hsl, "left");
-                }
-            });
+                    if (artistWidth > trackInfoWidth) {
+                        elArtistLeftGradient.style.background =
+                            getMarqueeLinearGradient(hsl, "right");
+                        elArtistRightGradient.style.background =
+                            getMarqueeLinearGradient(hsl, "left");
+                    }
+                });
+    }
 
     elAlbumArt.src = "";
-    elAlbumArt.src = albumArtUrl;
+    if (!params.soundOnly)
+        elAlbumArt.src = albumArtUrl;
 
     const elTrackTitle = document.getElementById(`track_title_${sideNum}`),
         elTrackInfo = document.getElementById(
             `${sideNum === 1 ? "left" : "right"}_track_info`
         );
 
-    elTrackTitle.innerText = trackData.name;
-    elTrackTitle.href = trackData.external_urls.spotify;
+    elTrackTitle.innerText = !params.soundOnly ? trackData.name : "";
+    elTrackTitle.href = !params.soundOnly ? trackData.external_urls.spotify : "";
 
     const trackTitleWidth = elTrackTitle.scrollWidth,
         trackInfoWidth = elTrackInfo.offsetWidth;
@@ -710,22 +713,24 @@ function updateSide(sideNum) {
 
     elArtist.innerHTML = "";
 
-    for (let i = 0; i < trackData.artists.length; ++i) {
-        const artist = trackData.artists[i],
-            elA = document.createElement("a");
+    if (!params.soundOnly) {
+        for (let i = 0; i < trackData.artists.length; ++i) {
+            const artist = trackData.artists[i],
+                elA = document.createElement("a");
 
-        elA.innerText = artist.name;
-        elA.href = artist.external_urls.spotify;
-        elA.target = "_blank";
-        elA.className = "artist_link";
-        elA.draggable = false;
+            elA.innerText = artist.name;
+            elA.href = artist.external_urls.spotify;
+            elA.target = "_blank";
+            elA.className = "artist_link";
+            elA.draggable = false;
 
-        elArtist.appendChild(elA);
+            elArtist.appendChild(elA);
 
-        if (i != trackData.artists.length - 1) {
-            const elTextNode = document.createTextNode(",\u00A0");
+            if (i != trackData.artists.length - 1) {
+                const elTextNode = document.createTextNode(",\u00A0");
 
-            elArtist.appendChild(elTextNode);
+                elArtist.appendChild(elTextNode);
+            }
         }
     }
 
@@ -954,11 +959,13 @@ function revealTrackPopularity(sideNum, animation = false, correct = false) {
 }
 
 async function getRandomTrackData() {
-    let trackData;
+    let trackData, notEnoughData, invalidForSoundOnly;
 
     do {
         trackData = await getData(getRandomUrl());
-    } while (!trackData.popularity && !trackData.preview_url);
+        notEnoughData = !trackData.popularity && !trackData.preview_url;
+        invalidForSoundOnly = !trackData.preview_url || trackData.explicit && params.muteExplicit;
+    } while (notEnoughData || params.soundOnly && invalidForSoundOnly);
 
     return trackData;
 }
