@@ -111,7 +111,7 @@ window.onload = () => {
         "High: " + highScore;
 
     document.getElementById("mute_explicit").checked = params.muteExplicit;
-//     document.getElementById("sound_only").checked = params.soundOnly;
+    document.getElementById("sound_only").checked = params.soundOnly;
     
     updatePlayValidity();
 
