@@ -667,6 +667,8 @@ function updateSide(sideNum) {
     elAlbumArt.src = "";
     if (!params.soundOnly)
         elAlbumArt.src = albumArtUrl;
+    else
+        elAlbumArt.style.display = "none";
 
     const elTrackTitle = document.getElementById(`track_title_${sideNum}`),
         elTrackInfo = document.getElementById(
