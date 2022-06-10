@@ -540,12 +540,18 @@ function getData(url, returnFirstTrack = true) {
             success: (data) => {
                 if (!returnFirstTrack) return resolve(data);
 
-                const trackData =
-                    data.tracks?.items[0] ??
-                    data.items[0].track ??
-                    data.items[0];
+                let noData;
+                
+                try {
+                    const trackData =
+                        data.tracks?.items[0] ??
+                        data.items[0].track ??
+                        data.items[0];
+                catch {
+                    noData = true;
+                }
 
-                if (trackData.preview_url && trackData.popularity)
+                if (!noData && trackData.preview_url && trackData.popularity)
                     resolve(trackData);
                 else {
                     $.ajax({
