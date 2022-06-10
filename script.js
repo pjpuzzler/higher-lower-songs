@@ -303,12 +303,14 @@ async function play() {
     urlsLeft = [];
     await loadUrls();
 
-    if (urlsLeft.length < 2) return notEnoughResults();
-
-    [trackData1, trackData2] = await Promise.all([
-        getRandomTrackData(),
-        getRandomTrackData(),
-    ]);
+    try {
+        [trackData1, trackData2] = await Promise.all([
+            getRandomTrackData(),
+            getRandomTrackData(),
+        ]);
+    } catch {
+        return notEnoughResults();
+    }
 
     document.getElementsByTagName("body")[0].className = "adaptive";
 
@@ -882,8 +884,7 @@ function likeTrack(elLikeBtn, sideNum) {
 function checkGuess(higher) {
     const correct = higher
             ? trackData2.popularity >= trackData1.popularity
-            : trackData2.popularity <= trackData1.popularity,
-        outOfUrls = !urlsLeft.length;
+            : trackData2.popularity <= trackData1.popularity;
 
     revealTrackPopularity(2, true, correct);
 
@@ -897,7 +898,7 @@ function checkGuess(higher) {
         ),
     ];
 
-    if (correct && !outOfUrls)
+    if (correct)
         checkPromises.push(
             new Promise(async (resolve) => {
                 trackDataTmp = await getRandomTrackData();
@@ -906,8 +907,8 @@ function checkGuess(higher) {
         );
 
     Promise.all(checkPromises).then(
-        correct ? (outOfUrls ? noMoreTracks : nextRound) : gameOver
-    );
+        correct ? nextRound : gameOver
+    ).catch(noMoreTracks);
 }
 
 function revealTrackPopularity(sideNum, animation = false, correct = false) {
@@ -966,6 +967,8 @@ async function getRandomTrackData() {
     let trackData, notEnoughData, invalidForSoundOnly;
 
     do {
+        if (!urlsLeft.length)
+            throw "out of urls";
         trackData = await getData(getRandomUrl());
         notEnoughData = !trackData.popularity && !trackData.preview_url;
         invalidForSoundOnly = !trackData.preview_url || trackData.explicit && params.muteExplicit;
