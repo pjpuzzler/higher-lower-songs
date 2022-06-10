@@ -539,13 +539,11 @@ function getData(url, returnFirstTrack = true) {
             },
             success: (data) => {
                 if (!returnFirstTrack) return resolve(data);
-
-                let noData;
                 
                 const trackData =
                     data.tracks?.items[0] ??
-                    data.items?[0].track ??
-                    data.items?[0];
+                    data.items?.[0].track ??
+                    data.items?.[0];
 
                 if (trackData && trackData.preview_url && trackData.popularity)
                     resolve(trackData);
