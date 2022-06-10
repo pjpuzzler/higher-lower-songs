@@ -547,7 +547,7 @@ function getData(url, returnFirstTrack = true) {
                         data.tracks?.items[0] ??
                         data.items[0].track ??
                         data.items[0];
-                catch {
+                } catch {
                     noData = true;
                 }
 
