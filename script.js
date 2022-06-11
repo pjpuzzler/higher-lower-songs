@@ -31,7 +31,7 @@ let params,
     volume,
     highScore,
     score = 0,
-    prevVolume = 2 / 3 * MAX_VOLUME,
+    prevVolume = (2 / 3) * MAX_VOLUME,
     muted = false;
 
 // $(document).tooltip({show: null});
@@ -49,60 +49,67 @@ getUserData().then((data) => {
 
 window.onload = () => {
     params = JSON.parse(localStorage.getItem("params")) ?? DEFAULT_PARAMS;
-    
-    Promise.all([getGenres(), getUserPlaylists(), getFeaturedPlaylists()]).then((values) => {
-        const elGenre = document.getElementById("genre");
 
-        elGenre.innerHTML = "<option selected></option>";
+    Promise.all([getGenres(), getUserPlaylists(), getFeaturedPlaylists()]).then(
+        (values) => {
+            const elGenre = document.getElementById("genre");
 
-        if (!values[0].genres.length)
-            document.getElementById("genre_random").disabled = true;
-        else {
-            for (const genre of values[0].genres)
-                elGenre.add(
-                    new Option(
-                        genre
-                            .split("-")
-                            .map(
-                                (s) =>
-                                    s.charAt(0).toUpperCase() + s.substring(1)
-                            )
-                            .join(" "),
-                        genre
-                    )
-                );
+            elGenre.innerHTML = "<option selected></option>";
+
+            if (!values[0].genres.length)
+                document.getElementById("genre_random").disabled = true;
+            else {
+                for (const genre of values[0].genres)
+                    elGenre.add(
+                        new Option(
+                            genre
+                                .split("-")
+                                .map(
+                                    (s) =>
+                                        s.charAt(0).toUpperCase() +
+                                        s.substring(1)
+                                )
+                                .join(" "),
+                            genre
+                        )
+                    );
+            }
+
+            const elUserPlaylist = document.getElementById("user_playlist");
+
+            elUserPlaylist.innerHTML = "<option selected></option>";
+
+            if (!values[1].items.length)
+                document.getElementById("user_playlist_random").disabled = true;
+            else {
+                for (const userPlaylist of values[1].items)
+                    elUserPlaylist.add(
+                        new Option(userPlaylist.name, userPlaylist.id)
+                    );
+            }
+
+            document.getElementById("use_featured_playlist_label").innerText =
+                values[2].message;
+
+            const elFeaturedPlaylist =
+                document.getElementById("featured_playlist");
+
+            elFeaturedPlaylist.innerHTML = "<option selected></option>";
+
+            if (!values[2].playlists.items.length)
+                document.getElementById(
+                    "featured_playlist_random"
+                ).disabled = true;
+            else {
+                for (const featuredPlaylist of values[2].playlists.items)
+                    elFeaturedPlaylist.add(
+                        new Option(featuredPlaylist.name, featuredPlaylist.id)
+                    );
+            }
+
+            updateParams();
         }
-        
-        const elUserPlaylist = document.getElementById("user_playlist");
-
-        elUserPlaylist.innerHTML = "<option selected></option>";
-
-        if (!values[1].items.length)
-            document.getElementById("user_playlist_random").disabled = true;
-        else {
-            for (const userPlaylist of values[1].items)
-                elUserPlaylist.add(
-                    new Option(userPlaylist.name, userPlaylist.id)
-                );
-        }
-        
-        document.getElementById("use_featured_playlist_label").innerText = values[2].message;
-        
-        const elFeaturedPlaylist = document.getElementById("featured_playlist");
-
-        elFeaturedPlaylist.innerHTML = "<option selected></option>";
-
-        if (!values[2].playlists.items.length)
-            document.getElementById("featured_playlist_random").disabled = true;
-        else {
-            for (const featuredPlaylist of values[2].playlists.items)
-                elFeaturedPlaylist.add(
-                    new Option(featuredPlaylist.name, featuredPlaylist.id)
-                );
-        }
-        
-        updateParams();
-    });
+    );
 
     setVolume(Number(localStorage.getItem("volume") ?? DEFAULT_VOLUME));
 
@@ -112,7 +119,7 @@ window.onload = () => {
 
     document.getElementById("mute_explicit").checked = params.muteExplicit;
     document.getElementById("sound_only").checked = params.soundOnly;
-    
+
     updatePlayValidity();
 
     const advancedParamsVisibility =
@@ -128,24 +135,25 @@ window.onload = () => {
 function updateParams() {
     document.getElementById("genre").value = params.query.genre;
     document.getElementById("user_playlist").value = params.userPlaylistId;
-    document.getElementById("featured_playlist").value = params.featuredPlaylistId;
-    
+    document.getElementById("featured_playlist").value =
+        params.featuredPlaylistId;
+
     const elFromYear = document.getElementById("from_year"),
         elToYear = document.getElementById("to_year");
 
     elToYear.max = CURR_YEAR;
-    
+
     document.getElementById("album_playlist_uri").value =
         params.albumPlaylistURI;
     document.getElementById("album").value = params.query.album;
     document.getElementById("artist").value = params.query.artist;
     document.getElementById("track").value = params.query.track;
-    
+
     const elMaxSearchResults = document.getElementById("max_search_results");
-    
+
     elMaxSearchResults.value = params.maxSearchResults;
     elMaxSearchResults.nextElementSibling.innerText = `Max Search Results (${params.maxSearchResults})`;
-    
+
     const years = params.query.year.split("-");
 
     elFromYear.value = years[0];
@@ -419,10 +427,10 @@ async function loadUrls() {
 
             document.getElementById("source").href =
                 "https://open.spotify.com/collection";
-//             document.getElementById("source_img_search").style.display = "none";
-// //             elSourceImg.style.display = "initial";
-//             elSourceImg.src =
-//                 "https://t.scdn.co/images/3099b3803ad9496896c43f22fe9be8c4.png";
+            //             document.getElementById("source_img_search").style.display = "none";
+            // //             elSourceImg.style.display = "initial";
+            //             elSourceImg.src =
+            //                 "https://t.scdn.co/images/3099b3803ad9496896c43f22fe9be8c4.png";
             document.getElementById(
                 "source_text"
             ).innerText = `Top Songs (${maxOffset})`;
@@ -539,7 +547,7 @@ function getData(url, returnFirstTrack = true) {
             },
             success: (data) => {
                 if (!returnFirstTrack) return resolve(data);
-                
+
                 const trackData =
                     data.tracks?.items[0] ??
                     data.items?.[0].track ??
@@ -667,8 +675,7 @@ function updateSide(sideNum) {
     }
 
     elAlbumArt.src = "";
-    if (!params.soundOnly)
-        elAlbumArt.src = albumArtUrl;
+    if (!params.soundOnly) elAlbumArt.src = albumArtUrl;
     else {
         elAlbumArt.style.visibility = "hidden";
         elAlbumArtBtn.style.outline = "0.25vh solid #fff";
@@ -680,15 +687,16 @@ function updateSide(sideNum) {
         );
 
     elTrackTitle.innerText = !params.soundOnly ? trackData.name : "";
-    elTrackTitle.href = !params.soundOnly ? trackData.external_urls.spotify : "";
+    elTrackTitle.href = !params.soundOnly
+        ? trackData.external_urls.spotify
+        : "";
 
     const trackTitleWidth = elTrackTitle.scrollWidth,
         trackInfoWidth = elTrackInfo.offsetWidth;
 
     elTrackTitle.style.animation = "initial";
     if (trackTitleWidth > trackInfoWidth) {
-        elTrackTitle.innerHTML +=
-            "<span>" + "\u00A0".repeat(17) + "</span>";
+        elTrackTitle.innerHTML += "<span>" + "\u00A0".repeat(17) + "</span>";
 
         const trackTitleWidthSpaces = elTrackTitle.scrollWidth;
 
@@ -883,8 +891,8 @@ function likeTrack(elLikeBtn, sideNum) {
 
 function checkGuess(higher) {
     const correct = higher
-            ? trackData2.popularity >= trackData1.popularity
-            : trackData2.popularity <= trackData1.popularity;
+        ? trackData2.popularity >= trackData1.popularity
+        : trackData2.popularity <= trackData1.popularity;
 
     revealTrackPopularity(2, true, correct);
 
@@ -906,9 +914,9 @@ function checkGuess(higher) {
             })
         );
 
-    Promise.all(checkPromises).then(
-        correct ? nextRound : gameOver
-    ).catch(noMoreTracks);
+    Promise.all(checkPromises)
+        .then(correct ? nextRound : gameOver)
+        .catch(noMoreTracks);
 }
 
 function revealTrackPopularity(sideNum, animation = false, correct = false) {
@@ -967,12 +975,13 @@ async function getRandomTrackData() {
     let trackData, notEnoughData, invalidForSoundOnly;
 
     do {
-        if (!urlsLeft.length)
-            throw "out of urls";
+        if (!urlsLeft.length) throw "out of urls";
         trackData = await getData(getRandomUrl());
         notEnoughData = !trackData.popularity && !trackData.preview_url;
-        invalidForSoundOnly = !trackData.preview_url || trackData.explicit && params.muteExplicit;
-    } while (notEnoughData || params.soundOnly && invalidForSoundOnly);
+        invalidForSoundOnly =
+            !trackData.preview_url ||
+            (trackData.explicit && params.muteExplicit);
+    } while (notEnoughData || (params.soundOnly && invalidForSoundOnly));
 
     return trackData;
 }
@@ -1284,11 +1293,17 @@ function changeUser() {
 }
 
 function clearSearch() {
-    changeParams({query: {album: '', artist: '', genre: '', track: '', year: ''}});
+    changeParams({
+        query: { album: "", artist: "", genre: "", track: "", year: "" },
+    });
     updateParams();
 }
 
 function resetParams() {
-    changeParams({ ...DEFAULT_PARAMS, muteExplicit: params.muteExplicit, soundOnly: params.soundOnly });
+    changeParams({
+        ...DEFAULT_PARAMS,
+        muteExplicit: params.muteExplicit,
+        soundOnly: params.soundOnly,
+    });
     updateParams();
 }
