@@ -73,6 +73,9 @@ window.onload = () => {
                             genre
                         )
                     );
+                
+                if (!values[0].genres.includes(params.query.genre))
+                    params.query.genre = DEFAULT_PARAMS.query.genre;
             }
 
             const elUserPlaylist = document.getElementById("user_playlist");
@@ -86,6 +89,9 @@ window.onload = () => {
                     elUserPlaylist.add(
                         new Option(userPlaylist.name, userPlaylist.id)
                     );
+                
+                if (!values[1].items.some(userPlaylist => userPlaylist.id === params.userPlaylistId))
+                    params.userPlaylistId = DEFAULT_PARAMS.userPlaylistId;
             }
 
             document.getElementById("use_featured_playlist_label").innerText =
@@ -105,6 +111,9 @@ window.onload = () => {
                     elFeaturedPlaylist.add(
                         new Option(featuredPlaylist.name, featuredPlaylist.id)
                     );
+                
+                if (!values[2].playlists.items.some(featuredPlaylist => featuredPlaylist.id === params.featuredPlaylistId))
+                    params.featuredPlaylistId = DEFAULT_PARAMS.featuredPlaylistId;
             }
 
             updateParams();
