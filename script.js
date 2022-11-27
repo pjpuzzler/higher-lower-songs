@@ -73,7 +73,7 @@ window.onload = () => {
                             genre
                         )
                     );
-                
+
                 if (!values[0].genres.includes(params.query.genre))
                     params.query.genre = DEFAULT_PARAMS.query.genre;
             }
@@ -89,8 +89,13 @@ window.onload = () => {
                     elUserPlaylist.add(
                         new Option(userPlaylist.name, userPlaylist.id)
                     );
-                
-                if (!values[1].items.some(userPlaylist => userPlaylist.id === params.userPlaylistId))
+
+                if (
+                    !values[1].items.some(
+                        (userPlaylist) =>
+                            userPlaylist.id === params.userPlaylistId
+                    )
+                )
                     params.userPlaylistId = DEFAULT_PARAMS.userPlaylistId;
             }
 
@@ -111,9 +116,15 @@ window.onload = () => {
                     elFeaturedPlaylist.add(
                         new Option(featuredPlaylist.name, featuredPlaylist.id)
                     );
-                
-                if (!values[2].playlists.items.some(featuredPlaylist => featuredPlaylist.id === params.featuredPlaylistId))
-                    params.featuredPlaylistId = DEFAULT_PARAMS.featuredPlaylistId;
+
+                if (
+                    !values[2].playlists.items.some(
+                        (featuredPlaylist) =>
+                            featuredPlaylist.id === params.featuredPlaylistId
+                    )
+                )
+                    params.featuredPlaylistId =
+                        DEFAULT_PARAMS.featuredPlaylistId;
             }
 
             updateParams();
@@ -436,10 +447,10 @@ async function loadUrls() {
 
             document.getElementById("source").href =
                 "https://open.spotify.com/collection";
-            //             document.getElementById("source_img_search").style.display = "none";
-            // //             elSourceImg.style.display = "initial";
-            //             elSourceImg.src =
-            //                 "https://t.scdn.co/images/3099b3803ad9496896c43f22fe9be8c4.png";
+            document.getElementById("source_img_search").style.display = "none";
+            elSourceImg.style.display = "initial";
+            elSourceImg.src =
+                "https://t.scdn.co/images/3099b3803ad9496896c43f22fe9be8c4.png";
             document.getElementById(
                 "source_text"
             ).innerText = `Top Songs (${maxOffset})`;
