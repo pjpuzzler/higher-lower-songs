@@ -450,7 +450,7 @@ async function loadUrls() {
             document.getElementById("source_img_search").style.display = "none";
             elSourceImg.style.display = "initial";
             elSourceImg.src =
-                "https://t.scdn.co/images/3099b3803ad9496896c43f22fe9be8c4.png";
+                "https://play-lh.googleusercontent.com/OO06tTnQyEckM3dUDbHqmWXpI-7IbYlodDxVR7L4buzOX6KQvAeTJEV_Q45cznM63mJ-";
             document.getElementById(
                 "source_text"
             ).innerText = `Top Songs (${maxOffset})`;
