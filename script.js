@@ -329,7 +329,7 @@ async function play() {
     ).style.display = "none";
 
     urlsLeft = [];
-    await loadUrls();
+    if (await loadUrls()) return;
 
     try {
         [trackData1, trackData2] = await Promise.all([
