@@ -657,10 +657,10 @@ select {
 
     body.adaptive #spotify {
         padding: 0.5vh;
-        bottom: 50%;
+        top: 50%;
         border-radius: 0.5vh 0 0 0.5vh;
         right: 0;
-        transform: translate(0, 50%);
+        transform: translate(0, -50%);
     }
 
     body.adaptive #source {
