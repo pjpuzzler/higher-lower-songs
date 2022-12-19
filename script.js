@@ -349,7 +349,6 @@ async function play() {
     elScore.style.display = "initial";
     document.getElementById("vs_container").style.display = "flex";
     document.getElementById("spotify").style.display = "flex";
-    alert(document.getElementById("spotify").style.display);
     document.getElementById("source").style.display = "flex";
 
     updateSide(1);
