@@ -368,6 +368,25 @@ label {
     left: 2vh;
 }
 
+#spotify {
+    position: fixed;
+    top: 0;
+    padding: 1vh;
+    border-radius: 0 0 1vh 1vh;
+    left: 50%;
+    transform: translate(-50%);
+    height: 7vh;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    background-color: #000;
+    opacity: 0.75;
+}
+
+#spotify:hover {
+    opacity: 1;
+}
+
 #source {
     position: fixed;
     bottom: 0;

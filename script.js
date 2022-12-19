@@ -348,6 +348,8 @@ async function play() {
     elHalves[0].style.display = elHalves[1].style.display = "flex";
     elScore.style.display = "initial";
     document.getElementById("vs_container").style.display = "flex";
+    document.getElementById("spotify").style.display = "flex";
+    alert(document.getElementById("spotify").style.display);
     document.getElementById("source").style.display = "flex";
 
     updateSide(1);
@@ -1129,6 +1131,7 @@ function restart() {
 
     document.getElementById("vs_container").style.display = "none";
     document.getElementById("source").style.display = "none";
+    document.getElementById("spotify").style.display = "none";
     document.getElementById("play_btn").style.display = "flex";
     document.getElementById("params").style.display = "initial";
 }
