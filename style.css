@@ -375,7 +375,7 @@ label {
     border-radius: 0 0 1vh 1vh;
     left: 50%;
     transform: translate(-50%);
-    height: 7vh;
+    height: 3.5vh;
     display: none;
     justify-content: center;
     align-items: center;
@@ -653,6 +653,14 @@ select {
     body.adaptive #score {
         bottom: 1vh;
         left: 1vh;
+    }
+
+    body.adaptive #spotify {
+        padding: 0.5vh;
+        bottom: 50%;
+        border-radius: 0.5vh 0 0 0.5vh;
+        right: 0;
+        transform: translate(0, 50%);
     }
 
     body.adaptive #source {
