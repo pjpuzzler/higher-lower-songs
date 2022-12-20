@@ -355,6 +355,7 @@ label {
 }
 
 #change_user {
+    font-size: 2vmin;
     position: fixed;
     color: #fff;
     right: 2vmin;
@@ -657,10 +658,10 @@ select {
 
     body.adaptive #spotify {
         padding: 0.5vh;
-        top: default;
+        top: initial;
         bottom: 50%;
         border-radius: 0.5vh 0 0 0.5vh;
-        left: default;
+        left: initial;
         right: 0;
         transform: translate(0, 50%);
     }

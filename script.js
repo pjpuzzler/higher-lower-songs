@@ -348,6 +348,7 @@ async function play() {
     elHalves[0].style.display = elHalves[1].style.display = "flex";
     elScore.style.display = "initial";
     document.getElementById("vs_container").style.display = "flex";
+    document.getElementById("change_user").style.display = "none";
     document.getElementById("spotify").style.display = "flex";
     document.getElementById("source").style.display = "flex";
 
@@ -993,16 +994,18 @@ function revealTrackPopularity(sideNum, animation = false, correct = false) {
 }
 
 async function getRandomTrackData() {
-    let trackData, notEnoughData, invalidForSoundOnly;
+    let trackData, invalidForSoundOnly;
 
     do {
         if (!urlsLeft.length) throw "out of urls";
         trackData = await getData(getRandomUrl());
-        notEnoughData = !trackData.popularity && !trackData.preview_url;
         invalidForSoundOnly =
             !trackData.preview_url ||
             (trackData.explicit && params.muteExplicit);
-    } while (notEnoughData || (params.soundOnly && invalidForSoundOnly));
+    } while (
+        !trackData.popularity ||
+        (params.soundOnly && invalidForSoundOnly)
+    );
 
     return trackData;
 }
@@ -1131,6 +1134,7 @@ function restart() {
     document.getElementById("vs_container").style.display = "none";
     document.getElementById("source").style.display = "none";
     document.getElementById("spotify").style.display = "none";
+    document.getElementById("change_user").style.display = "initial";
     document.getElementById("play_btn").style.display = "flex";
     document.getElementById("params").style.display = "initial";
 }
