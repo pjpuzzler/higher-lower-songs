@@ -1097,13 +1097,13 @@ function nextRound() {
 }
 
 function notEnoughResults() {
-    alert("Not enough results with current criteria");
+    alert("Not enough valid results");
 
     restart();
 }
 
 function noMoreTracks() {
-    alert("No more tracks with current criteria");
+    alert("No more tracks");
 
     showRestart();
 }
