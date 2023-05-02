@@ -165,9 +165,6 @@ function updateParams() {
 
     document.getElementById("album_playlist_uri").value =
         params.albumPlaylistURI;
-    document.getElementById("album").value = params.query.album;
-    document.getElementById("artist").value = params.query.artist;
-    document.getElementById("track").value = params.query.track;
 
     const elMaxSearchResults = document.getElementById("max_search_results");
 
@@ -1329,7 +1326,7 @@ function changeUser() {
 
 function clearSearch() {
     changeParams({
-        query: { album: "", artist: "", genre: "", track: "", year: "" },
+        query: { genre: "", year: "" },
     });
     updateParams();
 }

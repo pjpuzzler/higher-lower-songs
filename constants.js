@@ -1,4 +1,6 @@
-const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
+const REDIRECT_URI =
+        // "https://pjpuzzler.github.io/higher-lower-songs/",
+        "http://192.168.68.103:5500/",
     CLIENT_ID = "32b5db6ab5bc4a64bf2b230b131120dc",
     SCOPES = [
         "user-library-read",
@@ -24,10 +26,7 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
         albumPlaylistURI: "",
         featuredPlaylistId: "",
         query: {
-            album: "",
-            artist: "",
             genre: "",
-            track: "",
             year: `${CURR_YEAR - 10}-${CURR_YEAR}`,
         },
         soundOnly: false,
