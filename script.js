@@ -505,9 +505,7 @@ async function loadUrls() {
                     return true;
                 }
             } else {
-                alert(
-                    "Invalid album/playlist URI (format: spotify:<album/playlist>:{id})"
-                );
+                alert("Invalid URI (format: spotify:album/playlist:id)");
                 return true;
             }
 
