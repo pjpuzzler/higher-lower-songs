@@ -34,20 +34,20 @@ h2 {
 
 h3 {
     color: #fff;
-    margin-top: 3.13vh;
     margin-bottom: 0;
-    font-size: 2.75vh;
+    font-size: 3.1vh;
     position: relative;
 }
 
 h4 {
     color: #b3b3b3;
-    margin-top: 0.13vh;
+    margin-top: 0;
     font-weight: 300;
     font-size: 2.25vh;
     display: table-row;
     position: relative;
     z-index: 0;
+    margin-bottom: 0;
 }
 
 h5 {
@@ -79,8 +79,8 @@ button:not(.param_button) {
 }
 
 svg {
-    width: 3.38vh;
-    height: 3.38vh;
+    width: 3vh;
+    height: 3vh;
     fill: #b3b3b3;
 }
 
@@ -130,8 +130,7 @@ label {
 }
 
 .side_details {
-    margin-top: 13.5vh;
-    width: 45vh;
+    margin-top: 13.25vh;
 }
 
 .album_art {
@@ -142,23 +141,24 @@ label {
 .track_details {
     width: 100%;
     display: flex;
-    margin-top: 0;
+    margin-top: 2.2vh;
 }
 
 .track_info {
-    margin-left: 1.25vh;
-    width: 33.75vh;
+    width: 41.25vh;
+    margin-left: -1.5vh;
     white-space: nowrap;
     overflow: hidden;
 }
 
 .artist_container {
     position: relative;
+    margin-top: -0.6vh;
 }
 
 .left_gradient {
     position: absolute;
-    width: 7%;
+    width: 1.5vh;
     height: 100%;
     left: 0;
     top: 0;
@@ -167,15 +167,27 @@ label {
 
 .right_gradient {
     position: absolute;
-    width: 7%;
+    width: 1.5vh;
     height: 100%;
     right: 0;
     top: 0;
     z-index: 1;
 }
 
+.artist_gradient {
+    height: 75%;
+    top: initial;
+    bottom: 0;
+}
+
 .track_title_link {
     display: inline-block;
+    margin-left: 1.5vh;
+}
+
+.all_artist_link {
+    display: inline-block;
+    margin-left: 1.5vh;
 }
 
 .artist_link:hover {
@@ -183,8 +195,8 @@ label {
 }
 
 .like_btn {
-    margin-top: 4.67vh;
-    margin-left: 5.5vh;
+    margin-top: 5.25vh;
+    margin-left: 2.1vh;
     display: flex;
 }
 

@@ -224,7 +224,7 @@ function getLinearGradient(hsl) {
     );
 }
 
-function getMarqueeLinearGradient(hsl, to) {
+function getTitleMarqueeLinearGradient(hsl, to) {
     return (
         `linear-gradient(to ${to}, ` +
         "hsl(" +
@@ -232,7 +232,21 @@ function getMarqueeLinearGradient(hsl, to) {
         ", " +
         hsl[1] * 100 +
         "%, " +
-        (hsl[2] * 100) / 2.8 +
+        (hsl[2] * 100) / 2.82 +
+        "%), " +
+        "rgba(0, 0, 0, 0))"
+    );
+}
+
+function getArtistMarqueeLinearGradient(hsl, to) {
+    return (
+        `linear-gradient(to ${to}, ` +
+        "hsl(" +
+        hsl[0] * 360 +
+        ", " +
+        hsl[1] * 100 +
+        "%, " +
+        (hsl[2] * 100) / 2.965 +
         "%), " +
         "rgba(0, 0, 0, 0))"
     );
@@ -662,16 +676,16 @@ function updateSide(sideNum) {
                 document.getElementById("right_half").style.background;
             elTrackLeftGradient.style.background = document.getElementById(
                 "track_2_left_gradient"
-            );
+            ).style.background;
             elTrackRightGradient.style.background = document.getElementById(
                 "track_2_right_gradient"
-            );
+            ).style.background;
             elArtistLeftGradient.style.background = document.getElementById(
                 "artist_2_left_gradient"
-            );
+            ).style.background;
             elArtistRightGradient.style.background = document.getElementById(
                 "artist_2_right_gradient"
-            );
+            ).style.background;
         } else
             Vibrant.from(albumArtUrl)
                 .getPalette()
@@ -680,19 +694,23 @@ function updateSide(sideNum) {
 
                     elHalf.style.background = getLinearGradient(hsl);
 
-                    if (trackTitleWidth > trackInfoWidth) {
-                        elTrackLeftGradient.style.background =
-                            getMarqueeLinearGradient(hsl, "right");
-                        elTrackRightGradient.style.background =
-                            getMarqueeLinearGradient(hsl, "left");
-                    }
+                    const leftTitleMarqueeGradient =
+                            getTitleMarqueeLinearGradient(hsl, "right"),
+                        rightTitleMarqueeGradient =
+                            getTitleMarqueeLinearGradient(hsl, "left"),
+                        leftArtistMarqueeGradient =
+                            getArtistMarqueeLinearGradient(hsl, "right"),
+                        rightArtistMarqueeGradient =
+                            getArtistMarqueeLinearGradient(hsl, "left");
 
-                    if (artistWidth > trackInfoWidth) {
-                        elArtistLeftGradient.style.background =
-                            getMarqueeLinearGradient(hsl, "right");
-                        elArtistRightGradient.style.background =
-                            getMarqueeLinearGradient(hsl, "left");
-                    }
+                    elTrackLeftGradient.style.background =
+                        leftTitleMarqueeGradient;
+                    elTrackRightGradient.style.background =
+                        rightTitleMarqueeGradient;
+                    elArtistLeftGradient.style.background =
+                        leftArtistMarqueeGradient;
+                    elArtistRightGradient.style.background =
+                        rightArtistMarqueeGradient;
                 });
     }
 
@@ -714,36 +732,32 @@ function updateSide(sideNum) {
         : "";
 
     const trackTitleWidth = elTrackTitle.scrollWidth,
-        trackInfoWidth = elTrackInfo.offsetWidth;
+        trackInfoWidth = elTrackInfo.offsetWidth,
+        gradientWidth = elTrackRightGradient.offsetWidth,
+        threeHalvesVh = 0.015 * document.documentElement.clientHeight;
 
     elTrackTitle.style.animation = "initial";
-    if (trackTitleWidth > trackInfoWidth) {
-        elTrackTitle.innerHTML += "<span>" + "\u00A0".repeat(17) + "</span>";
-
-        const trackTitleWidthSpaces = elTrackTitle.scrollWidth;
-
-        elTrackTitle.innerHTML += trackData.name;
-
+    if (trackTitleWidth > trackInfoWidth - threeHalvesVh - gradientWidth) {
+        const titleMarqueeProperty = `--marquee_title_${sideNum}_distance`,
+            titleMarqueeDistance =
+                trackTitleWidth -
+                (trackInfoWidth - threeHalvesVh - gradientWidth);
         document.documentElement.style.setProperty(
-            `--marquee_title_${sideNum}_distance`,
-            -(trackTitleWidthSpaces / elTrackTitle.scrollWidth) * 100 + "%"
+            titleMarqueeProperty,
+            `${-titleMarqueeDistance}px`
         );
 
-        const titleMarqueeDuration =
-                (trackTitleWidthSpaces / trackInfoWidth) * 8.25,
-            titleAnimation = `marquee_title_${sideNum} ${titleMarqueeDuration}s linear infinite`;
+        const titleMarqueeDuration = titleMarqueeDistance / 20,
+            titleAnimation = `${titleMarqueeDuration}s linear infinite alternate marquee_title_${sideNum}`;
 
         elTrackTitle.style.animation = titleAnimation;
         elTrackTitle.onanimationiteration = () => {
-            if (document.hasFocus())
-                elTrackTitle.style.animationPlayState = "paused";
+            elTrackTitle.style.animationPlayState = "paused";
             setTimeout(() => {
                 elTrackTitle.style.animationPlayState = "running";
-            }, SCROLL_PAUSE_DURATION * 1000);
+            }, MARQUEE_PAUSE_DURATION * 1000);
         };
-    } else
-        elTrackLeftGradient.style.background =
-            elTrackRightGradient.style.background = "initial";
+    }
 
     const elArtist = document.getElementById(`artist_${sideNum}`);
 
@@ -763,7 +777,7 @@ function updateSide(sideNum) {
             elArtist.appendChild(elA);
 
             if (i != trackData.artists.length - 1) {
-                const elTextNode = document.createTextNode(",\u00A0");
+                const elTextNode = document.createTextNode(", ");
 
                 elArtist.appendChild(elTextNode);
             }
@@ -773,35 +787,26 @@ function updateSide(sideNum) {
     const artistWidth = elArtist.scrollWidth;
 
     elArtist.style.animation = "initial";
-    if (artistWidth > trackInfoWidth) {
-        const artistInnerHTML = elArtist.innerHTML;
-
-        elArtist.innerHTML += "\u00A0".repeat(17);
-
-        const artistWidthSpaces = elArtist.scrollWidth;
-
-        elArtist.innerHTML += artistInnerHTML;
-
+    if (artistWidth > trackInfoWidth - threeHalvesVh - gradientWidth) {
+        const artistMarqueeProperty = `--marquee_artist_${sideNum}_distance`,
+            artistMarqueeDistance =
+                artistWidth - (trackInfoWidth - threeHalvesVh - gradientWidth);
         document.documentElement.style.setProperty(
-            `--marquee_artist_${sideNum}_distance`,
-            -(artistWidthSpaces / elArtist.scrollWidth) * 100 + "%"
+            artistMarqueeProperty,
+            `${-artistMarqueeDistance}px`
         );
 
-        const artistMarqueeDuration =
-                (artistWidthSpaces / trackInfoWidth) * 8.25,
-            artistAnimation = `marquee_artist_${sideNum} ${artistMarqueeDuration}s linear infinite`;
+        const artistMarqueeDuration = artistMarqueeDistance / 20,
+            artistAnimation = `${artistMarqueeDuration}s linear infinite alternate marquee_artist_${sideNum}`;
 
         elArtist.style.animation = artistAnimation;
         elArtist.onanimationiteration = () => {
-            if (document.hasFocus())
-                elArtist.style.animationPlayState = "paused";
+            elArtist.style.animationPlayState = "paused";
             setTimeout(() => {
                 elArtist.style.animationPlayState = "running";
-            }, SCROLL_PAUSE_DURATION * 1000);
+            }, MARQUEE_PAUSE_DURATION * 1000);
         };
-    } else
-        elArtistLeftGradient.style.background =
-            elArtistRightGradient.style.background = "initial";
+    }
 
     const elLikeBtn = document.getElementById(`like_btn_${sideNum}`);
 
