@@ -347,7 +347,7 @@ async function play() {
             getRandomTrackData(),
             getRandomTrackData(),
         ]);
-    } catch (e) {
+    } catch {
         return notEnoughResults();
     }
 
@@ -998,7 +998,11 @@ async function getRandomTrackData() {
 
     do {
         if (!urlsLeft.length) throw "out of urls";
-        trackData = await getData(getRandomUrl());
+        try {
+            trackData = await getData(getRandomUrl());
+        } catch {
+            continue;
+        }
         invalidForSoundOnly =
             !trackData.preview_url ||
             (trackData.explicit && params.muteExplicit);
