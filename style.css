@@ -558,6 +558,10 @@ label {
     visibility: hidden;
 }
 
+#reset_params {
+    visibility: hidden;
+}
+
 #params input,
 select {
     margin: 2px 0;

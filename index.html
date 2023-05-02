@@ -272,16 +272,15 @@
                     type="radio"
                     onchange="changeParams({use: 'album_playlist'})"
                 />
-                <label for="use_album_playlist">Album/Playlist</label>
+                <label for="use_album_playlist">URI</label>
                 <br />
                 <div class="params_indent">
                     <input
                         id="album_playlist_uri"
                         type="text"
-                        placeholder="spotify:album/playlist:"
+                        placeholder="spotify:album/playlist:..."
                         oninput="changeParams({albumPlaylistURI: this.value.trim()})"
                     />
-                    <label for="album_playlist_uri">URI</label>
                 </div>
                 <br />
                 <input
@@ -290,7 +289,7 @@
                     type="radio"
                     onchange="changeParams({use: 'user_playlist'})"
                 />
-                <label for="use_user_playlist">User Playlist</label>
+                <label for="use_user_playlist">User playlist</label>
                 <br />
                 <div class="params_indent">
                     <select
@@ -337,7 +336,7 @@
                     type="radio"
                     onchange="changeParams({use: 'liked_songs'})"
                 />
-                <label for="use_liked_songs">Liked Songs</label>
+                <label for="use_liked_songs">Liked songs</label>
                 <br />
                 <br />
                 <input
@@ -346,7 +345,7 @@
                     type="radio"
                     onchange="changeParams({use: 'top_songs'})"
                 />
-                <label for="use_top_songs">Top Songs</label>
+                <label for="use_top_songs">Top songs</label>
             </div>
             <br />
             <button
@@ -356,7 +355,13 @@
             >
                 Show Advanced
             </button>
-            <button class="param_button" onclick="resetParams()">Reset</button>
+            <button
+                id="reset_params"
+                class="param_button"
+                onclick="resetParams()"
+            >
+                Reset
+            </button>
             <br />
             <br />
             <input
@@ -364,13 +369,14 @@
                 type="checkbox"
                 oninput="changeParams({muteExplicit: this.checked})"
             />
-            <label for="mute_explicit">Mute Explicit</label>
+            <label for="mute_explicit">Mute explicit</label>
+            <br />
             <input
                 id="sound_only"
                 type="checkbox"
                 oninput="changeParams({soundOnly: this.checked})"
             />
-            <label for="sound_only">Sound Only</label>
+            <label for="sound_only">Sound only</label>
         </div>
     </body>
 </html>

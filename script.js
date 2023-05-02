@@ -1297,17 +1297,20 @@ function randomGenre() {
 }
 
 function toggleAdvancedParams() {
-    const elAdvancedParams = document.getElementById("advanced_params");
+    const elAdvancedParams = document.getElementById("advanced_params"),
+        elResetParams = document.getElementById("reset_params");
 
     if (
         !elAdvancedParams.style.visibility ||
         elAdvancedParams.style.visibility === "hidden"
     ) {
         elAdvancedParams.style.visibility = "visible";
+        elResetParams.style.visibility = "visible";
         document.getElementById("toggle_advanced_params").innerText =
             "Hide Advanced";
     } else {
         elAdvancedParams.style.visibility = "hidden";
+        elResetParams.style.visibility = "hidden";
         document.getElementById("toggle_advanced_params").innerText =
             "Show Advanced";
     }
