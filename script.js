@@ -998,11 +998,7 @@ async function getRandomTrackData() {
 
     do {
         if (!urlsLeft.length) throw "out of urls";
-        try {
-            trackData = await getData(getRandomUrl());
-        } catch {
-            continue;
-        }
+        trackData = await getData(getRandomUrl());
         invalidForSoundOnly =
             !trackData.preview_url ||
             (trackData.explicit && params.muteExplicit);
@@ -1327,13 +1323,6 @@ function changeUser() {
     window.location = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${SCOPES.join(
         "%20"
     )}&response_type=token&show_dialog=true`;
-}
-
-function clearSearch() {
-    changeParams({
-        query: { genre: "", year: "" },
-    });
-    updateParams();
 }
 
 function resetParams() {
