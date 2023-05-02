@@ -225,10 +225,10 @@
                     <input
                         id="max_search_results"
                         type="range"
-                        min="5"
+                        min="10"
                         max="1000"
                         value="1000"
-                        step="5"
+                        step="10"
                         oninput="changeParams({maxSearchResults: this.value}); this.nextElementSibling.innerText = `Max Search Results (${this.value})`"
                     />
                     <label for="max_search_results">Max Search Results</label>
