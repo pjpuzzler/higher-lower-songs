@@ -320,6 +320,26 @@ label {
     font-size: 8vh;
 }
 
+#restart {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    justify-content: center;
+    align-items: center;
+    font-size: 8vh;
+    color: #fff;
+}
+
+#restart:hover {
+    transform: scale(1.05) translate(-47.5%, -47.5%) !important;
+}
+
+#restart:active {
+    transform: translate(-50%, -50%) !important;
+}
+
 #high_score {
     position: fixed;
     top: 2vmin;

@@ -4,7 +4,7 @@
         <title>Higher Lower Songs</title>
 
         <link rel="stylesheet" href="style.css" />
-        <link rel="shortcut icon" href="favicon.ico">
+        <link rel="shortcut icon" href="favicon.ico" />
 
         <script src="https://code.jquery.com/jquery.min.js"></script>
         <script src="vibrant.js"></script>
@@ -20,8 +20,14 @@
                 <div class="track_details">
                     <div id="left_track_info" class="track_info">
                         <h3>
-                            <div id="track_1_left_gradient" class="left_gradient"></div>
-                            <div id="track_1_right_gradient" class="right_gradient"></div>
+                            <div
+                                id="track_1_left_gradient"
+                                class="left_gradient"
+                            ></div>
+                            <div
+                                id="track_1_right_gradient"
+                                class="right_gradient"
+                            ></div>
                             <a
                                 id="track_title_1"
                                 class="track_title_link"
@@ -30,12 +36,22 @@
                             ></a>
                         </h3>
                         <div class="artist_container">
-                            <div id="artist_1_left_gradient" class="left_gradient artist_gradient"></div>
-                            <div id="artist_1_right_gradient" class="right_gradient artist_gradient"></div>
+                            <div
+                                id="artist_1_left_gradient"
+                                class="left_gradient artist_gradient"
+                            ></div>
+                            <div
+                                id="artist_1_right_gradient"
+                                class="right_gradient artist_gradient"
+                            ></div>
                             <h4 id="artist_1" class="all_artist_link"></h4>
                         </div>
                     </div>
-                    <button id="like_btn_1" class="like_btn" onclick="likeTrack(this, 1)"></button>
+                    <button
+                        id="like_btn_1"
+                        class="like_btn"
+                        onclick="likeTrack(this, 1)"
+                    ></button>
                 </div>
 
                 <div class="guessing">
@@ -51,17 +67,20 @@
 
         <div id="right_half" class="half slide_half">
             <div class="side_details">
-                <button
-                    id="album_art_2_btn"
-                    onclick="clickTrack(this, 2)"
-                >
+                <button id="album_art_2_btn" onclick="clickTrack(this, 2)">
                     <img id="album_art_2" class="album_art" draggable="false" />
                 </button>
                 <div class="track_details">
                     <div id="right_track_info" class="track_info">
                         <h3>
-                            <div id="track_2_left_gradient" class="left_gradient"></div>
-                            <div id="track_2_right_gradient" class="right_gradient"></div>
+                            <div
+                                id="track_2_left_gradient"
+                                class="left_gradient"
+                            ></div>
+                            <div
+                                id="track_2_right_gradient"
+                                class="right_gradient"
+                            ></div>
                             <a
                                 id="track_title_2"
                                 class="track_title_link"
@@ -70,12 +89,22 @@
                             ></a>
                         </h3>
                         <div class="artist_container">
-                            <div id="artist_2_left_gradient" class="left_gradient artist_gradient"></div>
-                            <div id="artist_2_right_gradient" class="right_gradient artist_gradient"></div>
+                            <div
+                                id="artist_2_left_gradient"
+                                class="left_gradient artist_gradient"
+                            ></div>
+                            <div
+                                id="artist_2_right_gradient"
+                                class="right_gradient artist_gradient"
+                            ></div>
                             <h4 id="artist_2" class="all_artist_link"></h4>
                         </div>
                     </div>
-                    <button id="like_btn_2" class="like_btn" onclick="likeTrack(this, 2)"></button>
+                    <button
+                        id="like_btn_2"
+                        class="like_btn"
+                        onclick="likeTrack(this, 2)"
+                    ></button>
                 </div>
 
                 <div class="guessing">
@@ -106,12 +135,24 @@
             <div id="vs">vs</div>
         </div>
 
+        <button id="restart" onclick="restart()">restart</button>
+
         <div id="high_score">
-            <h6 id="current_high_score"></h5>
+            <h6 id="current_high_score"></h6>
         </div>
 
-        <a id="spotify" target="_blank" draggable="false" href="https://open.spotify.com/">
-            <img id="spotify_logo" draggable="false" src="./imgs/Spotify_Logo.png" style='height: 100%;'>
+        <a
+            id="spotify"
+            target="_blank"
+            draggable="false"
+            href="https://open.spotify.com/"
+        >
+            <img
+                id="spotify_logo"
+                draggable="false"
+                src="./imgs/Spotify_Logo.png"
+                style="height: 100%"
+            />
         </a>
 
         <div id="user_info">
@@ -126,9 +167,11 @@
         </div>
 
         <a id="source" target="_blank" draggable="false">
-            <img id="source_img" draggable="false">
+            <img id="source_img" draggable="false" />
             <svg id="source_img_search" viewBox="0 0 24 24">
-                <path d="M10.533 1.279c-5.18 0-9.407 4.14-9.407 9.279s4.226 9.279 9.407 9.279c2.234 0 4.29-.77 5.907-2.058l4.353 4.353a1 1 0 101.414-1.414l-4.344-4.344a9.157 9.157 0 002.077-5.816c0-5.14-4.226-9.28-9.407-9.28zm-7.407 9.279c0-4.006 3.302-7.28 7.407-7.28s7.407 3.274 7.407 7.28-3.302 7.279-7.407 7.279-7.407-3.273-7.407-7.28z"></path>
+                <path
+                    d="M10.533 1.279c-5.18 0-9.407 4.14-9.407 9.279s4.226 9.279 9.407 9.279c2.234 0 4.29-.77 5.907-2.058l4.353 4.353a1 1 0 101.414-1.414l-4.344-4.344a9.157 9.157 0 002.077-5.816c0-5.14-4.226-9.28-9.407-9.28zm-7.407 9.279c0-4.006 3.302-7.28 7.407-7.28s7.407 3.274 7.407 7.28-3.302 7.279-7.407 7.279-7.407-3.273-7.407-7.28z"
+                ></path>
             </svg>
             <h6 id="source_text"></h6>
         </a>
@@ -170,73 +213,192 @@
 
         <div id="params">
             <div id="advanced_params">
-                <input id="use_search" name="use" type="radio" onchange="changeParams({use: 'search'})" />
+                <input
+                    id="use_search"
+                    name="use"
+                    type="radio"
+                    onchange="changeParams({use: 'search'})"
+                />
                 <label for="use_search">Search</label>
                 <br />
                 <div class="params_indent">
-                    <input id="max_search_results" type="range" min="5" max="1000" value="1000" step="5" oninput="changeParams({maxSearchResults: this.value}); this.nextElementSibling.innerText = `Max Search Results (${this.value})`" />
+                    <input
+                        id="max_search_results"
+                        type="range"
+                        min="5"
+                        max="1000"
+                        value="1000"
+                        step="5"
+                        oninput="changeParams({maxSearchResults: this.value}); this.nextElementSibling.innerText = `Max Search Results (${this.value})`"
+                    />
                     <label for="max_search_results">Max Search Results</label>
                     <br />
-                    <input id="from_year" type="number" min="0" oninput="changeParams({query: {...params.query, year: `${this.value}-${document.getElementById('to_year').value}`}}); if (this.value !== '') document.getElementById('to_year').min = this.value" />
+                    <input
+                        id="from_year"
+                        type="number"
+                        min="0"
+                        oninput="changeParams({query: {...params.query, year: `${this.value}-${document.getElementById('to_year').value}`}}); if (this.value !== '') document.getElementById('to_year').min = this.value"
+                    />
                     <label>-</label>
-                    <input id="to_year" type="number" min="0" oninput="changeParams({query: {...params.query, year: `${document.getElementById('from_year').value}-${this.value}`}}); if (this.value !== '') document.getElementById('from_year').max = this.value" />
+                    <input
+                        id="to_year"
+                        type="number"
+                        min="0"
+                        oninput="changeParams({query: {...params.query, year: `${document.getElementById('from_year').value}-${this.value}`}}); if (this.value !== '') document.getElementById('from_year').max = this.value"
+                    />
                     <label for="from_year">Year</label>
                     <br />
-                    <select id="genre" onchange="changeParams({query: {...params.query, genre: this.value}})"></select>
+                    <select
+                        id="genre"
+                        onchange="changeParams({query: {...params.query, genre: this.value}})"
+                    ></select>
                     <label for="genre">Genre</label>
-                    <button id="genre_random" class="param_button" onclick="randomGenre()">Random</button>
+                    <button
+                        id="genre_random"
+                        class="param_button"
+                        onclick="randomGenre()"
+                    >
+                        Random
+                    </button>
                     <br />
-                    <input id="album" type="text" oninput="changeParams({query: {...params.query, album: this.value.trim()}})">
-                    <label for="album" title="For all songs from a specific album, enter the album URI into the Album/Playlist section"><u>Album</u></label>
+                    <input
+                        id="album"
+                        type="text"
+                        oninput="changeParams({query: {...params.query, album: this.value.trim()}})"
+                    />
+                    <label
+                        for="album"
+                        title="For all songs from a specific album, enter the album URI into the Album/Playlist section"
+                        ><u>Album</u></label
+                    >
                     <br />
-                    <input id="artist" type="text" oninput="changeParams({query: {...params.query, artist: this.value.trim()}})">
-                    <label for="artist" title="For all songs by a specific artist, enter their complete collection playlist URI into the Album/Playlist section"><u>Artist</u></label>
+                    <input
+                        id="artist"
+                        type="text"
+                        oninput="changeParams({query: {...params.query, artist: this.value.trim()}})"
+                    />
+                    <label
+                        for="artist"
+                        title="For all songs by a specific artist, enter their complete collection playlist URI into the Album/Playlist section"
+                        ><u>Artist</u></label
+                    >
                     <br />
-                    <input id="track" type="text" oninput="changeParams({query: {...params.query, track: this.value.trim()}})">
+                    <input
+                        id="track"
+                        type="text"
+                        oninput="changeParams({query: {...params.query, track: this.value.trim()}})"
+                    />
                     <label for="track">Track</label>
                     <br />
-                    <button class="param_button" onclick="clearSearch()">Clear</button>
+                    <button class="param_button" onclick="clearSearch()">
+                        Clear
+                    </button>
                 </div>
                 <br />
-                <input id="use_album_playlist" name="use" type="radio" onchange="changeParams({use: 'album_playlist'})" />
+                <input
+                    id="use_album_playlist"
+                    name="use"
+                    type="radio"
+                    onchange="changeParams({use: 'album_playlist'})"
+                />
                 <label for="use_album_playlist">Album/Playlist</label>
                 <br />
                 <div class="params_indent">
-                    <input id="album_playlist_uri" type="text" placeholder="spotify:album/playlist:" oninput="changeParams({albumPlaylistURI: this.value.trim()})">
+                    <input
+                        id="album_playlist_uri"
+                        type="text"
+                        placeholder="spotify:album/playlist:"
+                        oninput="changeParams({albumPlaylistURI: this.value.trim()})"
+                    />
                     <label for="album_playlist_uri">URI</label>
                 </div>
                 <br />
-                <input id="use_user_playlist" name="use" type="radio" onchange="changeParams({use: 'user_playlist'})" />
+                <input
+                    id="use_user_playlist"
+                    name="use"
+                    type="radio"
+                    onchange="changeParams({use: 'user_playlist'})"
+                />
                 <label for="use_user_playlist">User Playlist</label>
                 <br />
                 <div class="params_indent">
-                    <select id="user_playlist" onchange="changeParams({userPlaylistId: this.value})"></select>
-                    <button id="user_playlist_random" class="param_button" onclick="randomUserPlaylist()">Random</button>
+                    <select
+                        id="user_playlist"
+                        onchange="changeParams({userPlaylistId: this.value})"
+                    ></select>
+                    <button
+                        id="user_playlist_random"
+                        class="param_button"
+                        onclick="randomUserPlaylist()"
+                    >
+                        Random
+                    </button>
                 </div>
                 <br />
-                <input id="use_featured_playlist" name="use" type="radio" onchange="changeParams({use: 'featured_playlist'})" />
-                <label id="use_featured_playlist_label" for="use_featured_playlist"></label>
+                <input
+                    id="use_featured_playlist"
+                    name="use"
+                    type="radio"
+                    onchange="changeParams({use: 'featured_playlist'})"
+                />
+                <label
+                    id="use_featured_playlist_label"
+                    for="use_featured_playlist"
+                ></label>
                 <br />
                 <div class="params_indent">
-                    <select id="featured_playlist" onchange="changeParams({featuredPlaylistId: this.value})"></select>
-                    <button id="featured_playlist_random" class="param_button" onclick="randomFeaturedPlaylist()">Random</button>
+                    <select
+                        id="featured_playlist"
+                        onchange="changeParams({featuredPlaylistId: this.value})"
+                    ></select>
+                    <button
+                        id="featured_playlist_random"
+                        class="param_button"
+                        onclick="randomFeaturedPlaylist()"
+                    >
+                        Random
+                    </button>
                 </div>
                 <br />
-                <input id="use_liked_songs" name="use" type="radio" onchange="changeParams({use: 'liked_songs'})" />
+                <input
+                    id="use_liked_songs"
+                    name="use"
+                    type="radio"
+                    onchange="changeParams({use: 'liked_songs'})"
+                />
                 <label for="use_liked_songs">Liked Songs</label>
                 <br />
                 <br />
-                <input id="use_top_songs" name="use" type="radio" onchange="changeParams({use: 'top_songs'})" />
+                <input
+                    id="use_top_songs"
+                    name="use"
+                    type="radio"
+                    onchange="changeParams({use: 'top_songs'})"
+                />
                 <label for="use_top_songs">Top Songs</label>
             </div>
             <br />
-            <button id="toggle_advanced_params" class="param_button" onclick="toggleAdvancedParams()">Show Advanced</button>
+            <button
+                id="toggle_advanced_params"
+                class="param_button"
+                onclick="toggleAdvancedParams()"
+            >
+                Show Advanced
+            </button>
             <button class="param_button" onclick="resetParams()">Reset</button>
             <br />
             <br />
-            <input id="mute_explicit" type="checkbox" oninput="changeParams({muteExplicit: this.checked})" />
+            <input
+                id="mute_explicit"
+                type="checkbox"
+                oninput="changeParams({muteExplicit: this.checked})"
+            />
             <label for="mute_explicit">Mute Explicit</label>
-            <input id="sound_only" type="checkbox" oninput="changeParams({soundOnly: this.checked})" />
+            <input
+                id="sound_only"
+                type="checkbox"
+                oninput="changeParams({soundOnly: this.checked})"
+            />
             <label for="sound_only">Sound Only</label>
         </div>
     </body>

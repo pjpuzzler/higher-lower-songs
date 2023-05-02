@@ -350,7 +350,7 @@ async function play() {
             getRandomTrackData(),
             getRandomTrackData(),
         ]);
-    } catch {
+    } catch (e) {
         return notEnoughResults();
     }
 
@@ -1106,13 +1106,16 @@ function notEnoughResults() {
 function noMoreTracks() {
     alert("No more tracks with current criteria");
 
-    restart();
+    showRestart();
 }
 
 function gameOver() {
-    alert("Game Over! Score: " + score);
+    showRestart();
+}
 
-    restart();
+function showRestart() {
+    document.getElementById("vs_container").style.display = "none";
+    document.getElementById("restart").style.display = "initial";
 }
 
 function restart() {
@@ -1137,6 +1140,7 @@ function restart() {
     document.getElementsByTagName("body")[0].className = "";
 
     document.getElementById("vs_container").style.display = "none";
+    document.getElementById("restart").style.display = "none";
     document.getElementById("source").style.display = "none";
     document.getElementById("spotify").style.display = "none";
     document.getElementById("change_user").style.display = "initial";
