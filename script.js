@@ -1204,6 +1204,20 @@ function setVolume(newVolume) {
     );
 }
 
+function getParamKey() {
+    let d = { use: params.use };
+    if (params.use === "search") d.query = params.query;
+    else if (params.use === "user_playlist")
+        d.uri = `spotify:playlist:${params.userPlaylistId}`;
+    else if (params.use === "featured_playlist")
+        d.uri = `spotify:playlist:${params.featuredPlaylistId}`;
+    else if (params.use === "album_playlist") d.uri = params.albumPlaylistURI;
+    else if (params.use === "liked_songs" || params.use === "top_songs")
+        d.userId = userData.id;
+
+    return JSON.stringify(d);
+}
+
 function changeParams(newParams) {
     if (newParams.userPlaylistId !== undefined)
         document.getElementById("use_user_playlist").click();
@@ -1226,19 +1240,7 @@ function changeParams(newParams) {
 
     updatePlayValidity();
 
-    paramKey = { use: params.use };
-    if (params.use === "search") paramKey.query = params.query;
-    else if (params.use === "user_playlist")
-        paramKey.uri = `spotify:playlist:${params.userPlaylistId}`;
-    else if (params.use === "featured_playlist")
-        paramKey.uri = `spotify:playlist:${params.featuredPlaylistId}`;
-    else if (params.use === "album_playlist")
-        paramKey.uri = params.albumPlaylistURI;
-    else if (params.use === "liked_songs" || params.use === "top_songs")
-        paramKey.userId = userData.id;
-
-    paramKey = JSON.stringify(paramKey);
-
+    paramKey = getParamKey();
     document.getElementById("current_high_score").innerText =
         "High: " + highScoreDict[paramKey] ?? 0;
 }
