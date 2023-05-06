@@ -140,6 +140,7 @@ window.onload = () => {
     document.getElementById("sound_only").checked = params.soundOnly;
 
     updatePlayValidity();
+    updateHighScore();
 
     const advancedParamsVisibility =
         document.getElementById("advanced_params").style.visibility;
@@ -1239,10 +1240,7 @@ function changeParams(newParams) {
     localStorage.setItem("params", JSON.stringify(params));
 
     updatePlayValidity();
-
-    paramKey = getParamKey();
-    document.getElementById("current_high_score").innerText =
-        "High: " + highScoreDict[paramKey] ?? 0;
+    updateHighScore();
 }
 
 function validYearString(yearString) {
@@ -1276,6 +1274,12 @@ function updatePlayValidity() {
         elPlayBtn.className = "";
         document.getElementById("toggle_advanced_params").disabled = true;
     }
+}
+
+function updateHighScore() {
+    paramKey = getParamKey();
+    document.getElementById("current_high_score").innerText =
+        "High: " + highScoreDict[paramKey] ?? 0;
 }
 
 function randomUserPlaylist() {
