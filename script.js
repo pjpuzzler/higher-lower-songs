@@ -334,19 +334,6 @@ function getGenres() {
 }
 
 async function play() {
-    paramKey = { use: params.use };
-    if (params.use === "search") paramKey.query = params.query;
-    else if (params.use === "user_playlist")
-        paramKey.uri = `spotify:playlist:${params.userPlaylistId}`;
-    else if (params.use === "featured_playlist")
-        paramKey.uri = `spotify:playlist:${params.featuredPlaylistId}`;
-    else if (params.use === "album_playlist")
-        paramKey.uri = params.albumPlaylistURI;
-    else if (params.use === "liked_songs" || params.use === "top_songs")
-        paramKey.userId = userData.id;
-
-    paramKey = JSON.stringify(paramKey);
-
     document.getElementById("play_btn").style.display = document.getElementById(
         "params"
     ).style.display = "none";
@@ -374,8 +361,6 @@ async function play() {
     document.getElementById("change_user").style.display = "none";
     document.getElementById("spotify").style.display = "flex";
     document.getElementById("source").style.display = "flex";
-    document.getElementById("current_high_score").innerText =
-        "High: " + highScoreDict[paramKey] ?? 0;
 
     updateSide(1);
     revealTrackPopularity(1, true);
@@ -1240,6 +1225,22 @@ function changeParams(newParams) {
     localStorage.setItem("params", JSON.stringify(params));
 
     updatePlayValidity();
+
+    paramKey = { use: params.use };
+    if (params.use === "search") paramKey.query = params.query;
+    else if (params.use === "user_playlist")
+        paramKey.uri = `spotify:playlist:${params.userPlaylistId}`;
+    else if (params.use === "featured_playlist")
+        paramKey.uri = `spotify:playlist:${params.featuredPlaylistId}`;
+    else if (params.use === "album_playlist")
+        paramKey.uri = params.albumPlaylistURI;
+    else if (params.use === "liked_songs" || params.use === "top_songs")
+        paramKey.userId = userData.id;
+
+    paramKey = JSON.stringify(paramKey);
+
+    document.getElementById("current_high_score").innerText =
+        "High: " + highScoreDict[paramKey] ?? 0;
 }
 
 function validYearString(yearString) {
