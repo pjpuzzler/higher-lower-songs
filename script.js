@@ -29,7 +29,8 @@ let params,
     fadeInNext,
     urlsLeft,
     volume,
-    highScore,
+    paramKey,
+    highScoreDict,
     score = 0,
     prevVolume = (2 / 3) * MAX_VOLUME,
     muted = false;
@@ -133,9 +134,7 @@ window.onload = () => {
 
     setVolume(Number(localStorage.getItem("volume") ?? DEFAULT_VOLUME));
 
-    highScore = Number(localStorage.getItem("highScore") ?? 0);
-    document.getElementById("current_high_score").innerText =
-        "High: " + highScore;
+    highScoreDict = Object(localStorage.getItem("highScoreDict") ?? {});
 
     document.getElementById("mute_explicit").checked = params.muteExplicit;
     document.getElementById("sound_only").checked = params.soundOnly;
@@ -335,6 +334,19 @@ function getGenres() {
 }
 
 async function play() {
+    paramKey = { use: params.use };
+    if (params.use === "search") paramKey.query = params.query;
+    else if (params.use === "user_playlist")
+        paramKey.uri = `spotify:playlist:${params.userPlaylistId}`;
+    else if (params.use === "featured_playlist")
+        paramKey.uri = `spotify:playlist:${params.featuredPlaylistId}`;
+    else if (params.use === "album_playlist")
+        paramKey.uri = params.albumPlaylistURI;
+    else if (params.use === "liked_songs" || params.use === "top_songs")
+        paramKey.userId = userData.id;
+
+    paramKey = JSON.stringify(paramKey);
+
     document.getElementById("play_btn").style.display = document.getElementById(
         "params"
     ).style.display = "none";
@@ -362,6 +374,8 @@ async function play() {
     document.getElementById("change_user").style.display = "none";
     document.getElementById("spotify").style.display = "flex";
     document.getElementById("source").style.display = "flex";
+    document.getElementById("current_high_score").innerText =
+        "High: " + highScoreDict[paramKey] ?? 0;
 
     updateSide(1);
     revealTrackPopularity(1, true);
@@ -1023,15 +1037,15 @@ function nextRound() {
         elCurrentScore.innerText = score;
     }, 0.125 * 1000);
 
-    if (score > highScore) {
-        highScore = score;
-        localStorage.setItem("highScore", highScore);
+    if (score > highScoreDict[paramKey] ?? 0) {
+        highScoreDict[paramKey] = score;
+        localStorage.setItem("highScoreDict", highScoreDict);
         elCurrentHighScore.style.animation = "bump 0.25s linear";
         elCurrentHighScore.onanimationend = () => {
             elCurrentHighScore.style.animation = "initial";
         };
         setTimeout(() => {
-            elCurrentHighScore.innerText = "High: " + highScore;
+            elCurrentHighScore.innerText = "High: " + highScoreDict[paramKey];
         }, 0.125 * 1000);
     }
 
