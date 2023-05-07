@@ -380,6 +380,13 @@
             <label for="mute_explicit">Mute explicit</label>
             <br />
             <input
+                id="hide_popularity"
+                type="checkbox"
+                oninput="changeParams({hidePopularity: this.checked})"
+            />
+            <label for="hide_popularity">Hide popularity</label>
+            <br />
+            <input
                 id="sound_only"
                 type="checkbox"
                 oninput="changeParams({soundOnly: this.checked})"

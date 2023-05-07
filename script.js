@@ -32,8 +32,7 @@ let params,
     paramKey,
     highScoreDict,
     score = 0,
-    prevVolume = (2 / 3) * MAX_VOLUME,
-    muted = false;
+    prevVolume = (2 / 3) * MAX_VOLUME;
 
 // $(document).tooltip({show: null});
 
@@ -140,6 +139,7 @@ window.onload = () => {
 
     document.getElementById("mute_explicit").checked = params.muteExplicit;
     document.getElementById("sound_only").checked = params.soundOnly;
+    document.getElementById("hide_popularity").checked = params.hidePopularity;
 
     updatePlayValidity();
 
@@ -666,6 +666,12 @@ function updateSide(sideNum) {
             `artist_${sideNum}_right_gradient`
         );
 
+    elTrackLeftGradient.style.background =
+        elTrackRightGradient.style.background =
+        elArtistLeftGradient.style.background =
+        elArtistRightGradient.style.background =
+            "initial";
+
     if (!params.soundOnly) {
         if (sideNum === 1 && score > 0) {
             elHalf.style.background =
@@ -923,7 +929,8 @@ function checkGuess(higher) {
         new Promise((resolve) =>
             setTimeout(
                 resolve,
-                (POPULARITY_ANIMATION_DURATION + SHOW_POPULARITY_DURATION) *
+                ((params.hidePopularity ? 0 : POPULARITY_ANIMATION_DURATION) +
+                    SHOW_POPULARITY_DURATION) *
                     1000
             )
         ),
@@ -942,16 +949,39 @@ function checkGuess(higher) {
         .catch(noMoreTracks);
 }
 
-function revealTrackPopularity(sideNum, animation = false, correct = false) {
-    const $elPopularity = $(`#${sideNum === 1 ? "left" : "right"}_popularity`),
-        $elBar = $(`#${sideNum === 1 ? "left" : "right"}_bar`);
-
+function revealTrackPopularity(
+    sideNum,
+    animation = false,
+    correct = false,
+    forceShow = false
+) {
     if (sideNum === 2) {
         const elGuessBtns = document.getElementsByClassName("guess_btn");
 
         elGuessBtns[0].style.display = elGuessBtns[1].style.display = "none";
 
         document.getElementById("right_progress").style.display = "initial";
+    }
+
+    const $elPopularity = $(`#${sideNum === 1 ? "left" : "right"}_popularity`),
+        $elBar = $(`#${sideNum === 1 ? "left" : "right"}_bar`),
+        onRevealComplete = () => {
+            if (correct) {
+                if (volume > 0) CORRECT_SFX.play();
+                $elPopularity[0].style.animation = "bump 0.25s linear";
+                $elPopularity[0].onanimationend = () => {
+                    $elPopularity[0].style.animation = "initial";
+                };
+            } else if (sideNum === 2 && volume > 0 && !forceShow)
+                GAME_OVER_SFX.play();
+        };
+
+    $elPopularity.text("?");
+    $elBar.css({ transform: "rotate(45deg)" });
+
+    if (params.hidePopularity && !forceShow) {
+        onRevealComplete();
+        return;
     }
 
     const trackData = sideNum === 1 ? trackData1 : trackData2;
@@ -981,14 +1011,7 @@ function revealTrackPopularity(sideNum, animation = false, correct = false) {
                     });
                     $elPopularity.text(p | 0);
                 },
-                complete: () => {
-                    if (correct) {
-                        $elPopularity[0].style.animation = "bump 0.25s linear";
-                        $elPopularity[0].onanimationend = () => {
-                            $elPopularity[0].style.animation = "initial";
-                        };
-                    }
-                },
+                complete: onRevealComplete,
             }
         );
     }
@@ -1106,6 +1129,10 @@ function noMoreTracks() {
 }
 
 function gameOver() {
+    if (params.hidePopularity) {
+        revealTrackPopularity(1, true, false, true);
+        revealTrackPopularity(2, true, false, true);
+    }
     showRestart();
 }
 
@@ -1207,7 +1234,11 @@ function setVolume(newVolume) {
 }
 
 function getParamKey() {
-    let d = { use: params.use, soundOnly: params.soundOnly };
+    let d = {
+        hidePopularity: params.hidePopularity,
+        soundOnly: params.soundOnly,
+        use: params.use,
+    };
     if (params.use === "search") d.query = params.query;
     else if (params.use === "user_playlist")
         d.uri = `spotify:playlist:${params.userPlaylistId}`;
@@ -1350,6 +1381,7 @@ function changeUser() {
 function resetParams() {
     changeParams({
         ...DEFAULT_PARAMS,
+        hidePopularity: params.hidePopularity,
         muteExplicit: params.muteExplicit,
         soundOnly: params.soundOnly,
     });
