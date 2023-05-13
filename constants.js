@@ -1,6 +1,5 @@
-const REDIRECT_URI =
-        // "https://pjpuzzler.github.io/higher-lower-songs/",
-        "http://192.168.68.103:5500/",
+const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
+    // "http://192.168.68.103:5500/",
     CLIENT_ID = "32b5db6ab5bc4a64bf2b230b131120dc",
     SCOPES = [
         "user-library-read",
@@ -17,7 +16,7 @@ const REDIRECT_URI =
     DEFAULT_VOLUME = (2 / 3) * MAX_VOLUME,
     SAMPLE_DURATION = 30,
     SAMPLE_FADE_DURATION = 2,
-    POPULARITY_ANIMATION_DURATION = 0.75,
+    POPULARITY_ANIMATION_DURATION = 1,
     SHOW_POPULARITY_DURATION = 1,
     MARQUEE_PAUSE_DURATION = 1.75,
     SLIDE_HALVES_DURATION = 1,
@@ -27,6 +26,7 @@ const REDIRECT_URI =
         hidePopularity: false,
         maxSearchResults: 1000,
         muteExplicit: false,
+        playSFX: true,
         query: {
             genre: "",
             year: `${CURR_YEAR - 10}-${CURR_YEAR}`,

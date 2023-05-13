@@ -30,36 +30,52 @@ let params,
     urlsLeft,
     volume,
     paramKey,
-    highScoreDict,
+    highScores,
     score = 0,
     prevVolume = (2 / 3) * MAX_VOLUME;
 
 // $(document).tooltip({show: null});
 
 window.onload = async () => {
-    try {
-        userData = await getUserData();
+    getUserData()
+        .then((data) => {
+            userData = data;
+            document.getElementById("user_image_container").innerHTML = userData
+                .images.length
+                ? `<img id="user_image" src="${userData.images[0].url}" />`
+                : '<svg id="default_user_image" viewBox="0 0 18 20"><path d="M15.216 13.717L12 11.869C11.823 11.768 11.772 11.607 11.757 11.521C11.742 11.435 11.737 11.267 11.869 11.111L13.18 9.57401C14.031 8.58001 14.5 7.31101 14.5 6.00001V5.50001C14.5 3.98501 13.866 2.52301 12.761 1.48601C11.64 0.435011 10.173 -0.0879888 8.636 0.0110112C5.756 0.198011 3.501 2.68401 3.501 5.67101V6.00001C3.501 7.31101 3.97 8.58001 4.82 9.57401L6.131 11.111C6.264 11.266 6.258 11.434 6.243 11.521C6.228 11.607 6.177 11.768 5.999 11.869L2.786 13.716C1.067 14.692 0 16.526 0 18.501V20H1V18.501C1 16.885 1.874 15.385 3.283 14.584L6.498 12.736C6.886 12.513 7.152 12.132 7.228 11.691C7.304 11.251 7.182 10.802 6.891 10.462L5.579 8.92501C4.883 8.11101 4.499 7.07201 4.499 6.00001V5.67101C4.499 3.21001 6.344 1.16201 8.699 1.00901C9.961 0.928011 11.159 1.35601 12.076 2.21501C12.994 3.07601 13.5 4.24301 13.5 5.50001V6.00001C13.5 7.07201 13.117 8.11101 12.42 8.92501L11.109 10.462C10.819 10.803 10.696 11.251 10.772 11.691C10.849 12.132 11.115 12.513 11.503 12.736L14.721 14.585C16.127 15.384 17.001 16.884 17.001 18.501V20H18.001V18.501C18 16.526 16.932 14.692 15.216 13.717Z"></path></svg>';
+            document.getElementById("user_display_name").innerText =
+                userData.display_name;
 
-        document.getElementById("user_image_container").innerHTML = userData
-            .images.length
-            ? `<img id="user_image" src="${userData.images[0].url}" />`
-            : '<svg id="default_user_image" viewBox="0 0 18 20"><path d="M15.216 13.717L12 11.869C11.823 11.768 11.772 11.607 11.757 11.521C11.742 11.435 11.737 11.267 11.869 11.111L13.18 9.57401C14.031 8.58001 14.5 7.31101 14.5 6.00001V5.50001C14.5 3.98501 13.866 2.52301 12.761 1.48601C11.64 0.435011 10.173 -0.0879888 8.636 0.0110112C5.756 0.198011 3.501 2.68401 3.501 5.67101V6.00001C3.501 7.31101 3.97 8.58001 4.82 9.57401L6.131 11.111C6.264 11.266 6.258 11.434 6.243 11.521C6.228 11.607 6.177 11.768 5.999 11.869L2.786 13.716C1.067 14.692 0 16.526 0 18.501V20H1V18.501C1 16.885 1.874 15.385 3.283 14.584L6.498 12.736C6.886 12.513 7.152 12.132 7.228 11.691C7.304 11.251 7.182 10.802 6.891 10.462L5.579 8.92501C4.883 8.11101 4.499 7.07201 4.499 6.00001V5.67101C4.499 3.21001 6.344 1.16201 8.699 1.00901C9.961 0.928011 11.159 1.35601 12.076 2.21501C12.994 3.07601 13.5 4.24301 13.5 5.50001V6.00001C13.5 7.07201 13.117 8.11101 12.42 8.92501L11.109 10.462C10.819 10.803 10.696 11.251 10.772 11.691C10.849 12.132 11.115 12.513 11.503 12.736L14.721 14.585C16.127 15.384 17.001 16.884 17.001 18.501V20H18.001V18.501C18 16.526 16.932 14.692 15.216 13.717Z"></path></svg>';
-        document.getElementById("user_display_name").innerText =
-            userData.display_name;
-    } catch (e) {
-        alert(`Error: ${e.responseText}`);
-        updatePlayValidity(true);
-        return;
-    }
+            window
+                .getHighScores(userData.id)
+                .then((data) => {
+                    setHighScores(data);
 
-    try {
-        params = JSON.parse(localStorage.getItem("params")) ?? DEFAULT_PARAMS;
+                    window.firestoreListen(userData.id, setHighScores);
+                })
+                .catch(() => {
+                    alert("Error getting high scores");
+                });
 
-        Promise.all([
-            getGenres(),
-            getUserPlaylists(),
-            getFeaturedPlaylists(),
-        ]).then((values) => {
+            window.userExists(userData.id).then((exists) => {
+                if (!exists) {
+                    window.createNewUser(userData.id).catch(() => {
+                        alert("Error creating new user");
+                    });
+                }
+            });
+        })
+        .catch(() => {
+            alert("Error getting user data");
+            updatePlayValidity(true);
+            return;
+        });
+
+    params = JSON.parse(localStorage.getItem("params")) ?? DEFAULT_PARAMS;
+
+    Promise.all([getGenres(), getUserPlaylists(), getFeaturedPlaylists()])
+        .then((values) => {
             const elGenre = document.getElementById("genre");
 
             elGenre.innerHTML = "<option selected></option>";
@@ -136,32 +152,34 @@ window.onload = async () => {
             }
 
             updateParams();
+        })
+        .catch(() => {
+            alert("Error getting spotify data");
         });
 
-        setVolume(Number(localStorage.getItem("volume") ?? DEFAULT_VOLUME));
+    setVolume(Number(localStorage.getItem("volume") ?? DEFAULT_VOLUME));
 
-        highScoreDict = JSON.parse(localStorage.getItem("highScoreDict")) ?? {};
+    document.getElementById("mute_explicit").checked = params.muteExplicit;
+    document.getElementById("sound_only").checked = params.soundOnly;
+    document.getElementById("play_sfx").checked = params.playSFX;
+    document.getElementById("hide_popularity").checked = params.hidePopularity;
 
-        document.getElementById("mute_explicit").checked = params.muteExplicit;
-        document.getElementById("sound_only").checked = params.soundOnly;
-        document.getElementById("hide_popularity").checked =
-            params.hidePopularity;
+    updatePlayValidity();
 
-        updatePlayValidity();
-        updateHighScore();
+    const advancedParamsVisibility =
+        document.getElementById("advanced_params").style.visibility;
 
-        const advancedParamsVisibility =
-            document.getElementById("advanced_params").style.visibility;
-
-        if (
-            localStorage.getItem("advanced_params_visibility") === "visible" &&
-            (!advancedParamsVisibility || advancedParamsVisibility === "hidden")
-        )
-            toggleAdvancedParams();
-    } catch (e) {
-        alert(e);
-    }
+    if (
+        localStorage.getItem("advanced_params_visibility") === "visible" &&
+        (!advancedParamsVisibility || advancedParamsVisibility === "hidden")
+    )
+        toggleAdvancedParams();
 };
+
+function setHighScores(data) {
+    highScores = data;
+    updateHighScore();
+}
 
 function updateParams() {
     document.getElementById("genre").value = params.query.genre;
@@ -746,10 +764,11 @@ function updateSide(sideNum) {
     const trackTitleWidth = elTrackTitle.scrollWidth,
         trackInfoWidth = elTrackInfo.offsetWidth,
         gradientWidth = elTrackRightGradient.offsetWidth,
-        threeHalvesVh = 0.015 * document.documentElement.clientHeight;
+        threeHalvesVh = 0.015 * document.documentElement.clientHeight,
+        vhOffset = 0.0075 * document.documentElement.clientHeight;
 
     elTrackTitle.style.animation = "initial";
-    if (trackTitleWidth > trackInfoWidth - threeHalvesVh - gradientWidth) {
+    if (trackTitleWidth > trackInfoWidth - vhOffset - gradientWidth) {
         const titleMarqueeProperty = `--marquee_title_${sideNum}_distance`,
             titleMarqueeDistance =
                 trackTitleWidth -
@@ -799,10 +818,10 @@ function updateSide(sideNum) {
     const artistWidth = elArtist.scrollWidth;
 
     elArtist.style.animation = "initial";
-    if (artistWidth > trackInfoWidth - threeHalvesVh - gradientWidth) {
+    if (artistWidth > trackInfoWidth - vhOffset - gradientWidth) {
         const artistMarqueeProperty = `--marquee_artist_${sideNum}_distance`,
             artistMarqueeDistance =
-                artistWidth - (trackInfoWidth - threeHalvesVh - gradientWidth);
+                artistWidth - (trackInfoWidth - vhOffset - gradientWidth);
         document.documentElement.style.setProperty(
             artistMarqueeProperty,
             `${-artistMarqueeDistance}px`
@@ -977,12 +996,17 @@ function revealTrackPopularity(
         $elBar = $(`#${sideNum === 1 ? "left" : "right"}_bar`),
         onRevealComplete = () => {
             if (correct) {
-                if (volume > 0) CORRECT_SFX.play();
+                if (volume > 0 && params.playSFX) CORRECT_SFX.play();
                 $elPopularity[0].style.animation = "bump 0.25s linear";
                 $elPopularity[0].onanimationend = () => {
                     $elPopularity[0].style.animation = "initial";
                 };
-            } else if (sideNum === 2 && volume > 0 && !forceShow)
+            } else if (
+                sideNum === 2 &&
+                volume > 0 &&
+                !forceShow &&
+                params.playSFX
+            )
                 GAME_OVER_SFX.play();
         };
 
@@ -1057,15 +1081,15 @@ function nextRound() {
         elCurrentScore.innerText = score;
     }, 0.125 * 1000);
 
-    if (score > (highScoreDict[paramKey] ?? 0)) {
-        highScoreDict[paramKey] = score;
-        localStorage.setItem("highScoreDict", JSON.stringify(highScoreDict));
+    if (score > (highScores[paramKey] ?? 0)) {
+        highScores[paramKey] = score;
+        window.storeHighScore(userData.id, paramKey, score);
         elCurrentHighScore.style.animation = "bump 0.25s linear";
         elCurrentHighScore.onanimationend = () => {
             elCurrentHighScore.style.animation = "initial";
         };
         setTimeout(() => {
-            elCurrentHighScore.innerText = "High: " + highScoreDict[paramKey];
+            elCurrentHighScore.innerText = "High: " + highScores[paramKey];
         }, 0.125 * 1000);
     }
 
@@ -1255,8 +1279,6 @@ function getParamKey() {
     else if (params.use === "featured_playlist")
         d.uri = `spotify:playlist:${params.featuredPlaylistId}`;
     else if (params.use === "album_playlist") d.uri = params.albumPlaylistURI;
-    else if (params.use === "liked_songs" || params.use === "top_songs")
-        d.userId = userData.id;
 
     return JSON.stringify(d);
 }
@@ -1322,7 +1344,7 @@ function updatePlayValidity(forceDisable = false) {
 function updateHighScore() {
     paramKey = getParamKey();
     document.getElementById("current_high_score").innerText =
-        "High: " + (highScoreDict[paramKey] ?? 0);
+        "High: " + (highScores[paramKey] ?? 0);
 }
 
 function randomUserPlaylist() {
@@ -1394,6 +1416,7 @@ function resetParams() {
         ...DEFAULT_PARAMS,
         hidePopularity: params.hidePopularity,
         muteExplicit: params.muteExplicit,
+        playSFX: params.playSFX,
         soundOnly: params.soundOnly,
     });
     updateParams();

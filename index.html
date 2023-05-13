@@ -7,6 +7,7 @@
         <link rel="shortcut icon" href="favicon.ico" />
 
         <script src="https://code.jquery.com/jquery.min.js"></script>
+        <script type="module" src="firebase.js"></script>
         <script src="vibrant.js"></script>
         <script src="constants.js"></script>
         <script src="script.js"></script>
@@ -373,13 +374,6 @@
             <br />
             <br />
             <input
-                id="mute_explicit"
-                type="checkbox"
-                oninput="changeParams({muteExplicit: this.checked})"
-            />
-            <label for="mute_explicit">Mute explicit</label>
-            <br />
-            <input
                 id="hide_popularity"
                 type="checkbox"
                 oninput="changeParams({hidePopularity: this.checked})"
@@ -392,6 +386,21 @@
                 oninput="changeParams({soundOnly: this.checked})"
             />
             <label for="sound_only">Sound only</label>
+            <br />
+            <br />
+            <input
+                id="mute_explicit"
+                type="checkbox"
+                oninput="changeParams({muteExplicit: this.checked})"
+            />
+            <label for="mute_explicit">Mute explicit</label>
+            <br />
+            <input
+                id="play_sfx"
+                type="checkbox"
+                oninput="changeParams({playSFX: this.checked})"
+            />
+            <label for="play_sfx">Play sound effects</label>
         </div>
     </body>
 </html>
