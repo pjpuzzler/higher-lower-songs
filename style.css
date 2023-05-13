@@ -59,7 +59,7 @@ h5 {
 
 h6 {
     color: #fff;
-    font-size: 3vmin;
+    font-size: 3vh;
     margin: 0;
 }
 
@@ -327,8 +327,14 @@ label {
     left: 50%;
     justify-content: center;
     align-items: center;
-    font-size: 8vh;
     color: #fff;
+}
+
+#replay {
+    transform: translate(-50%, -50%);
+    height: 15vh;
+    width: 15vh;
+    fill: #fff;
 }
 
 #replay:hover {
@@ -339,31 +345,16 @@ label {
     transform: translate(-50%, -50%) !important;
 }
 
-#replay {
-    transform: translate(-50%, -50%);
-    height: 15vh;
-    width: 15vh;
-    fill: #fff;
-}
-
 #high_score {
     position: fixed;
-    top: 2vmin;
-    left: 2vmin;
-}
-
-#title {
-    text-align: center;
-    position: fixed;
-    top: 0;
-    left: 50%;
-    transform: translate(-50%);
+    top: 2vh;
+    left: 2vh;
 }
 
 #user_info {
     position: fixed;
-    top: 2vmin;
-    right: 2vmin;
+    top: 2vh;
+    right: 2vh;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -371,14 +362,14 @@ label {
 
 #user_image_container {
     background-color: #535353;
-    height: 6vmin;
-    width: 6vmin;
+    height: 6vh;
+    width: 6vh;
     border-radius: 100%;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 1.75vmin;
+    margin-right: 1.75vh;
 }
 
 #user_image {
@@ -393,11 +384,11 @@ label {
 }
 
 #change_user {
-    font-size: 2vmin;
+    font-size: 2vh;
     position: fixed;
     color: #fff;
-    right: 2vmin;
-    top: 8vmin;
+    right: 2vh;
+    top: 8vh;
 }
 
 #score {
@@ -478,8 +469,8 @@ label {
 
 #volume {
     position: fixed;
-    bottom: 2vmin;
-    right: 2vmin;
+    bottom: 2vh;
+    right: 2vh;
     display: flex;
 }
 
@@ -509,7 +500,7 @@ label {
 
 #volume_slider {
     width: 19vmin;
-    -webkit-appearance: none;
+    appearance: none;
     background: transparent;
 }
 
@@ -583,12 +574,10 @@ select {
     }
 
     body.adaptive h3 {
-        margin-top: 1.56vh;
-        font-size: 1.38vh;
+        font-size: 1.55vh;
     }
 
     body.adaptive h4 {
-        margin-top: 0.06vh;
         font-size: 1.13vh;
     }
 
@@ -601,8 +590,8 @@ select {
     }
 
     body.adaptive svg {
-        width: 1.69vh;
-        height: 1.69vh;
+        width: 1.5vh;
+        height: 1.5vh;
     }
 
     body.adaptive .half {
@@ -612,7 +601,6 @@ select {
 
     body.adaptive .side_details {
         margin-top: 6.75vh;
-        width: 22.5vh;
     }
 
     body.adaptive .album_art {
@@ -620,15 +608,38 @@ select {
         height: 22.5vh;
     }
 
+    body.adaptive .track_details {
+        margin-top: 1.1vh;
+    }
+
     body.adaptive .track_info {
-        margin-left: 0.63vh;
-        width: 16.88vh;
+        margin-left: -0.75;
+        width: 20.63vh;
+    }
+
+    body.adaptive .artist_container {
+        margin-top: -0.3vh;
+    }
+
+    body.adaptive .left_gradient {
+        width: 0.75vh;
+    }
+
+    body.adaptive .right_gradient {
+        width: 0.75vh;
+    }
+
+    body.adaptive .track_title_link {
+        margin-left: 0.75vh;
+    }
+
+    body.adaptive .all_artist_link {
+        margin-left: 0.75vh;
     }
 
     body.adaptive .like_btn {
-        margin-top: 2.34vh;
-        margin-left: 2.75vh;
-        display: flex;
+        margin-top: 2.63vh;
+        margin-left: 1.05vh;
     }
 
     body.adaptive .guessing {
@@ -644,7 +655,7 @@ select {
     body.adaptive .bar {
         width: 14vh;
         height: 14vh;
-        border: 1.5vh solid #535353;
+        border-width: 1.5vh;
     }
 
     body.adaptive .guess_btn {
@@ -672,6 +683,11 @@ select {
         font-size: 4vh;
     }
 
+    body.adaptive #replay {
+        height: 7.5vh;
+        width: 7.5vh;
+    }
+
     body.adaptive #high_score {
         top: 1vh;
         left: 1vh;
@@ -686,11 +702,6 @@ select {
         height: 3vh;
         width: 3vh;
         margin-right: 0.88vh;
-    }
-
-    body.adaptive #user_image {
-        height: 3vh;
-        width: 3vh;
     }
 
     body.adaptive #score {
@@ -749,14 +760,14 @@ select {
     }
 
     body.adaptive #volume_slider::-webkit-slider-runnable-track {
-        height: 0.38vh;
-        border-radius: 0.38vh;
+        height: calc(var(--volume_slider_height) / 2);
+        border-radius: calc(var(--volume_slider_height) / 2);
     }
 
     body.adaptive #volume_slider::-webkit-slider-thumb {
-        height: 1vh;
-        width: 1vh;
-        margin-top: -0.3125vh;
+        height: calc(var(--volume_slider_thumb_height) / 2);
+        width: calc(var(--volume_slider_thumb_height) / 2);
+        margin-top: calc(var(--volume_slider_thumb_margin_top) / 2);
         margin-left: calc(var(--volume_slider_thumb_margin) / 2);
     }
 
