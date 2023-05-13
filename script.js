@@ -12,13 +12,31 @@ const hash = window.location.hash
 
 window.location.hash = "";
 
-const _token = hash.access_token;
+let _token = hash.access_token,
+    signedIn = true;
+
+// window.location = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${SCOPES.join(
+//     "%20"
+// )}&response_type=token`;
 
 if (!_token) {
-    window.location = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${SCOPES.join(
-        "%20"
-    )}&response_type=token`;
-}
+    signedIn = false;
+
+    $.ajax({
+        type: "POST",
+        url: "https://accounts.spotify.com/api/token",
+        headers: {
+            Authorization:
+                "Basic " + window.btoa(CLIENT_ID + ":" + CLIENT_SECRET),
+        },
+        data: "grant_type=client_credentials",
+        success: (data) => {
+            _token = data.access_token;
+            load();
+        },
+        dataType: "json",
+    });
+} else load();
 
 let params,
     userData,
@@ -36,45 +54,82 @@ let params,
 
 // $(document).tooltip({show: null});
 
-window.onload = async () => {
-    getUserData()
-        .then((data) => {
-            userData = data;
-            document.getElementById("user_image_container").innerHTML = userData
-                .images.length
-                ? `<img id="user_image" src="${userData.images[0].url}" />`
-                : '<svg id="default_user_image" viewBox="0 0 18 20"><path d="M15.216 13.717L12 11.869C11.823 11.768 11.772 11.607 11.757 11.521C11.742 11.435 11.737 11.267 11.869 11.111L13.18 9.57401C14.031 8.58001 14.5 7.31101 14.5 6.00001V5.50001C14.5 3.98501 13.866 2.52301 12.761 1.48601C11.64 0.435011 10.173 -0.0879888 8.636 0.0110112C5.756 0.198011 3.501 2.68401 3.501 5.67101V6.00001C3.501 7.31101 3.97 8.58001 4.82 9.57401L6.131 11.111C6.264 11.266 6.258 11.434 6.243 11.521C6.228 11.607 6.177 11.768 5.999 11.869L2.786 13.716C1.067 14.692 0 16.526 0 18.501V20H1V18.501C1 16.885 1.874 15.385 3.283 14.584L6.498 12.736C6.886 12.513 7.152 12.132 7.228 11.691C7.304 11.251 7.182 10.802 6.891 10.462L5.579 8.92501C4.883 8.11101 4.499 7.07201 4.499 6.00001V5.67101C4.499 3.21001 6.344 1.16201 8.699 1.00901C9.961 0.928011 11.159 1.35601 12.076 2.21501C12.994 3.07601 13.5 4.24301 13.5 5.50001V6.00001C13.5 7.07201 13.117 8.11101 12.42 8.92501L11.109 10.462C10.819 10.803 10.696 11.251 10.772 11.691C10.849 12.132 11.115 12.513 11.503 12.736L14.721 14.585C16.127 15.384 17.001 16.884 17.001 18.501V20H18.001V18.501C18 16.526 16.932 14.692 15.216 13.717Z"></path></svg>';
-            document.getElementById("user_display_name").innerText =
-                userData.display_name;
+const load = async () => {
+    const elUserImageContainer = document.getElementById(
+            "user_image_container"
+        ),
+        elUserAction = document.getElementById("user_action");
 
-            window
-                .getHighScores(userData.id)
-                .then((data) => {
-                    setHighScores(data);
+    if (signedIn) {
+        getUserData()
+            .then((data) => {
+                userData = data;
+                elUserImageContainer.style.display = "flex";
+                elUserImageContainer.innerHTML = userData.images.length
+                    ? `<img id="user_image" src="${userData.images[0].url}" />`
+                    : '<svg id="default_user_image" viewBox="0 0 18 20"><path d="M15.216 13.717L12 11.869C11.823 11.768 11.772 11.607 11.757 11.521C11.742 11.435 11.737 11.267 11.869 11.111L13.18 9.57401C14.031 8.58001 14.5 7.31101 14.5 6.00001V5.50001C14.5 3.98501 13.866 2.52301 12.761 1.48601C11.64 0.435011 10.173 -0.0879888 8.636 0.0110112C5.756 0.198011 3.501 2.68401 3.501 5.67101V6.00001C3.501 7.31101 3.97 8.58001 4.82 9.57401L6.131 11.111C6.264 11.266 6.258 11.434 6.243 11.521C6.228 11.607 6.177 11.768 5.999 11.869L2.786 13.716C1.067 14.692 0 16.526 0 18.501V20H1V18.501C1 16.885 1.874 15.385 3.283 14.584L6.498 12.736C6.886 12.513 7.152 12.132 7.228 11.691C7.304 11.251 7.182 10.802 6.891 10.462L5.579 8.92501C4.883 8.11101 4.499 7.07201 4.499 6.00001V5.67101C4.499 3.21001 6.344 1.16201 8.699 1.00901C9.961 0.928011 11.159 1.35601 12.076 2.21501C12.994 3.07601 13.5 4.24301 13.5 5.50001V6.00001C13.5 7.07201 13.117 8.11101 12.42 8.92501L11.109 10.462C10.819 10.803 10.696 11.251 10.772 11.691C10.849 12.132 11.115 12.513 11.503 12.736L14.721 14.585C16.127 15.384 17.001 16.884 17.001 18.501V20H18.001V18.501C18 16.526 16.932 14.692 15.216 13.717Z"></path></svg>';
+                document.getElementById("user_display_name").innerText =
+                    userData.display_name;
 
-                    window.firestoreListen(userData.id, setHighScores);
-                })
-                .catch(() => {
-                    alert("Error getting high scores");
-                });
+                window
+                    .getHighScores(userData.id)
+                    .then((data) => {
+                        setHighScores(data);
 
-            window.userExists(userData.id).then((exists) => {
-                if (!exists) {
-                    window.createNewUser(userData.id).catch(() => {
-                        alert("Error creating new user");
+                        window.firestoreListen(userData.id, setHighScores);
+                    })
+                    .catch(() => {
+                        alert("Error getting high scores");
                     });
-                }
+
+                window.userExists(userData.id).then((exists) => {
+                    if (!exists) {
+                        window.createNewUser(userData.id).catch(() => {
+                            alert("Error creating new user");
+                        });
+                    }
+                });
+            })
+            .catch(() => {
+                alert("Error getting user data");
+                updatePlayValidity(true);
+                return;
             });
-        })
-        .catch(() => {
-            alert("Error getting user data");
-            updatePlayValidity(true);
-            return;
-        });
+
+        elUserAction.innerText = "Change User";
+        elUserAction.onclick = changeUser;
+    } else {
+        elUserAction.innerText = "Sign In";
+        elUserAction.style.top = "4vh";
+        elUserAction.onclick = signIn;
+    }
 
     params = JSON.parse(localStorage.getItem("params")) ?? DEFAULT_PARAMS;
 
-    Promise.all([getGenres(), getUserPlaylists(), getFeaturedPlaylists()])
+    let loadPromises = [getGenres(), getFeaturedPlaylists()];
+    if (signedIn) {
+        document.getElementById("liked_songs_label").style.color = null;
+        document.getElementById("use_liked_songs").disabled = false;
+
+        document.getElementById("top_songs_label").style.color = null;
+        document.getElementById("use_top_songs").disabled = false;
+
+        loadPromises.push(getUserPlaylists());
+    } else {
+        document.getElementById("liked_songs_label").style.color = "gray";
+        document.getElementById("use_liked_songs").disabled = true;
+
+        document.getElementById("top_songs_label").style.color = "gray";
+        document.getElementById("use_top_songs").disabled = true;
+
+        if (
+            params.use === "user_playlist" ||
+            params.use === "liked_songs" ||
+            params.use === "top_songs"
+        )
+            document.getElementById("use_search").click();
+    }
+    Promise.all(loadPromises)
         .then((values) => {
             const elGenre = document.getElementById("genre");
 
@@ -102,53 +157,65 @@ window.onload = async () => {
                     params.query.genre = DEFAULT_PARAMS.query.genre;
             }
 
-            const elUserPlaylist = document.getElementById("user_playlist");
-
-            elUserPlaylist.innerHTML = "<option selected></option>";
-
-            if (!values[1].items.length)
-                document.getElementById("user_playlist_random").disabled = true;
-            else {
-                for (const userPlaylist of values[1].items)
-                    elUserPlaylist.add(
-                        new Option(userPlaylist.name, userPlaylist.id)
-                    );
-
-                if (
-                    !values[1].items.some(
-                        (userPlaylist) =>
-                            userPlaylist.id === params.userPlaylistId
-                    )
-                )
-                    params.userPlaylistId = DEFAULT_PARAMS.userPlaylistId;
-            }
-
             document.getElementById("use_featured_playlist_label").innerText =
-                values[2].message;
+                values[1].message;
 
             const elFeaturedPlaylist =
                 document.getElementById("featured_playlist");
 
             elFeaturedPlaylist.innerHTML = "<option selected></option>";
 
-            if (!values[2].playlists.items.length)
+            if (!values[1].playlists.items.length)
                 document.getElementById(
                     "featured_playlist_random"
                 ).disabled = true;
             else {
-                for (const featuredPlaylist of values[2].playlists.items)
+                for (const featuredPlaylist of values[1].playlists.items)
                     elFeaturedPlaylist.add(
                         new Option(featuredPlaylist.name, featuredPlaylist.id)
                     );
 
                 if (
-                    !values[2].playlists.items.some(
+                    !values[1].playlists.items.some(
                         (featuredPlaylist) =>
                             featuredPlaylist.id === params.featuredPlaylistId
                     )
                 )
                     params.featuredPlaylistId =
                         DEFAULT_PARAMS.featuredPlaylistId;
+            }
+
+            const elUserPlaylist = document.getElementById("user_playlist");
+
+            elUserPlaylist.innerHTML = "<option selected></option>";
+
+            if (values.length == 2 || !values[2].items.length) {
+                document.getElementById("user_playlist_label").style.color =
+                    "gray";
+                document.getElementById("use_user_playlist").disabled = true;
+                document.getElementById("user_playlist").disabled = true;
+                document.getElementById("user_playlist_random").disabled = true;
+            } else {
+                document.getElementById("user_playlist_label").style.color =
+                    null;
+                document.getElementById("use_user_playlist").disabled = false;
+                document.getElementById("user_playlist").disabled = false;
+                document.getElementById(
+                    "user_playlist_random"
+                ).disabled = false;
+
+                for (const userPlaylist of values[2].items)
+                    elUserPlaylist.add(
+                        new Option(userPlaylist.name, userPlaylist.id)
+                    );
+
+                if (
+                    !values[2].items.some(
+                        (userPlaylist) =>
+                            userPlaylist.id === params.userPlaylistId
+                    )
+                )
+                    params.userPlaylistId = DEFAULT_PARAMS.userPlaylistId;
             }
 
             updateParams();
@@ -388,7 +455,7 @@ async function play() {
     elHalves[0].style.display = elHalves[1].style.display = "flex";
     elScore.style.display = "initial";
     document.getElementById("vs_container").style.display = "flex";
-    document.getElementById("change_user").style.display = "none";
+    document.getElementById("user_action").style.display = "none";
     document.getElementById("spotify").style.display = "flex";
     document.getElementById("source").style.display = "flex";
 
@@ -841,14 +908,15 @@ function updateSide(sideNum) {
 
     const elLikeBtn = document.getElementById(`like_btn_${sideNum}`);
 
-    hasTrackSaved(trackData.id).then((trackSaved) => {
-        if (trackSaved[0])
-            elLikeBtn.innerHTML =
-                '<svg class="liked_svg" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>';
-        else
-            elLikeBtn.innerHTML =
-                '<svg viewBox="0 0 16 16"><path d="M1.69 2A4.582 4.582 0 018 2.023 4.583 4.583 0 0111.88.817h.002a4.618 4.618 0 013.782 3.65v.003a4.543 4.543 0 01-1.011 3.84L9.35 14.629a1.765 1.765 0 01-2.093.464 1.762 1.762 0 01-.605-.463L1.348 8.309A4.582 4.582 0 011.689 2zm3.158.252A3.082 3.082 0 002.49 7.337l.005.005L7.8 13.664a.264.264 0 00.311.069.262.262 0 00.09-.069l5.312-6.33a3.043 3.043 0 00.68-2.573 3.118 3.118 0 00-2.551-2.463 3.079 3.079 0 00-2.612.816l-.007.007a1.501 1.501 0 01-2.045 0l-.009-.008a3.082 3.082 0 00-2.121-.861z"></path></svg>';
-    });
+    if (signedIn)
+        hasTrackSaved(trackData.id).then((trackSaved) => {
+            if (trackSaved[0])
+                elLikeBtn.innerHTML =
+                    '<svg class="liked_svg" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>';
+            else
+                elLikeBtn.innerHTML =
+                    '<svg viewBox="0 0 16 16"><path d="M1.69 2A4.582 4.582 0 018 2.023 4.583 4.583 0 0111.88.817h.002a4.618 4.618 0 013.782 3.65v.003a4.543 4.543 0 01-1.011 3.84L9.35 14.629a1.765 1.765 0 01-2.093.464 1.762 1.762 0 01-.605-.463L1.348 8.309A4.582 4.582 0 011.689 2zm3.158.252A3.082 3.082 0 002.49 7.337l.005.005L7.8 13.664a.264.264 0 00.311.069.262.262 0 00.09-.069l5.312-6.33a3.043 3.043 0 00.68-2.573 3.118 3.118 0 00-2.551-2.463 3.079 3.079 0 00-2.612.816l-.007.007a1.501 1.501 0 01-2.045 0l-.009-.008a3.082 3.082 0 00-2.121-.861z"></path></svg>';
+        });
 }
 
 function clickTrack(elAlbumArtBtn, sideNum) {
@@ -1081,7 +1149,7 @@ function nextRound() {
         elCurrentScore.innerText = score;
     }, 0.125 * 1000);
 
-    if (score > (highScores[paramKey] ?? 0)) {
+    if (signedIn && score > (highScores[paramKey] ?? 0)) {
         highScores[paramKey] = score;
         window.storeHighScore(userData.id, paramKey, score);
         elCurrentHighScore.style.animation = "bump 0.25s linear";
@@ -1196,13 +1264,14 @@ function restart() {
 
     document.getElementsByTagName("body")[0].className = "";
 
-    document.getElementById("vs_container").style.display = "none";
-    document.getElementById("restart").style.display = "none";
-    document.getElementById("source").style.display = "none";
-    document.getElementById("spotify").style.display = "none";
-    document.getElementById("change_user").style.display = "initial";
-    document.getElementById("play_btn").style.display = "flex";
-    document.getElementById("params").style.display = "initial";
+    document.getElementById("vs_container").style.display =
+        document.getElementById("restart").style.display =
+        document.getElementById("source").style.display =
+        document.getElementById("spotify").style.display =
+        document.getElementById("user_action").style.display =
+        document.getElementById("play_btn").style.display =
+        document.getElementById("params").style.display =
+            null;
 }
 
 function toggleMute() {
@@ -1304,7 +1373,7 @@ function changeParams(newParams) {
     localStorage.setItem("params", JSON.stringify(params));
 
     updatePlayValidity();
-    updateHighScore();
+    if (signedIn) updateHighScore();
 }
 
 function validYearString(yearString) {
@@ -1409,6 +1478,10 @@ function changeUser() {
     window.location = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${SCOPES.join(
         "%20"
     )}&response_type=token&show_dialog=true`;
+}
+
+function signIn() {
+    // TODO
 }
 
 function resetParams() {

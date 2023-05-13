@@ -172,7 +172,7 @@
             <div id="user_image_container"></div>
             <h6 id="user_display_name"></h6>
 
-            <a id="change_user" onclick="changeUser()">Change</a>
+            <a id="user_action"></a>
         </div>
 
         <div id="score">
@@ -298,7 +298,9 @@
                     type="radio"
                     onchange="changeParams({use: 'user_playlist'})"
                 />
-                <label for="use_user_playlist">User playlist</label>
+                <label id="user_playlist_label" for="use_user_playlist"
+                    >User playlist</label
+                >
                 <br />
                 <div class="params_indent">
                     <select
@@ -345,7 +347,9 @@
                     type="radio"
                     onchange="changeParams({use: 'liked_songs'})"
                 />
-                <label for="use_liked_songs">Liked songs</label>
+                <label id="liked_songs_label" for="use_liked_songs"
+                    >Liked songs</label
+                >
                 <br />
                 <br />
                 <input
@@ -354,7 +358,9 @@
                     type="radio"
                     onchange="changeParams({use: 'top_songs'})"
                 />
-                <label for="use_top_songs">Top songs</label>
+                <label id="top_songs_label" for="use_top_songs"
+                    >Top songs</label
+                >
             </div>
             <br />
             <button

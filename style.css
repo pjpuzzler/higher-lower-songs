@@ -361,12 +361,12 @@ label {
 }
 
 #user_image_container {
+    display: none;
     background-color: #535353;
     height: 6vh;
     width: 6vh;
     border-radius: 100%;
     overflow: hidden;
-    display: flex;
     align-items: center;
     justify-content: center;
     margin-right: 1.75vh;
@@ -383,7 +383,7 @@ label {
     fill: #fff;
 }
 
-#change_user {
+#user_action {
     font-size: 2vh;
     position: fixed;
     color: #fff;
