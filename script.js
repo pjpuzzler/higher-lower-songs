@@ -108,20 +108,22 @@ const load = async () => {
             if (!values[0].genres.length)
                 document.getElementById("genre_random").disabled = true;
             else {
-                for (const genre of values[0].genres)
-                    elGenre.add(
-                        new Option(
-                            genre
-                                .split("-")
-                                .map(
-                                    (s) =>
-                                        s.charAt(0).toUpperCase() +
-                                        s.substring(1)
-                                )
-                                .join(" "),
-                            genre
-                        )
-                    );
+                for (const genre of values[0].genres) {
+                    if (genre)
+                        elGenre.add(
+                            new Option(
+                                genre
+                                    .split("-")
+                                    .map(
+                                        (s) =>
+                                            s.charAt(0).toUpperCase() +
+                                            s.substring(1)
+                                    )
+                                    .join(" "),
+                                genre
+                            )
+                        );
+                }
 
                 if (!values[0].genres.includes(params.query.genre))
                     params.query.genre = DEFAULT_PARAMS.query.genre;
@@ -140,10 +142,15 @@ const load = async () => {
                     "featured_playlist_random"
                 ).disabled = true;
             else {
-                for (const featuredPlaylist of values[1].playlists.items)
-                    elFeaturedPlaylist.add(
-                        new Option(featuredPlaylist.name, featuredPlaylist.id)
-                    );
+                for (const featuredPlaylist of values[1].playlists.items) {
+                    if (featuredPlaylist)
+                        elFeaturedPlaylist.add(
+                            new Option(
+                                featuredPlaylist.name,
+                                featuredPlaylist.id
+                            )
+                        );
+                }
 
                 if (
                     !values[1].playlists.items.some(
@@ -189,6 +196,7 @@ const load = async () => {
             }
 
             updateParams();
+            updatePlayValidity();
         })
         .catch(() => {
             alert("Error getting spotify data");
@@ -200,8 +208,6 @@ const load = async () => {
     document.getElementById("sound_only").checked = params.soundOnly;
     document.getElementById("play_sfx").checked = params.playSFX;
     document.getElementById("hide_popularity").checked = params.hidePopularity;
-
-    updatePlayValidity();
 
     const advancedParamsVisibility =
         document.getElementById("advanced_params").style.visibility;
@@ -234,9 +240,6 @@ if (!_token) {
             _token = data.access_token;
             waitForLoad();
         },
-        error: () => {
-            alert("error");
-        },
         dataType: "json",
     });
 } else {
@@ -253,10 +256,11 @@ let params,
     fadeInNext,
     urlsLeft,
     volume,
+    linearVolume,
     paramKey,
     highScores,
     score = 0,
-    prevVolume = (2 / 3) * MAX_VOLUME;
+    prevVolume = DEFAULT_VOLUME;
 
 // $(document).tooltip({show: null});
 
@@ -1085,18 +1089,18 @@ function revealTrackPopularity(
         $elBar = $(`#${sideNum === 1 ? "left" : "right"}_bar`),
         onRevealComplete = () => {
             if (correct) {
-                if (volume > 0 && params.playSFX) CORRECT_SFX.play();
+                if (params.playSFX) {
+                    CORRECT_SFX.volume = linearVolume;
+                    CORRECT_SFX.play();
+                }
                 $elPopularity[0].style.animation = "bump 0.25s linear";
                 $elPopularity[0].onanimationend = () => {
                     $elPopularity[0].style.animation = "initial";
                 };
-            } else if (
-                sideNum === 2 &&
-                volume > 0 &&
-                !forceShow &&
-                params.playSFX
-            )
+            } else if (sideNum === 2 && !forceShow && params.playSFX) {
+                GAME_OVER_SFX.volume = linearVolume;
                 GAME_OVER_SFX.play();
+            }
         };
 
     $elPopularity.text("?");
@@ -1313,14 +1317,12 @@ function setVolume(newVolume) {
     const $elTrackPlayer = $("#track_player"),
         currVolume = $elTrackPlayer[0].volume,
         oldVolume = volume,
-        elMuteBtn = document.getElementById("mute_btn"),
-        linearVolume = newVolume;
+        elMuteBtn = document.getElementById("mute_btn");
 
-    newVolume = newVolume ** 3;
+    linearVolume = newVolume;
+    volume = newVolume ** 2.75;
 
-    volume = newVolume;
-    document.getElementById("volume_slider").value =
-        (linearVolume / MAX_VOLUME) * 100;
+    document.getElementById("volume_slider").value = linearVolume * 100;
     localStorage.setItem("volume", linearVolume);
 
     if (!fadeInNext && currVolume < oldVolume) {
@@ -1336,10 +1338,10 @@ function setVolume(newVolume) {
         fadeOut();
     } else if (currVolume === oldVolume) $elTrackPlayer[0].volume = volume;
 
-    if (linearVolume / MAX_VOLUME > 2 / 3) {
+    if (linearVolume > 2 / 3) {
         elMuteBtn.innerHTML =
             '<svg id="mute_img" viewBox="0 0 16 16"><path d="M9.741.85a.75.75 0 01.375.65v13a.75.75 0 01-1.125.65l-6.925-4a3.642 3.642 0 01-1.33-4.967 3.639 3.639 0 011.33-1.332l6.925-4a.75.75 0 01.75 0zm-6.924 5.3a2.139 2.139 0 000 3.7l5.8 3.35V2.8l-5.8 3.35zm8.683 4.29V5.56a2.75 2.75 0 010 4.88z"></path><path d="M11.5 13.614a5.752 5.752 0 000-11.228v1.55a4.252 4.252 0 010 8.127v1.55z"></path></svg>';
-    } else if (linearVolume / MAX_VOLUME > 1 / 3) {
+    } else if (linearVolume > 1 / 3) {
         elMuteBtn.innerHTML =
             '<svg id="mute_img" viewBox="0 0 16 16"><path d="M9.741.85a.75.75 0 01.375.65v13a.75.75 0 01-1.125.65l-6.925-4a3.642 3.642 0 01-1.33-4.967 3.639 3.639 0 011.33-1.332l6.925-4a.75.75 0 01.75 0zm-6.924 5.3a2.139 2.139 0 000 3.7l5.8 3.35V2.8l-5.8 3.35zm8.683 6.087a4.502 4.502 0 000-8.474v1.65a2.999 2.999 0 010 5.175v1.649z"></path></svg>';
     } else if (linearVolume > 0) {
@@ -1352,15 +1354,15 @@ function setVolume(newVolume) {
 
     document.documentElement.style.setProperty(
         "--pulse_size",
-        volume === 0 ? 1 : (0.025 * volume) / MAX_VOLUME + 1.025
+        volume === 0 ? 1 : 0.025 * volume + 1.025
     );
     document.documentElement.style.setProperty(
         "--volume_slider_offset",
-        (linearVolume / MAX_VOLUME) * 100 + "%"
+        linearVolume * 100 + "%"
     );
     document.documentElement.style.setProperty(
         "--volume_slider_thumb_margin",
-        (2 * linearVolume) / MAX_VOLUME - 1 + "vh"
+        2 * linearVolume - 1 + "vh"
     );
 }
 
