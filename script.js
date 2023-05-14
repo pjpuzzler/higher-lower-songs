@@ -1319,7 +1319,7 @@ function setVolume(newVolume) {
     volume = newVolume;
     document.getElementById("volume_slider").value =
         (linearVolume / MAX_VOLUME) * 100;
-    localStorage.setItem("volume", volume);
+    localStorage.setItem("volume", linearVolume);
 
     if (!fadeInNext && currVolume < oldVolume) {
         $elTrackPlayer.stop();
