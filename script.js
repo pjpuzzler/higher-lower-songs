@@ -15,44 +15,10 @@ window.location.hash = "";
 let _token = hash.access_token,
     signedIn = true;
 
-// window.location = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${SCOPES.join(
-//     "%20"
-// )}&response_type=token`;
-
-if (!_token) {
-    signedIn = false;
-
-    $.ajax({
-        type: "POST",
-        url: "https://accounts.spotify.com/api/token",
-        headers: {
-            Authorization:
-                "Basic " + window.btoa(CLIENT_ID + ":" + CLIENT_SECRET),
-        },
-        data: "grant_type=client_credentials",
-        success: (data) => {
-            _token = data.access_token;
-            load();
-        },
-        dataType: "json",
-    });
-} else load();
-
-let params,
-    userData,
-    trackData1,
-    trackData2,
-    albumCover,
-    trackDataTmp,
-    fadeInNext,
-    urlsLeft,
-    volume,
-    paramKey,
-    highScores,
-    score = 0,
-    prevVolume = (2 / 3) * MAX_VOLUME;
-
-// $(document).tooltip({show: null});
+if (!_token && localStorage.getItem("signed_in") === "true") {
+    if (confirm("Sign back in?")) signIn(false);
+    else localStorage.setItem("signed_in", false);
+}
 
 const load = async () => {
     const elUserImageContainer = document.getElementById(
@@ -96,10 +62,10 @@ const load = async () => {
                 return;
             });
 
-        elUserAction.innerText = "Change User";
-        elUserAction.onclick = changeUser;
+        elUserAction.innerText = "Sign out";
+        elUserAction.onclick = signOut;
     } else {
-        elUserAction.innerText = "Sign In";
+        elUserAction.innerText = "Sign in";
         elUserAction.style.top = "4vh";
         elUserAction.onclick = signIn;
     }
@@ -242,6 +208,46 @@ const load = async () => {
     )
         toggleAdvancedParams();
 };
+
+if (!_token) {
+    signedIn = false;
+
+    $.ajax({
+        type: "POST",
+        url: "https://accounts.spotify.com/api/token",
+        headers: {
+            Authorization:
+                "Basic " + window.btoa(CLIENT_ID + ":" + CLIENT_SECRET),
+        },
+        data: "grant_type=client_credentials",
+        success: (data) => {
+            _token = data.access_token;
+            if (document.readyState === "complete") load();
+            else document.onload = load;
+        },
+        dataType: "json",
+    });
+} else {
+    if (document.readyState == "complete") load();
+    else window.onload = load;
+    localStorage.setItem("signed_in", true);
+}
+
+let params,
+    userData,
+    trackData1,
+    trackData2,
+    albumCover,
+    trackDataTmp,
+    fadeInNext,
+    urlsLeft,
+    volume,
+    paramKey,
+    highScores,
+    score = 0,
+    prevVolume = (2 / 3) * MAX_VOLUME;
+
+// $(document).tooltip({show: null});
 
 function setHighScores(data) {
     highScores = data;
@@ -1474,14 +1480,22 @@ function toggleAdvancedParams() {
     );
 }
 
-function changeUser() {
-    window.location = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${SCOPES.join(
-        "%20"
-    )}&response_type=token&show_dialog=true`;
+function signOut() {
+    localStorage.setItem("signed_in", false);
+    location.reload();
 }
 
-function signIn() {
-    // TODO
+function signIn(showDialog = true) {
+    if (
+        !showDialog ||
+        confirm(
+            "Spotify account must be registered with the owner of the website to sign in. Continue?"
+        )
+    ) {
+        window.location = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${SCOPES.join(
+            "%20"
+        )}&response_type=token&show_dialog=false`;
+    }
 }
 
 function resetParams() {
