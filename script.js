@@ -15,10 +15,7 @@ window.location.hash = "";
 let _token = hash.access_token,
     signedIn = true;
 
-if (!_token && localStorage.getItem("signed_in") === "true") {
-    if (confirm("Sign back in?")) signIn(false);
-    else localStorage.setItem("signed_in", false);
-}
+if (!_token && localStorage.getItem("signed_in") === "true") signIn(false);
 
 const load = async () => {
     const elUserImageContainer = document.getElementById(
