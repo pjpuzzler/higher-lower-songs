@@ -1413,7 +1413,8 @@ function updatePlayValidity(forceDisable = false) {
             (params.use === "search" &&
                 Object.values(params.query).some((val) => val) &&
                 validYearString(params.query.year)) ||
-            (params.use === "album_playlist" && params.albumPlaylistURI))
+            (params.use === "album_playlist" &&
+                URI_REGEX.test(params.albumPlaylistURI)))
     ) {
         elPlayBtn.disabled = false;
         elPlayBtn.className = "valid_play_btn";
