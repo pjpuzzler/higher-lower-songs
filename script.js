@@ -15,7 +15,10 @@ window.location.hash = "";
 let _token = hash.access_token,
     signedIn = true;
 
-if (!_token && localStorage.getItem("signed_in") === "true") signIn(false);
+if (!_token && localStorage.getItem("signed_in") === "true") {
+    localStorage.setItem("signed_in", false);
+    signIn();
+}
 
 const load = async () => {
     const elUserImageContainer = document.getElementById(
@@ -65,7 +68,7 @@ const load = async () => {
         elUserAction.innerText = "Sign in";
         elUserAction.style.top = "4vh";
         elUserAction.onclick = () => {
-            signIn(true, true);
+            signIn(true);
         };
     }
 
@@ -1503,17 +1506,10 @@ function signOut() {
     location.reload();
 }
 
-function signIn(showPopup = true, showDialog = false) {
-    if (
-        !showPopup ||
-        confirm(
-            "Spotify account must be registered with the owner of the website to sign in. Continue?"
-        )
-    ) {
-        window.location = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${SCOPES.join(
-            "%20"
-        )}&response_type=token&show_dialog=${showDialog}`;
-    }
+function signIn(showDialog = false) {
+    window.location = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${SCOPES.join(
+        "%20"
+    )}&response_type=token&show_dialog=${showDialog}`;
 }
 
 function resetParams() {
