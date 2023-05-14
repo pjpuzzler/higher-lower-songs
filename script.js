@@ -67,7 +67,9 @@ const load = async () => {
     } else {
         elUserAction.innerText = "Sign in";
         elUserAction.style.top = "4vh";
-        elUserAction.onclick = signIn;
+        elUserAction.onclick = () => {
+            signIn(true, true);
+        };
     }
 
     params = JSON.parse(localStorage.getItem("params")) ?? DEFAULT_PARAMS;
@@ -1485,16 +1487,16 @@ function signOut() {
     location.reload();
 }
 
-function signIn(showDialog = true) {
+function signIn(showPopup = true, showDialog = false) {
     if (
-        !showDialog ||
+        !showPopup ||
         confirm(
             "Spotify account must be registered with the owner of the website to sign in. Continue?"
         )
     ) {
         window.location = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${SCOPES.join(
             "%20"
-        )}&response_type=token&show_dialog=false`;
+        )}&response_type=token&show_dialog=${showDialog}`;
     }
 }
 
