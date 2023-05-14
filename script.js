@@ -211,6 +211,12 @@ const load = async () => {
         toggleAdvancedParams();
 };
 
+function waitForLoad() {
+    if (document.readyState == "loading")
+        document.addEventListener("DOMContentLoaded", load);
+    else load();
+}
+
 if (!_token) {
     signedIn = false;
 
@@ -224,15 +230,16 @@ if (!_token) {
         data: "grant_type=client_credentials",
         success: (data) => {
             _token = data.access_token;
-            if (document.readyState === "complete") load();
-            else document.onload = load;
+            waitForLoad();
+        },
+        error: () => {
+            alert("error");
         },
         dataType: "json",
     });
 } else {
-    if (document.readyState == "complete") load();
-    else window.onload = load;
     localStorage.setItem("signed_in", true);
+    waitForLoad();
 }
 
 let params,
