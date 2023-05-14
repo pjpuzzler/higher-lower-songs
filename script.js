@@ -30,14 +30,11 @@ const load = async () => {
         try {
             userData = await getUserData();
         } catch (e) {
-            if (e.status === 403) {
+            if (e.status === 403)
                 alert("Account is not valid for this app. Sign in failed.");
-                signOut();
-                return;
-            }
+            else alert("Error getting user data");
 
-            alert("Error getting user data");
-            updatePlayValidity(true);
+            signOut();
             return;
         }
 
