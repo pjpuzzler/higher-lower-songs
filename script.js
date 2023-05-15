@@ -17,7 +17,7 @@ let _token = hash.access_token,
 
 if (!_token && localStorage.getItem("signed_in") === "true") {
     localStorage.setItem("signed_in", false);
-    signIn(false);
+    signIn();
 }
 
 const load = async () => {
@@ -31,7 +31,9 @@ const load = async () => {
             userData = await getUserData();
         } catch (e) {
             if (e.status === 403)
-                alert("Account is not valid for this app. Sign in failed.");
+                alert(
+                    "Account must be registered with the owner of this website. Sign in failed."
+                );
             else alert("Error getting user data");
 
             signOut();
@@ -70,7 +72,7 @@ const load = async () => {
         elUserAction.innerText = "Sign in";
         elUserAction.style.top = "4vh";
         elUserAction.onclick = () => {
-            signIn(true, true);
+            signIn(true);
         };
     }
 
@@ -261,8 +263,6 @@ let params,
     highScores,
     score = 0,
     prevVolume = DEFAULT_VOLUME;
-
-// $(document).tooltip({show: null});
 
 function setHighScores(data) {
     highScores = data;
@@ -500,7 +500,7 @@ async function loadUrls() {
                 userPlayListData.external_urls.spotify;
             document.getElementById("source_img_search").style.display = "none";
             elSourceImg.style.display = "initial";
-            elSourceImg.src = userPlayListData.images[0].url;
+            elSourceImg.src = userPlayListData.images[0]?.url;
             document.getElementById("source_text").innerText = `${
                 userPlayListData.name.length >= 20
                     ? userPlayListData.name.substring(0, 19) + "..."
@@ -701,7 +701,9 @@ function getData(url, returnFirstTrack = true) {
                     data.items?.[0].track ??
                     data.items?.[0];
 
-                if (trackData && trackData.preview_url && trackData.popularity)
+                if (!trackData?.id) return reject();
+
+                if (trackData.preview_url && trackData.popularity)
                     resolve(trackData);
                 else {
                     $.ajax({
@@ -967,6 +969,7 @@ function playTrack(sideNum) {
     const elTrackPlayer = document.getElementById("track_player");
 
     elTrackPlayer.src = (sideNum === 1 ? trackData1 : trackData2).preview_url;
+    elTrackPlayer.play();
     elTrackPlayer.volume = 0;
     fadeInNext = true;
 
@@ -1211,7 +1214,7 @@ function nextRound() {
 
         const elSlideHalves = document.getElementsByClassName("slide_half");
 
-        if (window.matchMedia("(max-width: 950px)").matches) {
+        if (window.matchMedia("(orientation:portrait)").matches) {
             elSlideHalves[0].style.animation =
                 elSlideHalves[1].style.animation = `slide_down_up ${SLIDE_HALVES_DURATION}s ease`;
             elSlideHalves[2].style.animation = `slide_up ${SLIDE_HALVES_DURATION}s ease`;
@@ -1305,7 +1308,7 @@ function restart() {
 
 function toggleMute() {
     if (volume > 0) {
-        prevVolume = volume;
+        prevVolume = linearVolume;
 
         setVolume(0);
     } else {
@@ -1510,17 +1513,10 @@ function signOut() {
     location.reload();
 }
 
-function signIn(showPopup = true, showDialog = false) {
-    if (
-        !showPopup ||
-        confirm(
-            "Spotify account must be registered with the owner of the website to sign in. Continue?"
-        )
-    ) {
-        window.location = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${SCOPES.join(
-            "%20"
-        )}&response_type=token&show_dialog=${showDialog}`;
-    }
+function signIn(showDialog = false) {
+    window.location = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=${SCOPES.join(
+        "%20"
+    )}&response_type=token&show_dialog=${showDialog}`;
 }
 
 function resetParams() {

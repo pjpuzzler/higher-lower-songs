@@ -2,10 +2,10 @@
     --pulse_duration: 2.5s;
     --pulse_size: 1.05;
     --volume_slider_offset: 100%;
-    --volume_slider_height: 0.75vh;
-    --volume_slider_thumb_height: 2vh;
-    --volume_slider_thumb_margin_top: -0.625vh;
-    --volume_slider_thumb_margin: 1vh;
+    --volume_slider_height: 0.75dvh;
+    --volume_slider_thumb_height: 2dvh;
+    --volume_slider_thumb_margin_top: -0.625dvh;
+    --volume_slider_thumb_margin: 1dvh;
     --marquee_title_1_distance: 0;
     --marquee_title_2_distance: 0;
     --marquee_artist_1_distance: 0;
@@ -15,6 +15,8 @@
 * {
     font-family: "spotify-circular";
     user-select: none;
+    -webkit-user-select: none;
+    -webkit-text-size-adjust: none;
 }
 
 body {
@@ -27,7 +29,7 @@ body {
 }
 
 h2 {
-    font-size: 10vh;
+    font-size: 10dvh;
     margin: 0;
     line-height: 100%;
 }
@@ -35,7 +37,7 @@ h2 {
 h3 {
     color: #fff;
     margin-bottom: 0;
-    font-size: 2.85vh;
+    font-size: 2.85dvh;
     position: relative;
 }
 
@@ -43,7 +45,7 @@ h4 {
     color: #b3b3b3;
     margin-top: 0;
     font-weight: 300;
-    font-size: 2.25vh;
+    font-size: 2.25dvh;
     display: table-row;
     position: relative;
     z-index: 0;
@@ -52,14 +54,14 @@ h4 {
 
 h5 {
     color: #fff;
-    font-size: 7vh;
+    font-size: 7dvh;
     margin: 0;
     line-height: 100%;
 }
 
 h6 {
     color: #fff;
-    font-size: 3vh;
+    font-size: 3dvh;
     margin: 0;
 }
 
@@ -79,8 +81,8 @@ button:not(.param_button) {
 }
 
 svg {
-    width: 3vh;
-    height: 3vh;
+    width: 3dvh;
+    height: 3dvh;
     fill: #b3b3b3;
 }
 
@@ -98,7 +100,7 @@ span {
 }
 
 select {
-    max-width: 25vh;
+    max-width: 25dvh;
 }
 
 label {
@@ -126,27 +128,27 @@ label {
     justify-content: center;
     float: left;
     width: 50vw;
-    height: 100vh;
+    height: 100dvh;
 }
 
 .side_details {
-    margin-top: 13.25vh;
+    margin-top: 13.25dvh;
 }
 
 .album_art {
-    width: 45vh;
-    height: 45vh;
+    width: 45dvh;
+    height: 45dvh;
 }
 
 .track_details {
     width: 100%;
     display: flex;
-    margin-top: 2.2vh;
+    margin-top: 2.2dvh;
 }
 
 .track_info {
-    width: 41.25vh;
-    margin-left: -1.5vh;
+    width: 41.25dvh;
+    margin-left: -1.5dvh;
     white-space: nowrap;
     overflow: hidden;
 }
@@ -158,7 +160,7 @@ label {
 
 .left_gradient {
     position: absolute;
-    width: 1.5vh;
+    width: 1.5dvh;
     height: 100%;
     left: 0;
     top: 0;
@@ -167,7 +169,7 @@ label {
 
 .right_gradient {
     position: absolute;
-    width: 1.5vh;
+    width: 1.5dvh;
     height: 100%;
     right: 0;
     top: 0;
@@ -182,12 +184,12 @@ label {
 
 .track_title_link {
     display: inline-block;
-    margin-left: 1.5vh;
+    margin-left: 1.5dvh;
 }
 
 .all_artist_link {
     display: inline-block;
-    margin-left: 1.5vh;
+    margin-left: 1.5dvh;
 }
 
 .artist_link:hover {
@@ -195,8 +197,8 @@ label {
 }
 
 .like_btn {
-    margin-top: 5.25vh;
-    margin-left: 2.1vh;
+    margin-top: 5.25dvh;
+    margin-left: 2.1dvh;
     display: flex;
 }
 
@@ -213,7 +215,7 @@ label {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    height: 25vh;
+    height: 25dvh;
     align-items: center;
 }
 
@@ -224,20 +226,20 @@ label {
 .bar_overflow {
     position: relative;
     overflow: hidden;
-    width: 28vh;
-    height: 14vh;
-    margin-bottom: -8vh;
+    width: 28dvh;
+    height: 14dvh;
+    margin-bottom: -8dvh;
 }
 
 .bar {
     position: absolute;
     top: 0;
     left: 0;
-    width: 28vh;
-    height: 28vh;
+    width: 28dvh;
+    height: 28dvh;
     border-radius: 50%;
     box-sizing: border-box;
-    border: 3vh solid #535353;
+    border: 3dvh solid #535353;
 }
 
 .popularity {
@@ -246,7 +248,7 @@ label {
 
 .guess_btn {
     color: #b3b3b3;
-    font-size: 6vh;
+    font-size: 6dvh;
 }
 
 .guess_btn:hover {
@@ -288,13 +290,13 @@ label {
 }
 
 #album_art_1_btn {
-    height: 45vh;
-    width: 45vh;
+    height: 45dvh;
+    width: 45dvh;
 }
 
 #album_art_2_btn {
-    height: 45vh;
-    width: 45vh;
+    height: 45dvh;
+    width: 45dvh;
 }
 
 #vs_container {
@@ -305,8 +307,8 @@ label {
     transform: translate(-50%, -50%);
     justify-content: center;
     align-items: center;
-    height: 12vh;
-    width: 12vh;
+    height: 12dvh;
+    width: 12dvh;
 }
 
 #vs {
@@ -317,7 +319,7 @@ label {
     align-items: center;
     height: 100%;
     width: 100%;
-    font-size: 8vh;
+    font-size: 8dvh;
 }
 
 #restart {
@@ -332,8 +334,8 @@ label {
 
 #replay {
     transform: translate(-50%, -50%);
-    height: 15vh;
-    width: 15vh;
+    height: 15dvh;
+    width: 15dvh;
     fill: #fff;
 }
 
@@ -347,14 +349,14 @@ label {
 
 #high_score {
     position: fixed;
-    top: 2vh;
-    left: 2vh;
+    top: 2dvh;
+    left: calc(env(safe-area-inset-left) + 2dvh);
 }
 
 #user_info {
     position: fixed;
-    top: 2vh;
-    right: 2vh;
+    top: 2dvh;
+    right: calc(env(safe-area-inset-right) + 2dvh);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -363,13 +365,13 @@ label {
 #user_image_container {
     display: none;
     background-color: #535353;
-    height: 6vh;
-    width: 6vh;
+    height: 6dvh;
+    width: 6dvh;
     border-radius: 100%;
     overflow: hidden;
     align-items: center;
     justify-content: center;
-    margin-right: 1.75vh;
+    margin-right: 1.75dvh;
 }
 
 #user_image {
@@ -384,28 +386,28 @@ label {
 }
 
 #user_action {
-    font-size: 2vh;
+    font-size: 2dvh;
     position: fixed;
     color: #fff;
-    right: 2vh;
-    top: 8vh;
+    right: calc(env(safe-area-inset-right) + 2dvh);
+    top: 8dvh;
 }
 
 #score {
     display: none;
     position: fixed;
-    bottom: 2vh;
-    left: 2vh;
+    bottom: 2dvh;
+    left: calc(env(safe-area-inset-left) + 2dvh);
 }
 
 #spotify {
     position: fixed;
     top: 0;
-    padding: 1vh;
-    border-radius: 0 0 1vh 1vh;
+    padding: 1dvh;
+    border-radius: 0 0 1dvh 1dvh;
     left: 50%;
     transform: translate(-50%);
-    height: 3.5vh;
+    height: 3.5dvh;
     display: none;
     justify-content: center;
     align-items: center;
@@ -420,11 +422,11 @@ label {
 #source {
     position: fixed;
     bottom: 0;
-    padding: 1vh;
-    border-radius: 1vh 1vh 0 0;
+    padding: 1dvh;
+    border-radius: 1dvh 1dvh 0 0;
     left: 50%;
     transform: translate(-50%);
-    height: 7vh;
+    height: 7dvh;
     display: none;
     justify-content: center;
     align-items: center;
@@ -449,13 +451,13 @@ label {
 }
 
 #source_img {
-    outline: 0.33vh solid #b3b3b3;
+    outline: 0.33dvh solid #b3b3b3;
     height: 100%;
 }
 
 #source_img_search {
-    height: 7vh;
-    width: 7vh;
+    height: 7dvh;
+    width: 7dvh;
 }
 
 #source_search {
@@ -463,19 +465,19 @@ label {
 }
 
 #source_text {
-    margin-left: 2vh;
+    margin-left: 2dvh;
     color: #b3b3b3;
 }
 
 #volume {
     position: fixed;
-    bottom: 2vh;
-    right: 2vh;
+    bottom: 2dvh;
+    right: calc(env(safe-area-inset-right) + 2dvh);
     display: flex;
 }
 
 #mute_btn {
-    margin-right: 1.25vh;
+    margin-right: 1.25dvh;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -494,12 +496,12 @@ label {
 }
 
 #mute_img {
-    height: 3.38vh;
-    width: 3.38vh;
+    height: 3.38dvh;
+    width: 3.38dvh;
 }
 
 #volume_slider {
-    width: 19vh;
+    width: 19dvh;
     appearance: none;
     background: transparent;
 }
@@ -538,7 +540,7 @@ label {
 }
 
 #guess_higher {
-    margin-bottom: 3vh;
+    margin-bottom: 3dvh;
 }
 
 #right_progress {
@@ -550,7 +552,7 @@ label {
     bottom: 20px;
     left: 20px;
     overflow: scroll;
-    max-height: 90vh;
+    max-height: 90dvh;
     max-width: 100vw;
 }
 
@@ -573,189 +575,189 @@ select {
 
 @media screen and (orientation:portrait) {
     body.adaptive h2 {
-        font-size: 5vh;
+        font-size: 5dvh;
     }
 
     body.adaptive h3 {
-        font-size: 1.43vh;
+        font-size: 1.43dvh;
     }
 
     body.adaptive h4 {
-        font-size: 1.13vh;
+        font-size: 1.13dvh;
     }
 
     body.adaptive h5 {
-        font-size: 3.5vh;
+        font-size: 3.5dvh;
     }
 
     body.adaptive h6 {
-        font-size: 1.5vh;
+        font-size: 1.5dvh;
     }
 
     body.adaptive svg {
-        width: 1.5vh;
-        height: 1.5vh;
+        width: 1.5dvh;
+        height: 1.5dvh;
     }
 
     body.adaptive .half {
-        height: 50vh;
+        height: 50dvh;
         width: 100vw;
     }
 
     body.adaptive .side_details {
-        margin-top: 6.75vh;
+        margin-top: 6.75dvh;
     }
 
     body.adaptive .album_art {
-        width: 22.5vh;
-        height: 22.5vh;
+        width: 22.5dvh;
+        height: 22.5dvh;
     }
 
     body.adaptive .track_details {
-        margin-top: 1.1vh;
+        margin-top: 1.1dvh;
     }
 
     body.adaptive .track_info {
         margin-left: -0.75;
-        width: 20.63vh;
+        width: 20.63dvh;
     }
 
     body.adaptive .left_gradient {
-        width: 0.75vh;
+        width: 0.75dvh;
     }
 
     body.adaptive .right_gradient {
-        width: 0.75vh;
+        width: 0.75dvh;
     }
 
     body.adaptive .track_title_link {
-        margin-left: 0.75vh;
+        margin-left: 0.75dvh;
     }
 
     body.adaptive .all_artist_link {
-        margin-left: 0.75vh;
+        margin-left: 0.75dvh;
     }
 
     body.adaptive .like_btn {
-        margin-top: 2.63vh;
-        margin-left: 1.05vh;
+        margin-top: 2.63dvh;
+        margin-left: 1.05dvh;
     }
 
     body.adaptive .guessing {
-        height: 12.5vh;
+        height: 12.5dvh;
     }
 
     body.adaptive .bar_overflow {
-        width: 14vh;
-        height: 7vh;
-        margin-bottom: -4vh;
+        width: 14dvh;
+        height: 7dvh;
+        margin-bottom: -4dvh;
     }
 
     body.adaptive .bar {
-        width: 14vh;
-        height: 14vh;
-        border-width: 1.5vh;
+        width: 14dvh;
+        height: 14dvh;
+        border-width: 1.5dvh;
     }
 
     body.adaptive .guess_btn {
-        font-size: 3vh;
+        font-size: 3dvh;
     }
 
     body.adaptive #album_art_1_btn {
-        height: 22.5vh;
-        width: 22.5vh;
-        outline-width: 0.125vh;
+        height: 22.5dvh;
+        width: 22.5dvh;
+        outline-width: 0.125dvh;
     }
 
     body.adaptive #album_art_2_btn {
-        height: 22.5vh;
-        width: 22.5vh;
-        outline-width: 0.125vh;
+        height: 22.5dvh;
+        width: 22.5dvh;
+        outline-width: 0.125dvh;
     }
 
     body.adaptive #vs_container {
-        height: 6vh;
-        width: 6vh;
+        height: 6dvh;
+        width: 6dvh;
     }
 
     body.adaptive #vs {
-        font-size: 4vh;
+        font-size: 4dvh;
     }
 
     body.adaptive #replay {
-        height: 7.5vh;
-        width: 7.5vh;
+        height: 7.5dvh;
+        width: 7.5dvh;
     }
 
     body.adaptive #high_score {
-        top: 1vh;
-        left: 1vh;
+        top: 1dvh;
+        left: 1dvh;
     }
 
     body.adaptive #user_info {
-        top: 1vh;
-        right: 1vh;
+        top: 1dvh;
+        right: 1dvh;
     }
 
     body.adaptive #user_image_container {
-        height: 3vh;
-        width: 3vh;
-        margin-right: 0.88vh;
+        height: 3dvh;
+        width: 3dvh;
+        margin-right: 0.88dvh;
     }
 
     body.adaptive #score {
-        bottom: 1vh;
-        left: 1vh;
+        bottom: 1dvh;
+        left: 1dvh;
     }
 
     body.adaptive #spotify {
-        padding: 0.5vh;
+        padding: 0.5dvh;
         top: initial;
         bottom: 50%;
-        border-radius: 0.5vh 0 0 0.5vh;
+        border-radius: 0.5dvh 0 0 0.5dvh;
         left: initial;
         right: 0;
         transform: translate(0, 50%);
     }
 
     body.adaptive #source {
-        padding: 0.5vh;
+        padding: 0.5dvh;
         bottom: 50%;
-        border-radius: 0 0.5vh 0.5vh 0;
+        border-radius: 0 0.5dvh 0.5dvh 0;
         left: 0;
         transform: translate(0, 50%);
-        height: 3.5vh;
+        height: 3.5dvh;
     }
 
     #source_img {
-        outline-width: 0.17vh;
+        outline-width: 0.17dvh;
     }
 
     #source_img_search {
-        height: 3.5vh;
-        width: 3.5vh;
+        height: 3.5dvh;
+        width: 3.5dvh;
     }
 
     #source_text {
-        margin-left: 1vh;
+        margin-left: 1dvh;
     }
 
     body.adaptive #volume {
-        bottom: 1vh;
-        right: 1vh;
+        bottom: 1dvh;
+        right: 1dvh;
     }
 
     body.adaptive #mute_btn {
-        margin-right: 0.63vh;
+        margin-right: 0.63dvh;
     }
 
     body.adaptive #mute_img {
-        height: 1.69vh;
-        width: 1.69vh;
+        height: 1.69dvh;
+        width: 1.69dvh;
     }
 
     body.adaptive #volume_slider {
-        width: 9.5vh;
+        width: 9.5dvh;
     }
 
     body.adaptive #volume_slider::-webkit-slider-runnable-track {
@@ -771,7 +773,7 @@ select {
     }
 
     body.adaptive #guess_higher {
-        margin-bottom: 1.5vh;
+        margin-bottom: 1.5dvh;
     }
 }
 
