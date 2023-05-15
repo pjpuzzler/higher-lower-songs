@@ -70,7 +70,7 @@ const load = async () => {
         elUserAction.onclick = signOut;
     } else {
         elUserAction.innerText = "Sign in";
-        elUserAction.style.top = "4vh";
+        elUserAction.style.top = "4dvh";
         elUserAction.onclick = () => {
             signIn(true);
         };
@@ -366,6 +366,13 @@ function getArtistMarqueeLinearGradient(hsl, to) {
     );
 }
 
+function getQueryString(query) {
+    return Object.keys(query)
+        .filter((key) => query[key])
+        .map((key) => `${key}:"${query[key]}"`)
+        .join("+");
+}
+
 function trackPlayerTimeUpdated(currentTime) {
     if (volume === 0) return;
 
@@ -651,10 +658,7 @@ async function loadUrls() {
         }
         case "search": {
             const queryString = encodeURIComponent(
-                    Object.keys(params.query)
-                        .filter((key) => params.query[key])
-                        .map((key) => `${key}:"${params.query[key]}"`)
-                        .join("+")
+                    getQueryString(params.query)
                 ),
                 maxOffset = (
                     await getData(
@@ -843,7 +847,7 @@ function updateSide(sideNum, reveal = false) {
         elAlbumArt.src = albumArtUrl;
     } else {
         elAlbumArt.style.visibility = "hidden";
-        elAlbumArtBtn.style.outline = "0.25vh solid #fff";
+        elAlbumArtBtn.style.outline = "0.25dvh solid #fff";
     }
 
     const elTrackTitle = document.getElementById(`track_title_${sideNum}`),
@@ -1365,7 +1369,7 @@ function setVolume(newVolume) {
     );
     document.documentElement.style.setProperty(
         "--volume_slider_thumb_margin",
-        2 * linearVolume - 1 + "vh"
+        2 * linearVolume - 1 + "dvh"
     );
 }
 
@@ -1373,14 +1377,15 @@ function getParamKey() {
     let d = {
         hidePopularity: params.hidePopularity,
         soundOnly: params.soundOnly,
-        use: params.use,
     };
-    if (params.use === "search") d.query = params.query;
+    if (params.use === "search") d.identifier = getQueryString(params.query);
     else if (params.use === "user_playlist")
-        d.uri = `spotify:playlist:${params.userPlaylistId}`;
+        d.identifier = `spotify:playlist:${params.userPlaylistId}`;
     else if (params.use === "featured_playlist")
-        d.uri = `spotify:playlist:${params.featuredPlaylistId}`;
-    else if (params.use === "album_playlist") d.uri = params.albumPlaylistURI;
+        d.identifier = `spotify:playlist:${params.featuredPlaylistId}`;
+    else if (params.use === "album_playlist")
+        d.identifier = params.albumPlaylistURI;
+    else d.identifier = params.use;
 
     return JSON.stringify(d);
 }
