@@ -571,7 +571,7 @@ select {
     font-style: italic;
 }
 
-@media screen and (orientation:landscape) {
+@media screen and (orientation:portrait) {
     body.adaptive h2 {
         font-size: 5vh;
     }
