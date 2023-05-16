@@ -10,6 +10,7 @@
     --marquee_title_2_distance: 0;
     --marquee_artist_1_distance: 0;
     --marquee_artist_2_distance: 0;
+    --mobile: false;
 }
 
 * {
@@ -30,6 +31,7 @@ body {
 
 h2 {
     font-size: 10dvh;
+    font-weight: 400;
     margin: 0;
     line-height: 100%;
 }
@@ -37,6 +39,7 @@ h2 {
 h3 {
     color: #fff;
     margin-bottom: 0;
+    font-weight: 400;
     font-size: 2.85dvh;
     position: relative;
 }
@@ -55,6 +58,7 @@ h4 {
 h5 {
     color: #fff;
     font-size: 7dvh;
+    font-weight: 400;
     margin: 0;
     line-height: 100%;
 }
@@ -62,6 +66,7 @@ h5 {
 h6 {
     color: #fff;
     font-size: 3dvh;
+    font-weight: 400;
     margin: 0;
 }
 
@@ -257,6 +262,10 @@ label {
 
 .guess_btn:active {
     color: #b3b3b3;
+}
+
+.album_art_muted {
+    animation: none !important;
 }
 
 .album_art_hover:hover {
@@ -498,6 +507,7 @@ label {
 #mute_img {
     height: 3.38dvh;
     width: 3.38dvh;
+    overflow: visible;
 }
 
 #volume_slider {
@@ -785,6 +795,7 @@ select {
 
 @font-face {
     font-family: "spotify-circular";
+    font-weight: 400;
     src: url("fonts/CircularStd-Medium.otf");
 }
 
@@ -905,5 +916,25 @@ select {
 
     100% {
         transform: scale(1);
+    }
+}
+
+@media (any-pointer: coarse) {
+    :root {
+        --mobile: true;
+    }
+    
+    #volume_slider {
+        display: none;
+    }
+
+    @keyframes pulse {
+        50% {
+            transform: scale(1.05);
+        }
+    
+        100% {
+            transform: scale(1);
+        }
     }
 }
