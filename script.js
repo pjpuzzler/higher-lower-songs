@@ -506,7 +506,7 @@ async function loadUrls() {
                 userPlayListData.external_urls.spotify;
             document.getElementById("source_img_search").style.display = "none";
             elSourceImg.style.display = "initial";
-            elSourceImg.src = userPlayListData.images[0]?.url;
+            elSourceImg.src = userPlayListData.images[0]?.url ?? "";
             document.getElementById("source_text").innerText = `${
                 userPlayListData.name.length >= 20
                     ? userPlayListData.name.substring(0, 19) + "..."
@@ -704,7 +704,7 @@ function getData(url, returnFirstTrack = true) {
                     data.items?.[0].track ??
                     data.items?.[0];
 
-                if (!trackData?.id) return reject();
+                if (!trackData || trackData.is_local) return reject();
 
                 if (trackData.preview_url && trackData.popularity)
                     resolve(trackData);
@@ -722,6 +722,7 @@ function getData(url, returnFirstTrack = true) {
                         success: (trackData) => {
                             resolve(trackData);
                         },
+                        error: reject,
                     });
                 }
             },
