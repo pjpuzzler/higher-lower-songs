@@ -618,7 +618,7 @@ select {
     }
 
     body.adaptive .track_info {
-        margin-left: -0.75;
+        margin-left: -0.75dvh;
         width: 20.63dvh;
     }
 

@@ -20,6 +20,14 @@ if (!_token && localStorage.getItem("signed_in") === "true") {
     signIn();
 }
 
+window.onresize = () => {
+    if (document.getElementsByTagName("body")[0].className !== "adaptive")
+        return;
+
+    updateMarquees(1);
+    updateMarquees(2);
+};
+
 const load = async () => {
     const elUserImageContainer = document.getElementById(
             "user_image_container"
@@ -262,6 +270,7 @@ let params,
     paramKey,
     highScores,
     score = 0,
+    marqueeTimesoutIds = [null, null, null, null],
     prevVolume = DEFAULT_VOLUME;
 
 function setHighScores(data) {
@@ -348,7 +357,7 @@ function getTitleMarqueeLinearGradient(hsl, to) {
         "%, " +
         (hsl[2] * 100) / 2.82 +
         "%), " +
-        "rgba(0, 0, 0, 0))"
+        "rgba(0, 0, 0, 0) 80%)"
     );
 }
 
@@ -362,7 +371,7 @@ function getArtistMarqueeLinearGradient(hsl, to) {
         "%, " +
         (hsl[2] * 100) / 2.965 +
         "%), " +
-        "rgba(0, 0, 0, 0))"
+        "rgba(0, 0, 0, 0) 80%)"
     );
 }
 
@@ -745,6 +754,83 @@ function getBarColor(p) {
     return `hsl(${p * 3.3}, 100%, 50%)`;
 }
 
+function updateMarquees(sideNum) {
+    clearTimeout(marqueeTimesoutIds[sideNum - 1]);
+    clearTimeout(marqueeTimesoutIds[sideNum + 1]);
+
+    const elTrackTitle = document.getElementById(`track_title_${sideNum}`),
+        elTrackInfo = document.getElementById(
+            `${sideNum === 1 ? "left" : "right"}_track_info`
+        ),
+        elArtist = document.getElementById(`artist_${sideNum}`),
+        elTrackRightGradient = document.getElementById(
+            `track_${sideNum}_right_gradient`
+        ),
+        trackTitleWidth = elTrackTitle.scrollWidth,
+        artistWidth = elArtist.scrollWidth,
+        trackInfoWidth = elTrackInfo.offsetWidth,
+        gradientWidth = elTrackRightGradient.offsetWidth,
+        threeHalvesVh = 0.015 * document.documentElement.clientHeight,
+        threeFourthsVh = 0.0075 * document.documentElement.clientHeight;
+
+    elTrackTitle.style.animation = "initial";
+    elArtist.style.animation = "initial";
+
+    if (trackTitleWidth > trackInfoWidth - gradientWidth) {
+        const titleMarqueeProperty = `--marquee_title_${sideNum}_distance`,
+            titleMarqueeDistance =
+                trackTitleWidth -
+                (trackInfoWidth -
+                    (window.matchMedia("(orientation:portrait)").matches
+                        ? threeFourthsVh
+                        : threeHalvesVh) -
+                    gradientWidth);
+
+        document.documentElement.style.setProperty(
+            titleMarqueeProperty,
+            `${-titleMarqueeDistance}px`
+        );
+
+        const titleMarqueeDuration = titleMarqueeDistance / 15,
+            titleAnimation = `${titleMarqueeDuration}s linear infinite alternate marquee_title_${sideNum}`;
+
+        elTrackTitle.style.animation = titleAnimation;
+        elTrackTitle.onanimationiteration = () => {
+            elTrackTitle.style.animationPlayState = "paused";
+            marqueeTimesoutIds[sideNum - 1] = setTimeout(() => {
+                elTrackTitle.style.animationPlayState = "running";
+            }, MARQUEE_PAUSE_DURATION * 1000);
+        };
+    }
+
+    if (artistWidth > trackInfoWidth - gradientWidth) {
+        const artistMarqueeProperty = `--marquee_artist_${sideNum}_distance`,
+            artistMarqueeDistance =
+                artistWidth -
+                (trackInfoWidth -
+                    (window.matchMedia("(orientation:portrait)").matches
+                        ? threeFourthsVh
+                        : threeHalvesVh) -
+                    gradientWidth);
+
+        document.documentElement.style.setProperty(
+            artistMarqueeProperty,
+            `${-artistMarqueeDistance}px`
+        );
+
+        const artistMarqueeDuration = artistMarqueeDistance / 15,
+            artistAnimation = `${artistMarqueeDuration}s linear infinite alternate marquee_artist_${sideNum}`;
+
+        elArtist.style.animation = artistAnimation;
+        elArtist.onanimationiteration = () => {
+            elArtist.style.animationPlayState = "paused";
+            marqueeTimesoutIds[1 + sideNum] = setTimeout(() => {
+                elArtist.style.animationPlayState = "running";
+            }, MARQUEE_PAUSE_DURATION * 1000);
+        };
+    }
+}
+
 function updateSide(sideNum, reveal = false) {
     const trackData = sideNum === 1 ? trackData1 : trackData2,
         noAudio =
@@ -850,43 +936,11 @@ function updateSide(sideNum, reveal = false) {
         elAlbumArtBtn.style.outline = "0.25dvh solid #fff";
     }
 
-    const elTrackTitle = document.getElementById(`track_title_${sideNum}`),
-        elTrackInfo = document.getElementById(
-            `${sideNum === 1 ? "left" : "right"}_track_info`
-        );
+    const elTrackTitle = document.getElementById(`track_title_${sideNum}`);
 
     elTrackTitle.innerText = reveal || !params.soundOnly ? trackData.name : "";
     elTrackTitle.href =
         reveal || !params.soundOnly ? trackData.external_urls.spotify : "";
-
-    const trackTitleWidth = elTrackTitle.scrollWidth,
-        trackInfoWidth = elTrackInfo.offsetWidth,
-        gradientWidth = elTrackRightGradient.offsetWidth,
-        threeHalvesVh = 0.015 * document.documentElement.clientHeight,
-        vhOffset = 0.0075 * document.documentElement.clientHeight;
-
-    elTrackTitle.style.animation = "initial";
-    if (trackTitleWidth > trackInfoWidth - vhOffset - gradientWidth) {
-        const titleMarqueeProperty = `--marquee_title_${sideNum}_distance`,
-            titleMarqueeDistance =
-                trackTitleWidth -
-                (trackInfoWidth - threeHalvesVh - gradientWidth);
-        document.documentElement.style.setProperty(
-            titleMarqueeProperty,
-            `${-titleMarqueeDistance}px`
-        );
-
-        const titleMarqueeDuration = titleMarqueeDistance / 20,
-            titleAnimation = `${titleMarqueeDuration}s linear infinite alternate marquee_title_${sideNum}`;
-
-        elTrackTitle.style.animation = titleAnimation;
-        elTrackTitle.onanimationiteration = () => {
-            elTrackTitle.style.animationPlayState = "paused";
-            setTimeout(() => {
-                elTrackTitle.style.animationPlayState = "running";
-            }, MARQUEE_PAUSE_DURATION * 1000);
-        };
-    }
 
     const elArtist = document.getElementById(`artist_${sideNum}`);
 
@@ -913,29 +967,7 @@ function updateSide(sideNum, reveal = false) {
         }
     }
 
-    const artistWidth = elArtist.scrollWidth;
-
-    elArtist.style.animation = "initial";
-    if (artistWidth > trackInfoWidth - vhOffset - gradientWidth) {
-        const artistMarqueeProperty = `--marquee_artist_${sideNum}_distance`,
-            artistMarqueeDistance =
-                artistWidth - (trackInfoWidth - vhOffset - gradientWidth);
-        document.documentElement.style.setProperty(
-            artistMarqueeProperty,
-            `${-artistMarqueeDistance}px`
-        );
-
-        const artistMarqueeDuration = artistMarqueeDistance / 20,
-            artistAnimation = `${artistMarqueeDuration}s linear infinite alternate marquee_artist_${sideNum}`;
-
-        elArtist.style.animation = artistAnimation;
-        elArtist.onanimationiteration = () => {
-            elArtist.style.animationPlayState = "paused";
-            setTimeout(() => {
-                elArtist.style.animationPlayState = "running";
-            }, MARQUEE_PAUSE_DURATION * 1000);
-        };
-    }
+    updateMarquees(sideNum);
 
     const elLikeBtn = document.getElementById(`like_btn_${sideNum}`);
 
