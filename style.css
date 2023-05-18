@@ -145,6 +145,14 @@ label {
     height: 45dvh;
 }
 
+.album_art_btn {
+    overflow: hidden;
+}
+
+.album_art_album {
+    border-radius: 2dvh;
+}
+
 .track_details {
     width: 100%;
     display: flex;
@@ -280,8 +288,8 @@ label {
     z-index: 1;
     opacity: 0.5;
     border-radius: 100%;
-    height: 20vmin;
-    width: 20vmin;
+    height: 20dvmin;
+    width: 20dvmin;
     background-color: #fff;
     display: flex;
     justify-content: center;
@@ -362,6 +370,33 @@ label {
     left: calc(env(safe-area-inset-left) + 2dvh);
 }
 
+#modes {
+    position: fixed;
+    top: 16dvh;
+    left: 50%;
+    transform: translate(-50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1;
+}
+
+#modes input[type="radio"] {
+    display: none;
+}
+
+#modes label {
+    display: inline-block;
+    padding: 1dvh 4dvmin;
+    cursor: pointer;
+    color: #b3b3b3;
+    font-size: 5dvmin;
+}
+
+#modes input[type="radio"]:checked+label {
+    color: #fff;
+}
+
 #user_info {
     position: fixed;
     top: 2dvh;
@@ -409,23 +444,26 @@ label {
     left: calc(env(safe-area-inset-left) + 2dvh);
 }
 
-#spotify {
+#mode {
     position: fixed;
-    top: 0;
-    padding: 1dvh;
-    border-radius: 0 0 1dvh 1dvh;
+    top: 1dvh;
+    padding: 1dvh 2dvh;
+    border-radius: 3dvh;
     left: 50%;
     transform: translate(-50%);
     height: 3.5dvh;
     display: none;
     justify-content: center;
     align-items: center;
-    background-color: #000;
-    opacity: 0.75;
+    background-color: #232323;
+    text-transform: capitalize;
+    color: #fff;
+    font-weight: 300;
+    font-size: 2.5dvh;
 }
 
-#spotify:hover {
-    opacity: 1;
+#mode:hover {
+    text-decoration: initial;
 }
 
 #source {
@@ -623,6 +661,10 @@ select {
         height: 22.5dvh;
     }
 
+    body.adaptive .album_art_album {
+        border-radius: 1dvh;
+    }
+
     body.adaptive .track_details {
         margin-top: 1.1dvh;
     }
@@ -720,13 +762,13 @@ select {
         left: 1dvh;
     }
 
-    body.adaptive #spotify {
-        padding: 0.5dvh;
+    body.adaptive #mode {
+        padding: 0.5dvh 1dvh;
         top: initial;
         bottom: 50%;
-        border-radius: 0.5dvh 0 0 0.5dvh;
+        font-size: 1.25dvh;
         left: initial;
-        right: 0;
+        right: 0.5dvh;
         transform: translate(0, 50%);
     }
 

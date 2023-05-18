@@ -22,7 +22,11 @@
     <body>
         <div id="left_half" class="half slide_half">
             <div class="side_details">
-                <button id="album_art_1_btn" onclick="clickTrack(this, 1)">
+                <button
+                    id="album_art_1_btn"
+                    class="album_art_btn"
+                    onclick="clickTrack(this, 1)"
+                >
                     <img id="album_art_1" class="album_art" draggable="false" />
                 </button>
                 <div class="track_details">
@@ -58,7 +62,7 @@
                     <button
                         id="like_btn_1"
                         class="like_btn"
-                        onclick="likeTrack(this, 1)"
+                        onclick="like(this, 1)"
                     ></button>
                 </div>
 
@@ -75,7 +79,11 @@
 
         <div id="right_half" class="half slide_half">
             <div class="side_details">
-                <button id="album_art_2_btn" onclick="clickTrack(this, 2)">
+                <button
+                    id="album_art_2_btn"
+                    class="album_art_btn"
+                    onclick="clickTrack(this, 2)"
+                >
                     <img id="album_art_2" class="album_art" draggable="false" />
                 </button>
                 <div class="track_details">
@@ -111,7 +119,7 @@
                     <button
                         id="like_btn_2"
                         class="like_btn"
-                        onclick="likeTrack(this, 2)"
+                        onclick="like(this, 2)"
                     ></button>
                 </div>
 
@@ -161,19 +169,33 @@
             <h6 id="current_high_score"></h6>
         </div>
 
-        <a
-            id="spotify"
-            target="_blank"
-            draggable="false"
-            href="https://open.spotify.com/"
-        >
-            <img
-                id="spotify_logo"
-                draggable="false"
-                src="./imgs/Spotify_Logo.png"
-                style="height: 100%"
+        <div id="modes">
+            <input
+                type="radio"
+                id="song_mode"
+                name="modes"
+                onchange="changeMode('songs')"
             />
-        </a>
+            <label for="song_mode">Songs</label>
+
+            <input
+                type="radio"
+                id="album_mode"
+                name="modes"
+                onchange="changeMode('albums')"
+            />
+            <label for="album_mode">Albums</label>
+
+            <input
+                type="radio"
+                id="artist_mode"
+                name="modes"
+                onchange="changeMode('artists')"
+            />
+            <label for="artist_mode">Artists</label>
+        </div>
+
+        <a id="mode" draggable="false"> </a>
 
         <div id="user_info">
             <div id="user_image_container"></div>
@@ -244,98 +266,82 @@
                     <input
                         id="max_search_results"
                         type="range"
-                        min="10"
+                        min="100"
                         max="1000"
                         value="1000"
-                        step="10"
+                        step="100"
                         oninput="changeParams({maxSearchResults: this.value}); this.nextElementSibling.innerText = `Max Search Results (${this.value})`"
                     />
                     <label for="max_search_results"
                         >Max Search Results (1000)</label
                     >
-                    <br />
+                    <br class="hide_artists" />
                     <input
                         id="from_year"
                         type="number"
+                        class="hide_artists"
                         min="0"
-                        oninput="changeParams({query: {...params.query, year: `${this.value}-${document.getElementById('to_year').value}`}}); if (this.value !== '') document.getElementById('to_year').min = this.value"
+                        oninput="changeParams({query: {...params[mode].query, year: `${this.value}-${document.getElementById('to_year').value}`}}); if (this.value !== '') document.getElementById('to_year').min = this.value"
                     />
-                    <label>-</label>
+                    <label class="hide_artists">-</label>
                     <input
                         id="to_year"
                         type="number"
+                        class="hide_artists"
                         min="0"
-                        oninput="changeParams({query: {...params.query, year: `${document.getElementById('from_year').value}-${this.value}`}}); if (this.value !== '') document.getElementById('from_year').max = this.value"
+                        oninput="changeParams({query: {...params[mode].query, year: `${document.getElementById('from_year').value}-${this.value}`}}); if (this.value !== '') document.getElementById('from_year').max = this.value"
                     />
-                    <label for="from_year">Year</label>
-                    <br />
+                    <label for="from_year" class="hide_artists">Year</label>
+                    <br class="hide_albums" />
                     <select
                         id="genre"
-                        onchange="changeParams({query: {...params.query, genre: this.value}})"
+                        class="hide_albums"
+                        onchange="changeParams({query: {...params[mode].query, genre: this.value}})"
                     ></select>
-                    <label for="genre">Genre</label>
+                    <label for="genre" class="hide_albums">Genre</label>
                     <button
                         id="genre_random"
-                        class="param_button"
+                        class="param_button hide_albums"
                         onclick="randomGenre()"
                     >
                         Random
                     </button>
                 </div>
-                <br />
+                <br class="hide_artists" />
                 <input
-                    id="use_album_playlist"
+                    id="use_uri"
                     name="use"
                     type="radio"
-                    onchange="changeParams({use: 'album_playlist'})"
+                    class="hide_artists"
+                    onchange="changeParams({use: 'uri'})"
                 />
-                <label for="use_album_playlist">Album/Playlist URI</label>
-                <br />
-                <div class="params_indent">
+                <label id="use_uri_label" for="use_uri" class="hide_artists"
+                    >Album/Playlist URI</label
+                >
+                <br class="hide_artists" />
+                <div class="params_indent hide_artists">
                     <input
-                        id="album_playlist_uri"
+                        id="uri"
                         type="text"
                         placeholder="spotify:album:5Z9iiGl2FcIfa3BMiv6OIw"
-                        oninput="changeParams({albumPlaylistURI: this.value.trim()})"
+                        oninput="changeParams({uri: this.value.trim()})"
                     />
                 </div>
-                <br />
-                <input
-                    id="use_user_playlist"
-                    name="use"
-                    type="radio"
-                    onchange="changeParams({use: 'user_playlist'})"
-                />
-                <label id="user_playlist_label" for="use_user_playlist"
-                    >User playlist</label
-                >
-                <br />
-                <div class="params_indent">
-                    <select
-                        id="user_playlist"
-                        onchange="changeParams({userPlaylistId: this.value})"
-                    ></select>
-                    <button
-                        id="user_playlist_random"
-                        class="param_button"
-                        onclick="randomUserPlaylist()"
-                    >
-                        Random
-                    </button>
-                </div>
-                <br />
+                <br class="hide_albums hide_artists" />
                 <input
                     id="use_featured_playlist"
                     name="use"
                     type="radio"
+                    class="hide_albums hide_artists"
                     onchange="changeParams({use: 'featured_playlist'})"
                 />
                 <label
                     id="use_featured_playlist_label"
                     for="use_featured_playlist"
+                    class="hide_albums hide_artists"
                 ></label>
-                <br />
-                <div class="params_indent">
+                <br class="hide_albums hide_artists" />
+                <div class="params_indent hide_albums hide_artists">
                     <select
                         id="featured_playlist"
                         onchange="changeParams({featuredPlaylistId: this.value})"
@@ -348,25 +354,61 @@
                         Random
                     </button>
                 </div>
-                <br />
+                <br class="hide_albums hide_artists" />
+                <input
+                    id="use_user_playlist"
+                    name="use"
+                    type="radio"
+                    class="hide_albums hide_artists"
+                    onchange="changeParams({use: 'user_playlist'})"
+                />
+                <label
+                    id="use_user_playlist_label"
+                    for="use_user_playlist"
+                    class="hide_albums hide_artists"
+                    >User playlist</label
+                >
+                <br class="hide_albums hide_artists" />
+                <div class="params_indent hide_albums hide_artists">
+                    <select
+                        id="user_playlist"
+                        onchange="changeParams({userPlaylistId: this.value})"
+                    ></select>
+                    <button
+                        id="user_playlist_random"
+                        class="param_button"
+                        onclick="randomUserPlaylist()"
+                    >
+                        Random
+                    </button>
+                </div>
+                <br class="hide_albums hide_artists" />
                 <input
                     id="use_liked_songs"
                     name="use"
                     type="radio"
+                    class="hide_albums hide_artists"
                     onchange="changeParams({use: 'liked_songs'})"
                 />
-                <label id="liked_songs_label" for="use_liked_songs"
+                <label
+                    id="use_liked_songs_label"
+                    for="use_liked_songs"
+                    class="hide_albums hide_artists"
                     >Liked songs</label
                 >
-                <br />
-                <br />
+                <br class="hide_albums hide_artists" />
+                <br class="hide_albums hide_artists" />
                 <input
                     id="use_top_songs"
                     name="use"
                     type="radio"
+                    class="hide_albums hide_artists"
                     onchange="changeParams({use: 'top_songs'})"
                 />
-                <label id="top_songs_label" for="use_top_songs"
+                <label
+                    id="use_top_songs_label"
+                    for="use_top_songs"
+                    class="hide_albums hide_artists"
                     >Top songs</label
                 >
             </div>

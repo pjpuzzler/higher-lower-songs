@@ -29,6 +29,8 @@ window.onresize = () => {
 };
 
 const load = async () => {
+    updatePlayValidity(true);
+
     const elUserImageContainer = document.getElementById(
             "user_image_container"
         ),
@@ -62,7 +64,7 @@ const load = async () => {
 
                 window.firestoreListen(userData.id, setHighScores);
             })
-            .catch(() => {
+            .catch((e) => {
                 alert("Error getting high scores");
             });
 
@@ -84,31 +86,14 @@ const load = async () => {
         };
     }
 
+    mode = localStorage.getItem("mode") ?? DEFAULT_MODE;
     params = JSON.parse(localStorage.getItem("params")) ?? DEFAULT_PARAMS;
 
+    updateParamValidity();
+
     let loadPromises = [getGenres(), getFeaturedPlaylists()];
-    if (signedIn) {
-        document.getElementById("liked_songs_label").style.color = null;
-        document.getElementById("use_liked_songs").disabled = false;
+    if (signedIn) loadPromises.push(getUserPlaylists());
 
-        document.getElementById("top_songs_label").style.color = null;
-        document.getElementById("use_top_songs").disabled = false;
-
-        loadPromises.push(getUserPlaylists());
-    } else {
-        document.getElementById("liked_songs_label").style.color = "gray";
-        document.getElementById("use_liked_songs").disabled = true;
-
-        document.getElementById("top_songs_label").style.color = "gray";
-        document.getElementById("use_top_songs").disabled = true;
-
-        if (
-            params.use === "user_playlist" ||
-            params.use === "liked_songs" ||
-            params.use === "top_songs"
-        )
-            document.getElementById("use_search").click();
-    }
     Promise.all(loadPromises)
         .then((values) => {
             const elGenre = document.getElementById("genre");
@@ -122,8 +107,8 @@ const load = async () => {
                     if (genre) elGenre.add(new Option(genre, genre));
                 }
 
-                if (!values[0].genres.includes(params.query.genre))
-                    params.query.genre = DEFAULT_PARAMS.query.genre;
+                if (!values[0].genres.includes(params[mode].query.genre))
+                    params[mode].query.genre = DEFAULT_PARAMS[mode].query.genre;
             }
 
             document.getElementById("use_featured_playlist_label").innerText =
@@ -164,13 +149,13 @@ const load = async () => {
             elUserPlaylist.innerHTML = "<option selected></option>";
 
             if (values.length == 2 || !values[2].items.length) {
-                document.getElementById("user_playlist_label").style.color =
+                document.getElementById("use_user_playlist_label").style.color =
                     "gray";
                 document.getElementById("use_user_playlist").disabled = true;
                 document.getElementById("user_playlist").disabled = true;
                 document.getElementById("user_playlist_random").disabled = true;
             } else {
-                document.getElementById("user_playlist_label").style.color =
+                document.getElementById("use_user_playlist_label").style.color =
                     null;
                 document.getElementById("use_user_playlist").disabled = false;
                 document.getElementById("user_playlist").disabled = false;
@@ -195,16 +180,18 @@ const load = async () => {
             updateParams();
             updatePlayValidity();
         })
-        .catch(() => {
+        .catch((e) => {
+            alert(e);
             alert("Error getting spotify data");
         });
 
     setVolume(Number(localStorage.getItem("volume") ?? DEFAULT_VOLUME));
 
     document.getElementById("mute_explicit").checked = params.muteExplicit;
-    document.getElementById("sound_only").checked = params.soundOnly;
+    document.getElementById("sound_only").checked = params[mode].soundOnly;
     document.getElementById("play_sfx").checked = params.playSFX;
-    document.getElementById("hide_popularity").checked = params.hidePopularity;
+    document.getElementById("hide_popularity").checked =
+        params[mode].hidePopularity;
 
     const advancedParamsVisibility =
         document.getElementById("advanced_params").style.visibility;
@@ -248,8 +235,11 @@ let params,
     userData,
     trackData1,
     trackData2,
+    albumData1,
+    albumData2,
     albumCover,
     trackDataTmp,
+    albumDataTmp,
     urlsLeft,
     volume,
     linearVolume,
@@ -257,6 +247,7 @@ let params,
     highScores,
     fadeDirection = 0,
     score = 0,
+    mode,
     marqueeTimesoutIds = [null, null, null, null],
     prevVolume = DEFAULT_VOLUME;
 
@@ -266,37 +257,37 @@ function setHighScores(data) {
 }
 
 function updateParams() {
-    document.getElementById("genre").value = params.query.genre;
-    document.getElementById("user_playlist").value = params.userPlaylistId;
+    document.getElementById("genre").value = params[mode].query.genre ?? "";
+    document.getElementById("user_playlist").value =
+        params[mode].userPlaylistId ?? "";
     document.getElementById("featured_playlist").value =
-        params.featuredPlaylistId;
+        params[mode].featuredPlaylistId ?? "";
 
     const elFromYear = document.getElementById("from_year"),
         elToYear = document.getElementById("to_year");
 
     elToYear.max = CURR_YEAR;
 
-    document.getElementById("album_playlist_uri").value =
-        params.albumPlaylistURI;
+    document.getElementById("uri").value = params[mode].uri ?? "";
 
     const elMaxSearchResults = document.getElementById("max_search_results");
 
-    elMaxSearchResults.value = params.maxSearchResults;
-    elMaxSearchResults.nextElementSibling.innerText = `Max Search Results (${params.maxSearchResults})`;
+    elMaxSearchResults.value = params[mode].maxSearchResults;
+    elMaxSearchResults.nextElementSibling.innerText = `Max Search Results (${params[mode].maxSearchResults})`;
 
-    const years = params.query.year.split("-");
+    const years = params[mode].query.year?.split("-") ?? ["", ""];
 
     elFromYear.value = years[0];
     elToYear.value = years[1] ?? "";
     elFromYear.max = elToYear.value;
     elToYear.min = elFromYear.value;
 
-    switch (params.use) {
+    switch (params[mode].use) {
         case "search":
             document.getElementById("use_search").checked = true;
             break;
-        case "album_playlist":
-            document.getElementById("use_album_playlist").checked = true;
+        case "uri":
+            document.getElementById("use_uri").checked = true;
             break;
         case "user_playlist":
             document.getElementById("use_user_playlist").checked = true;
@@ -311,6 +302,22 @@ function updateParams() {
             document.getElementById("use_top_songs").checked = true;
             break;
     }
+
+    switch (mode) {
+        case "songs":
+            document.getElementById("song_mode").checked = true;
+            break;
+        case "albums":
+            document.getElementById("album_mode").checked = true;
+            break;
+        case "artists":
+            document.getElementById("artist_mode").checked = true;
+            break;
+    }
+
+    document.getElementById("hide_popularity").checked =
+        params[mode].hidePopularity;
+    document.getElementById("sound_only").checked = params[mode].soundOnly;
 }
 
 function getLinearGradient(hsl) {
@@ -458,18 +465,25 @@ function getGenres() {
 }
 
 async function play() {
-    document.getElementById("play_btn").style.display = document.getElementById(
-        "params"
-    ).style.display = "none";
+    document.getElementById("play_btn").style.display =
+        document.getElementById("params").style.display =
+        document.getElementById("modes").style.display =
+            "none";
 
     urlsLeft = [];
     if (await loadUrls()) return restart();
 
     try {
-        [trackData1, trackData2] = await Promise.all([
-            getRandomTrackData(),
-            getRandomTrackData(),
-        ]);
+        if (mode === "songs")
+            [trackData1, trackData2] = await Promise.all([
+                getRandomTrackData(),
+                getRandomTrackData(),
+            ]);
+        else
+            [albumData1, albumData2] = await Promise.all([
+                getRandomAlbumData(),
+                getRandomAlbumData(),
+            ]);
     } catch {
         return notEnoughResults();
     }
@@ -483,208 +497,317 @@ async function play() {
     elScore.style.display = "initial";
     document.getElementById("vs_container").style.display = "flex";
     document.getElementById("user_action").style.display = "none";
-    document.getElementById("spotify").style.display = "flex";
+    document.getElementById("mode").style.display = "flex";
+    document.getElementById("mode").innerText = mode;
     document.getElementById("source").style.display = "flex";
 
+    if (mode === "albums") {
+        document
+            .getElementById("album_art_1_btn")
+            .classList.add("album_art_album");
+        document
+            .getElementById("album_art_2_btn")
+            .classList.add("album_art_album");
+    } else {
+        document
+            .getElementById("album_art_1_btn")
+            .classList.remove("album_art_album");
+        document
+            .getElementById("album_art_2_btn")
+            .classList.remove("album_art_album");
+    }
+
     updateSide(1);
-    revealTrackPopularity(1, true);
+    revealPopularity(1, true);
     updateSide(2);
 }
 
 async function loadUrls() {
-    switch (params.use) {
-        case "user_playlist": {
-            const userPlayListData = await getData(
-                    `https://api.spotify.com/v1/playlists/${params.userPlaylistId}?fields=external_urls%2Cimages%2Cname%2Ctracks(total)`,
-                    false
-                ),
-                maxOffset = userPlayListData.tracks.total;
-
-            const elSourceImg = document.getElementById("source_img");
-
-            document.getElementById("source").href =
-                userPlayListData.external_urls.spotify;
-            document.getElementById("source_img_search").style.display = "none";
-            elSourceImg.style.display = "initial";
-            elSourceImg.src = userPlayListData.images[0]?.url ?? "";
-            document.getElementById("source_text").innerText = `${
-                userPlayListData.name.length >= 20
-                    ? userPlayListData.name.substring(0, 19) + "..."
-                    : userPlayListData.name
-            } (${maxOffset})`;
-
-            for (let offset = 0; offset < maxOffset; ++offset)
-                urlsLeft.push(
-                    `https://api.spotify.com/v1/playlists/${params.userPlaylistId}/tracks?fields=items&limit=1&offset=${offset}`
-                );
-            break;
-        }
-        case "featured_playlist": {
-            const featuredPlayListData = await getData(
-                    `https://api.spotify.com/v1/playlists/${params.featuredPlaylistId}?fields=external_urls%2Cimages%2Cname%2Ctracks(total)`,
-                    false
-                ),
-                maxOffset = featuredPlayListData.tracks.total;
-
-            const elSourceImg = document.getElementById("source_img");
-
-            document.getElementById("source").href =
-                featuredPlayListData.external_urls.spotify;
-            document.getElementById("source_img_search").style.display = "none";
-            elSourceImg.style.display = "initial";
-            elSourceImg.src = featuredPlayListData.images[0].url;
-            document.getElementById("source_text").innerText = `${
-                featuredPlayListData.name.length >= 20
-                    ? featuredPlayListData.name.substring(0, 19) + "..."
-                    : featuredPlayListData.name
-            } (${maxOffset})`;
-
-            for (let offset = 0; offset < maxOffset; ++offset)
-                urlsLeft.push(
-                    `https://api.spotify.com/v1/playlists/${params.featuredPlaylistId}/tracks?fields=items&limit=1&offset=${offset}`
-                );
-            break;
-        }
-        case "liked_songs": {
-            const maxOffset = (
-                await getData(
-                    `https://api.spotify.com/v1/me/tracks?limit=1`,
-                    false
-                )
-            ).total;
-
-            const elSourceImg = document.getElementById("source_img");
-
-            document.getElementById("source").href =
-                "https://open.spotify.com/collection/tracks";
-            document.getElementById("source_img_search").style.display = "none";
-            elSourceImg.style.display = "initial";
-            elSourceImg.src =
-                "https://t.scdn.co/images/3099b3803ad9496896c43f22fe9be8c4.png";
-            document.getElementById(
-                "source_text"
-            ).innerText = `Liked Songs (${maxOffset})`;
-
-            for (let offset = 0; offset < maxOffset; ++offset)
-                urlsLeft.push(
-                    `https://api.spotify.com/v1/me/tracks?limit=1&offset=${offset}`
-                );
-            break;
-        }
-        case "top_songs": {
-            const maxOffset = (
-                await getData(
-                    `https://api.spotify.com/v1/me/top/tracks?limit=1`,
-                    false
-                )
-            ).total;
-
-            const elSourceImg = document.getElementById("source_img");
-
-            document.getElementById("source").href =
-                "https://open.spotify.com/collection";
-            document.getElementById("source_img_search").style.display = "none";
-            elSourceImg.style.display = "initial";
-            elSourceImg.src =
-                "https://play-lh.googleusercontent.com/OO06tTnQyEckM3dUDbHqmWXpI-7IbYlodDxVR7L4buzOX6KQvAeTJEV_Q45cznM63mJ-";
-            document.getElementById(
-                "source_text"
-            ).innerText = `Top Songs (${maxOffset})`;
-
-            for (let offset = 0; offset < maxOffset; ++offset)
-                urlsLeft.push(
-                    `https://api.spotify.com/v1/me/top/tracks?limit=1&offset=${offset}`
-                );
-            break;
-        }
-        case "album_playlist": {
-            const albumPlaylistURIParts = params.albumPlaylistURI.split(":"),
-                albumPlaylistString = albumPlaylistURIParts[1],
-                albumPlaylistId = albumPlaylistURIParts[2];
-
-            let albumPlaylistData,
-                isAlbum = false;
-
-            if (albumPlaylistString === "album") {
-                try {
-                    albumPlaylistData = await getData(
-                        `https://api.spotify.com/v1/albums/${albumPlaylistId}`,
+    if (mode === "songs") {
+        switch (params[mode].use) {
+            case "user_playlist": {
+                const userPlayListData = await getData(
+                        `https://api.spotify.com/v1/playlists/${params[mode].userPlaylistId}?fields=external_urls%2Cimages%2Cname%2Ctracks(total)`,
                         false
+                    ),
+                    maxOffset = userPlayListData.tracks.total;
+
+                const elSourceImg = document.getElementById("source_img");
+
+                document.getElementById("source").href =
+                    userPlayListData.external_urls.spotify;
+                document.getElementById("source_img_search").style.display =
+                    "none";
+                elSourceImg.style.display = "initial";
+                elSourceImg.src = userPlayListData.images[0]?.url ?? "";
+                document.getElementById("source_text").innerText = `${
+                    userPlayListData.name.length >= 20
+                        ? userPlayListData.name.substring(0, 19) + "..."
+                        : userPlayListData.name
+                } (${maxOffset})`;
+
+                for (let offset = 0; offset < maxOffset; ++offset)
+                    urlsLeft.push(
+                        `https://api.spotify.com/v1/playlists/${params[mode].userPlaylistId}/tracks?fields=items&limit=1&offset=${offset}`
                     );
-                } catch {
-                    alert("Invalid album ID");
-                    return true;
-                }
-                albumCover = albumPlaylistData.images[0].url;
-                isAlbum = true;
-            } else if (albumPlaylistString === "playlist") {
-                try {
-                    albumPlaylistData = await getData(
-                        `https://api.spotify.com/v1/playlists/${albumPlaylistId}?fields=external_urls%2Cimages%2Cname%2Ctracks(total)`,
-                        false
-                    );
-                } catch {
-                    alert("Invalid playlist ID");
-                    return true;
-                }
-            } else {
-                alert("Invalid URI (format: spotify:album/playlist:id)");
-                return true;
+                break;
             }
+            case "featured_playlist": {
+                const featuredPlayListData = await getData(
+                        `https://api.spotify.com/v1/playlists/${params.featuredPlaylistId}?fields=external_urls%2Cimages%2Cname%2Ctracks(total)`,
+                        false
+                    ),
+                    maxOffset = featuredPlayListData.tracks.total;
 
-            const maxOffset = albumPlaylistData.tracks.total;
+                const elSourceImg = document.getElementById("source_img");
 
-            const elSourceImg = document.getElementById("source_img");
+                document.getElementById("source").href =
+                    featuredPlayListData.external_urls.spotify;
+                document.getElementById("source_img_search").style.display =
+                    "none";
+                elSourceImg.style.display = "initial";
+                elSourceImg.src = featuredPlayListData.images[0].url;
+                document.getElementById("source_text").innerText = `${
+                    featuredPlayListData.name.length >= 20
+                        ? featuredPlayListData.name.substring(0, 19) + "..."
+                        : featuredPlayListData.name
+                } (${maxOffset})`;
 
-            document.getElementById("source").href =
-                albumPlaylistData.external_urls.spotify;
-            document.getElementById("source_img_search").style.display = "none";
-            elSourceImg.style.display = "initial";
-            elSourceImg.src = albumPlaylistData.images[0].url;
-            document.getElementById("source_text").innerText = `${
-                albumPlaylistData.name.length >= 20
-                    ? albumPlaylistData.name.substring(0, 19) + "..."
-                    : albumPlaylistData.name
-            } (${maxOffset})`;
-
-            for (let offset = 0; offset < maxOffset; ++offset)
-                urlsLeft.push(
-                    isAlbum
-                        ? `https://api.spotify.com/v1/albums/${albumPlaylistId}/tracks?limit=1&offset=${offset}`
-                        : `https://api.spotify.com/v1/playlists/${albumPlaylistId}/tracks?fields=items&limit=1&offset=${offset}`
-                );
-            break;
-        }
-        case "search": {
-            const queryString = encodeURIComponent(
-                    getQueryString(params.query)
-                ),
-                maxOffset = (
+                for (let offset = 0; offset < maxOffset; ++offset)
+                    urlsLeft.push(
+                        `https://api.spotify.com/v1/playlists/${params.featuredPlaylistId}/tracks?fields=items&limit=1&offset=${offset}`
+                    );
+                break;
+            }
+            case "liked_songs": {
+                const maxOffset = (
                     await getData(
-                        `https://api.spotify.com/v1/search?q=${queryString}&type=track&limit=1`,
+                        `https://api.spotify.com/v1/me/tracks?limit=1`,
                         false
                     )
-                ).tracks.total,
-                lastOffset = Math.min(maxOffset, params.maxSearchResults);
+                ).total;
 
-            document.getElementById("source_img").style.display = "none";
-            document.getElementById("source_img_search").style.display =
-                "initial";
+                const elSourceImg = document.getElementById("source_img");
 
-            document.getElementById("source").href =
-                "https://open.spotify.com/search/" + queryString + "/tracks";
-            document.getElementById("source_text").innerText =
-                JSON.stringify(params.query) ===
-                JSON.stringify(DEFAULT_PARAMS.query)
-                    ? `Last Decade (${lastOffset})`
-                    : `Custom Search (${lastOffset})`;
+                document.getElementById("source").href =
+                    "https://open.spotify.com/collection/tracks";
+                document.getElementById("source_img_search").style.display =
+                    "none";
+                elSourceImg.style.display = "initial";
+                elSourceImg.src =
+                    "https://t.scdn.co/images/3099b3803ad9496896c43f22fe9be8c4.png";
+                document.getElementById(
+                    "source_text"
+                ).innerText = `Liked Songs (${maxOffset})`;
 
-            for (let offset = 0; offset < lastOffset; ++offset)
-                urlsLeft.push(
-                    `https://api.spotify.com/v1/search?q=${queryString}&type=track&limit=1&offset=${offset}`
-                );
-            break;
+                for (let offset = 0; offset < maxOffset; ++offset)
+                    urlsLeft.push(
+                        `https://api.spotify.com/v1/me/tracks?limit=1&offset=${offset}`
+                    );
+                break;
+            }
+            case "top_songs": {
+                const maxOffset = (
+                    await getData(
+                        `https://api.spotify.com/v1/me/top/tracks?limit=1`,
+                        false
+                    )
+                ).total;
+
+                const elSourceImg = document.getElementById("source_img");
+
+                document.getElementById("source").href =
+                    "https://open.spotify.com/collection";
+                document.getElementById("source_img_search").style.display =
+                    "none";
+                elSourceImg.style.display = "initial";
+                elSourceImg.src =
+                    "https://play-lh.googleusercontent.com/OO06tTnQyEckM3dUDbHqmWXpI-7IbYlodDxVR7L4buzOX6KQvAeTJEV_Q45cznM63mJ-";
+                document.getElementById(
+                    "source_text"
+                ).innerText = `Top Songs (${maxOffset})`;
+
+                for (let offset = 0; offset < maxOffset; ++offset)
+                    urlsLeft.push(
+                        `https://api.spotify.com/v1/me/top/tracks?limit=1&offset=${offset}`
+                    );
+                break;
+            }
+            case "uri": {
+                const albumPlaylistURIParts = params[mode].uri.split(":"),
+                    albumPlaylistString = albumPlaylistURIParts[1],
+                    albumPlaylistId = albumPlaylistURIParts[2];
+
+                let albumPlaylistData,
+                    isAlbum = false;
+
+                if (albumPlaylistString === "album") {
+                    try {
+                        albumPlaylistData = await getData(
+                            `https://api.spotify.com/v1/albums/${albumPlaylistId}`,
+                            false
+                        );
+                    } catch {
+                        alert("Invalid album ID");
+                        return true;
+                    }
+                    albumCover = albumPlaylistData.images[0].url;
+                    isAlbum = true;
+                } else if (albumPlaylistString === "playlist") {
+                    try {
+                        albumPlaylistData = await getData(
+                            `https://api.spotify.com/v1/playlists/${albumPlaylistId}?fields=external_urls%2Cimages%2Cname%2Ctracks(total)`,
+                            false
+                        );
+                    } catch {
+                        alert("Invalid playlist ID");
+                        return true;
+                    }
+                }
+
+                const maxOffset = albumPlaylistData.tracks.total;
+
+                const elSourceImg = document.getElementById("source_img");
+
+                document.getElementById("source").href =
+                    albumPlaylistData.external_urls.spotify;
+                document.getElementById("source_img_search").style.display =
+                    "none";
+                elSourceImg.style.display = "initial";
+                elSourceImg.src = albumPlaylistData.images[0].url;
+                document.getElementById("source_text").innerText = `${
+                    albumPlaylistData.name.length >= 20
+                        ? albumPlaylistData.name.substring(0, 19) + "..."
+                        : albumPlaylistData.name
+                } (${maxOffset})`;
+
+                for (let offset = 0; offset < maxOffset; ++offset)
+                    urlsLeft.push(
+                        isAlbum
+                            ? `https://api.spotify.com/v1/albums/${albumPlaylistId}/tracks?limit=1&offset=${offset}`
+                            : `https://api.spotify.com/v1/playlists/${albumPlaylistId}/tracks?fields=items&limit=1&offset=${offset}`
+                    );
+                break;
+            }
+            case "search": {
+                const queryString = encodeURIComponent(
+                        getQueryString(params[mode].query)
+                    ),
+                    maxOffset = (
+                        await getData(
+                            `https://api.spotify.com/v1/search?q=${queryString}&type=track&limit=1`,
+                            false
+                        )
+                    ).tracks.total,
+                    lastOffset = Math.min(
+                        maxOffset,
+                        params[mode].maxSearchResults
+                    );
+
+                document.getElementById("source_img").style.display = "none";
+                document.getElementById("source_img_search").style.display =
+                    "initial";
+
+                document.getElementById("source").href =
+                    "https://open.spotify.com/search/" +
+                    queryString +
+                    "/tracks";
+                document.getElementById("source_text").innerText =
+                    JSON.stringify(params[mode].query) ===
+                    JSON.stringify(DEFAULT_PARAMS[mode].query)
+                        ? `Last Decade (${lastOffset})`
+                        : `Custom Search (${lastOffset})`;
+
+                for (let offset = 0; offset < lastOffset; ++offset)
+                    urlsLeft.push(
+                        `https://api.spotify.com/v1/search?q=${queryString}&type=track&limit=1&offset=${offset}`
+                    );
+                break;
+            }
         }
+    } else if (mode === "albums") {
+        switch (params[mode].use) {
+            case "uri": {
+                const artistId = params[mode].uri.split(":")[2];
+
+                let artistData, artistAlbumData;
+
+                try {
+                    [artistData, artistAlbumData] = await Promise.all([
+                        getData(
+                            `https://api.spotify.com/v1/artists/${artistId}?fields=external_urls%2Cimages%2Cname`,
+                            false
+                        ),
+                        getData(
+                            `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album&fields=total`,
+                            false
+                        ),
+                    ]);
+                } catch {
+                    alert("Invalid artist ID");
+                    return true;
+                }
+
+                const maxOffset = artistAlbumData.total;
+
+                const elSourceImg = document.getElementById("source_img");
+
+                document.getElementById("source").href =
+                    artistData.external_urls.spotify;
+                document.getElementById("source_img_search").style.display =
+                    "none";
+                elSourceImg.style.display = "initial";
+                elSourceImg.src = artistData.images[0].url;
+                document.getElementById("source_text").innerText = `${
+                    artistData.name.length >= 20
+                        ? artistData.name.substring(0, 19) + "..."
+                        : artistData.name
+                } (${maxOffset})`;
+
+                for (let offset = 0; offset < maxOffset; ++offset)
+                    urlsLeft.push(
+                        `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album&limit=1&offset=${offset}`
+                    );
+                break;
+            }
+            case "search": {
+                const queryString = encodeURIComponent(
+                        getQueryString(params[mode].query)
+                    ),
+                    maxOffset = (
+                        await getData(
+                            `https://api.spotify.com/v1/search?q=${queryString}&type=album&limit=1`,
+                            false
+                        )
+                    ).albums.total,
+                    lastOffset = Math.min(
+                        maxOffset,
+                        params[mode].maxSearchResults
+                    );
+
+                document.getElementById("source_img").style.display = "none";
+                document.getElementById("source_img_search").style.display =
+                    "initial";
+
+                document.getElementById("source").href =
+                    "https://open.spotify.com/search/" +
+                    queryString +
+                    "/albums";
+                document.getElementById("source_text").innerText =
+                    JSON.stringify(params[mode].query) ===
+                    JSON.stringify(DEFAULT_PARAMS[mode].query)
+                        ? `Last Decade (${lastOffset})`
+                        : `Custom Search (${lastOffset})`;
+
+                for (let offset = 0; offset < lastOffset; ++offset)
+                    urlsLeft.push(
+                        `https://api.spotify.com/v1/search?q=${queryString}&type=album&limit=1&offset=${offset}`
+                    );
+                break;
+            }
+        }
+    } else if (mode === "artists") {
+        throw "Not implemented yet";
     }
 }
 
@@ -699,19 +822,42 @@ function getData(url, returnFirstTrack = true) {
             success: (data) => {
                 if (!returnFirstTrack) return resolve(data);
 
-                const trackData =
-                    data.tracks?.items[0] ??
-                    data.items?.[0].track ??
-                    data.items?.[0];
+                if (mode === "songs") {
+                    const trackData =
+                        data.tracks?.items[0] ??
+                        data.items?.[0].track ??
+                        data.items?.[0];
 
-                if (!trackData || trackData.is_local) return reject();
+                    if (!trackData || trackData.is_local) return reject();
 
-                if (trackData.preview_url && trackData.popularity)
-                    resolve(trackData);
-                else {
+                    if (trackData.preview_url && trackData.popularity)
+                        resolve(trackData);
+                    else {
+                        $.ajax({
+                            url:
+                                "https://api.spotify.com/v1/tracks/" +
+                                trackData.id,
+                            type: "GET",
+                            beforeSend: (xhr) => {
+                                xhr.setRequestHeader(
+                                    "Authorization",
+                                    "Bearer " + _token
+                                );
+                            },
+                            success: (data) => {
+                                resolve(data);
+                            },
+                            error: reject,
+                        });
+                    }
+                } else {
+                    const albumData = data.albums?.items[0] ?? data.items?.[0];
+
+                    if (!albumData) return reject();
+
                     $.ajax({
                         url:
-                            "https://api.spotify.com/v1/tracks/" + trackData.id,
+                            "https://api.spotify.com/v1/albums/" + albumData.id,
                         type: "GET",
                         beforeSend: (xhr) => {
                             xhr.setRequestHeader(
@@ -719,8 +865,8 @@ function getData(url, returnFirstTrack = true) {
                                 "Bearer " + _token
                             );
                         },
-                        success: (trackData) => {
-                            resolve(trackData);
+                        success: (data) => {
+                            resolve(data);
                         },
                         error: reject,
                     });
@@ -739,6 +885,12 @@ function getRandomUrl() {
     if (index !== urlsLeft.length) urlsLeft[index] = lastUrl;
 
     return url;
+}
+
+function getRandomAlbumTrackUrl(albumData) {
+    return albumData.tracks.items[
+        Math.floor(Math.random() * albumData.tracks.total)
+    ].href;
 }
 
 function getBarColor(p) {
@@ -821,9 +973,13 @@ function updateMarquees(sideNum) {
 
 function updateSide(sideNum, reveal = false) {
     const trackData = sideNum === 1 ? trackData1 : trackData2,
+        albumData = sideNum === 1 ? albumData1 : albumData2,
         noAudio =
-            (params.muteExplicit && trackData.explicit) ||
-            !trackData.preview_url,
+            mode === "songs"
+                ? !trackData.preview_url ||
+                  (params.muteExplicit && trackData.explicit)
+                : !albumData.preview_url ||
+                  (params.muteExplicit && albumData.explicit),
         elAlbumArtBtn = document.getElementById(`album_art_${sideNum}_btn`),
         elTrackPlayer = document.getElementById("track_player");
 
@@ -847,7 +1003,10 @@ function updateSide(sideNum, reveal = false) {
             `${sideNum === 1 ? "left" : "right"}_half`
         ),
         elAlbumArt = document.getElementById(`album_art_${sideNum}`),
-        albumArtUrl = trackData.album?.images[0].url ?? albumCover;
+        albumArtUrl =
+            mode === "songs"
+                ? trackData.album?.images[0].url ?? albumCover
+                : albumData.images[0].url;
 
     elHalf.style.background = "initial";
 
@@ -870,7 +1029,7 @@ function updateSide(sideNum, reveal = false) {
         elArtistRightGradient.style.background =
             "initial";
 
-    if (reveal || !params.soundOnly) {
+    if (reveal || !params[mode].soundOnly) {
         if (!reveal && sideNum === 1 && score > 0) {
             elHalf.style.background =
                 document.getElementById("right_half").style.background;
@@ -915,28 +1074,43 @@ function updateSide(sideNum, reveal = false) {
     }
 
     elAlbumArt.src = "";
-    if (reveal || !params.soundOnly) {
+    if (reveal || !params[mode].soundOnly) {
         elAlbumArt.style.visibility = "visible";
-        elAlbumArtBtn.style.outline = "none";
+        elAlbumArtBtn.style.border = "none";
         elAlbumArt.src = albumArtUrl;
     } else {
         elAlbumArt.style.visibility = "hidden";
-        elAlbumArtBtn.style.outline = "0.25dvh solid #fff";
+        elAlbumArtBtn.style.border = "0.25dvh solid #fff";
     }
 
     const elTrackTitle = document.getElementById(`track_title_${sideNum}`);
 
-    elTrackTitle.innerText = reveal || !params.soundOnly ? trackData.name : "";
+    elTrackTitle.innerText =
+        reveal || !params[mode].soundOnly
+            ? mode === "songs"
+                ? trackData.name
+                : albumData.name
+            : "";
     elTrackTitle.href =
-        reveal || !params.soundOnly ? trackData.external_urls.spotify : "";
+        reveal || !params[mode].soundOnly
+            ? mode === "songs"
+                ? trackData.external_urls.spotify
+                : albumData.external_urls.spotify
+            : "";
 
     const elArtist = document.getElementById(`artist_${sideNum}`);
 
     elArtist.innerHTML = "";
 
-    if (reveal || !params.soundOnly) {
-        for (let i = 0; i < trackData.artists.length; ++i) {
-            const artist = trackData.artists[i],
+    if (reveal || !params[mode].soundOnly) {
+        for (
+            let i = 0;
+            i < (mode === "songs" ? trackData : albumData).artists.length;
+            ++i
+        ) {
+            const artist = (mode === "songs" ? trackData : albumData).artists[
+                    i
+                ],
                 elA = document.createElement("a");
 
             elA.innerText = artist.name;
@@ -947,7 +1121,10 @@ function updateSide(sideNum, reveal = false) {
 
             elArtist.appendChild(elA);
 
-            if (i != trackData.artists.length - 1) {
+            if (
+                i !=
+                (mode === "songs" ? trackData : albumData).artists.length - 1
+            ) {
                 const elTextNode = document.createTextNode(", ");
 
                 elArtist.appendChild(elTextNode);
@@ -959,25 +1136,44 @@ function updateSide(sideNum, reveal = false) {
 
     const elLikeBtn = document.getElementById(`like_btn_${sideNum}`);
 
-    if (signedIn)
-        hasTrackSaved(trackData.id).then((trackSaved) => {
-            if (trackSaved[0])
-                elLikeBtn.innerHTML =
-                    '<svg class="liked_svg" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>';
-            else
-                elLikeBtn.innerHTML =
-                    '<svg viewBox="0 0 16 16"><path d="M1.69 2A4.582 4.582 0 018 2.023 4.583 4.583 0 0111.88.817h.002a4.618 4.618 0 013.782 3.65v.003a4.543 4.543 0 01-1.011 3.84L9.35 14.629a1.765 1.765 0 01-2.093.464 1.762 1.762 0 01-.605-.463L1.348 8.309A4.582 4.582 0 011.689 2zm3.158.252A3.082 3.082 0 002.49 7.337l.005.005L7.8 13.664a.264.264 0 00.311.069.262.262 0 00.09-.069l5.312-6.33a3.043 3.043 0 00.68-2.573 3.118 3.118 0 00-2.551-2.463 3.079 3.079 0 00-2.612.816l-.007.007a1.501 1.501 0 01-2.045 0l-.009-.008a3.082 3.082 0 00-2.121-.861z"></path></svg>';
-        });
+    if (signedIn && (reveal || !params[mode].soundOnly)) {
+        if (mode === "songs")
+            hasTrackSaved(trackData.id).then((trackSaved) => {
+                if (trackSaved[0])
+                    elLikeBtn.innerHTML =
+                        '<svg class="liked_svg" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>';
+                else
+                    elLikeBtn.innerHTML =
+                        '<svg viewBox="0 0 16 16"><path d="M1.69 2A4.582 4.582 0 018 2.023 4.583 4.583 0 0111.88.817h.002a4.618 4.618 0 013.782 3.65v.003a4.543 4.543 0 01-1.011 3.84L9.35 14.629a1.765 1.765 0 01-2.093.464 1.762 1.762 0 01-.605-.463L1.348 8.309A4.582 4.582 0 011.689 2zm3.158.252A3.082 3.082 0 002.49 7.337l.005.005L7.8 13.664a.264.264 0 00.311.069.262.262 0 00.09-.069l5.312-6.33a3.043 3.043 0 00.68-2.573 3.118 3.118 0 00-2.551-2.463 3.079 3.079 0 00-2.612.816l-.007.007a1.501 1.501 0 01-2.045 0l-.009-.008a3.082 3.082 0 00-2.121-.861z"></path></svg>';
+            });
+        else
+            hasAlbumSaved(albumData.id).then((albumSaved) => {
+                if (albumSaved[0])
+                    elLikeBtn.innerHTML =
+                        '<svg class="liked_svg" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>';
+                else
+                    elLikeBtn.innerHTML =
+                        '<svg viewBox="0 0 16 16"><path d="M1.69 2A4.582 4.582 0 018 2.023 4.583 4.583 0 0111.88.817h.002a4.618 4.618 0 013.782 3.65v.003a4.543 4.543 0 01-1.011 3.84L9.35 14.629a1.765 1.765 0 01-2.093.464 1.762 1.762 0 01-.605-.463L1.348 8.309A4.582 4.582 0 011.689 2zm3.158.252A3.082 3.082 0 002.49 7.337l.005.005L7.8 13.664a.264.264 0 00.311.069.262.262 0 00.09-.069l5.312-6.33a3.043 3.043 0 00.68-2.573 3.118 3.118 0 00-2.551-2.463 3.079 3.079 0 00-2.612.816l-.007.007a1.501 1.501 0 01-2.045 0l-.009-.008a3.082 3.082 0 00-2.121-.861z"></path></svg>';
+            });
+    } else elLikeBtn.innerHTML = "";
 }
 
 function clickTrack(elAlbumArtBtn, sideNum) {
     const elTrackPlayer = document.getElementById("track_player"),
-        trackData = sideNum === 1 ? trackData1 : trackData2;
+        previewUrl = (
+            mode === "songs"
+                ? sideNum === 1
+                    ? trackData1
+                    : trackData2
+                : sideNum === 1
+                ? albumData1
+                : albumData2
+        ).preview_url;
 
-    if (elTrackPlayer.src === trackData.preview_url) {
+    if (elTrackPlayer.src === previewUrl) {
         elTrackPlayer.src = "";
         elAlbumArtBtn.onmouseout = () => {
-            if (elTrackPlayer.src !== trackData.preview_url)
+            if (elTrackPlayer.src !== previewUrl)
                 elAlbumArtBtn.classList.add("album_art_hover");
             elAlbumArtBtn.onmouseout = () => {};
         };
@@ -995,7 +1191,13 @@ function playTrack(sideNum) {
     $elTrackPlayer.stop();
 
     $elTrackPlayer[0].src = (
-        sideNum === 1 ? trackData1 : trackData2
+        mode === "songs"
+            ? sideNum === 1
+                ? trackData1
+                : trackData2
+            : sideNum === 1
+            ? albumData1
+            : albumData2
     ).preview_url;
     $elTrackPlayer[0].play();
     fadeIn();
@@ -1009,7 +1211,14 @@ function playTrack(sideNum) {
     elAlbumArtBtn.style.animation =
         "pulse var(--pulse_duration) infinite ease-in-out";
 
-    const trackDataOther = sideNum === 1 ? trackData2 : trackData1;
+    const trackDataOther =
+        mode === "songs"
+            ? sideNum === 1
+                ? trackData2
+                : trackData1
+            : sideNum === 1
+            ? albumData2
+            : albumData1;
 
     if (
         trackDataOther.preview_url &&
@@ -1032,15 +1241,37 @@ function hasTrackSaved(id) {
     );
 }
 
-function likeTrack(elLikeBtn, sideNum) {
-    const trackData = sideNum === 1 ? trackData1 : trackData2;
+function hasAlbumSaved(id) {
+    return Promise.resolve(
+        $.ajax({
+            url: "https://api.spotify.com/v1/me/albums/contains?ids=" + id,
+            type: "GET",
+            beforeSend: (xhr) => {
+                xhr.setRequestHeader("Authorization", "Bearer " + _token);
+            },
+        })
+    );
+}
+
+function like(elLikeBtn, sideNum) {
+    const id = (
+        mode === "songs"
+            ? sideNum === 1
+                ? trackData1
+                : trackData2
+            : sideNum === 1
+            ? albumData1
+            : albumData2
+    ).id;
 
     if (
         elLikeBtn.firstChild.className &&
         elLikeBtn.firstChild.className.baseVal === "liked_svg"
     )
         $.ajax({
-            url: "https://api.spotify.com/v1/me/tracks?ids=" + trackData.id,
+            url: `https://api.spotify.com/v1/me/${
+                mode === "songs" ? "tracks" : "albums"
+            }?ids=${id}`,
             type: "DELETE",
             beforeSend: (xhr) => {
                 xhr.setRequestHeader("Authorization", "Bearer " + _token);
@@ -1055,7 +1286,9 @@ function likeTrack(elLikeBtn, sideNum) {
         });
     else
         $.ajax({
-            url: "https://api.spotify.com/v1/me/tracks?ids=" + trackData.id,
+            url: `https://api.spotify.com/v1/me/${
+                mode === "songs" ? "tracks" : "albums"
+            }?ids=${id}`,
             type: "PUT",
             beforeSend: (xhr) => {
                 xhr.setRequestHeader("Authorization", "Bearer " + _token);
@@ -1071,17 +1304,21 @@ function likeTrack(elLikeBtn, sideNum) {
 }
 
 function checkGuess(higher) {
+    const popularity1 = (mode === "songs" ? trackData1 : albumData1).popularity,
+        popularity2 = (mode === "songs" ? trackData2 : albumData2).popularity;
     const correct = higher
-        ? trackData2.popularity >= trackData1.popularity
-        : trackData2.popularity <= trackData1.popularity;
+        ? popularity2 >= popularity1
+        : popularity2 <= popularity1;
 
-    revealTrackPopularity(2, true, correct);
+    revealPopularity(2, true, correct);
 
     let checkPromises = [
         new Promise((resolve) =>
             setTimeout(
                 resolve,
-                ((params.hidePopularity ? 0 : POPULARITY_ANIMATION_DURATION) +
+                ((params[mode].hidePopularity
+                    ? 0
+                    : POPULARITY_ANIMATION_DURATION) +
                     SHOW_POPULARITY_DURATION) *
                     1000
             )
@@ -1091,7 +1328,8 @@ function checkGuess(higher) {
     if (correct)
         checkPromises.push(
             new Promise(async (resolve) => {
-                trackDataTmp = await getRandomTrackData();
+                if (mode === "songs") trackDataTmp = await getRandomTrackData();
+                else albumDataTmp = await getRandomAlbumData();
                 resolve();
             })
         );
@@ -1101,7 +1339,7 @@ function checkGuess(higher) {
         .catch(noMoreTracks);
 }
 
-function revealTrackPopularity(
+function revealPopularity(
     sideNum,
     animation = false,
     correct = false,
@@ -1120,7 +1358,7 @@ function revealTrackPopularity(
         onRevealComplete = () => {
             if (correct) {
                 if (params.playSFX) {
-                    CORRECT_SFX.volume = linearVolume;
+                    CORRECT_SFX.volume = linearVolume / 2;
                     CORRECT_SFX.load();
                     CORRECT_SFX.play();
                 }
@@ -1129,7 +1367,7 @@ function revealTrackPopularity(
                     $elPopularity[0].style.animation = "initial";
                 };
             } else if (sideNum === 2 && !forceShow && params.playSFX) {
-                GAME_OVER_SFX.volume = linearVolume;
+                GAME_OVER_SFX.volume = linearVolume / 2;
                 GAME_OVER_SFX.load();
                 GAME_OVER_SFX.play();
             }
@@ -1138,25 +1376,33 @@ function revealTrackPopularity(
     $elPopularity.text("?");
     $elBar.css({ transform: "rotate(45deg)" });
 
-    if (params.hidePopularity && !forceShow) {
+    if (params[mode].hidePopularity && !forceShow) {
         onRevealComplete();
         return;
     }
 
-    const trackData = sideNum === 1 ? trackData1 : trackData2;
+    const popularity = (
+        mode === "songs"
+            ? sideNum === 1
+                ? trackData1
+                : trackData2
+            : sideNum === 1
+            ? albumData1
+            : albumData2
+    ).popularity;
 
     if (!animation) {
-        const barColor = getBarColor(trackData.popularity);
+        const barColor = getBarColor(popularity);
 
         $elBar.css({
-            transform: "rotate(" + (45 + trackData.popularity * 1.8) + "deg)",
+            transform: "rotate(" + (45 + popularity * 1.8) + "deg)",
             borderBottomColor: barColor,
             borderRightColor: barColor,
         });
-        $elPopularity.text(trackData.popularity);
+        $elPopularity.text(popularity);
     } else {
         $({ p: 0 }).animate(
-            { p: trackData.popularity },
+            { p: popularity },
             {
                 duration: POPULARITY_ANIMATION_DURATION * 1000,
                 easing: "swing",
@@ -1187,10 +1433,40 @@ async function getRandomTrackData() {
             (trackData.explicit && params.muteExplicit);
     } while (
         !trackData.popularity ||
-        (params.soundOnly && invalidForSoundOnly)
+        (params[mode].soundOnly && invalidForSoundOnly)
     );
 
     return trackData;
+}
+
+async function getRandomAlbumData() {
+    let albumData, invalidForSoundOnly, validPreviewUrls;
+
+    do {
+        if (!urlsLeft.length) throw "out of urls";
+        albumData = await getData(getRandomUrl());
+        validPreviewUrls = albumData.tracks.items.filter(
+            (track) =>
+                track.preview_url && (!track.explicit || !params.muteExplicit)
+        );
+
+        invalidForSoundOnly = !validPreviewUrls.length;
+    } while (
+        !albumData.popularity ||
+        (params[mode].soundOnly && invalidForSoundOnly)
+    );
+
+    if (validPreviewUrls.length) {
+        const preview_url_track =
+            validPreviewUrls[
+                Math.floor(Math.random() * validPreviewUrls.length)
+            ];
+        albumData.preview_url = preview_url_track.preview_url;
+    } else albumData.preview_url = "";
+
+    albumData.explicit = albumData.tracks.items.some((track) => track.explicit);
+
+    return albumData;
 }
 
 function nextRound() {
@@ -1221,6 +1497,9 @@ function nextRound() {
     trackData1 = trackData2;
     trackData2 = trackDataTmp;
 
+    albumData1 = albumData2;
+    albumData2 = albumDataTmp;
+
     const elVs = document.getElementById("vs");
 
     elVs.style.animation = "vs_away 0.25s";
@@ -1236,7 +1515,7 @@ function nextRound() {
         elLeftHalfClone.style.zIndex = -1;
 
         updateSide(1);
-        revealTrackPopularity(1);
+        revealPopularity(1);
         updateSide(2);
 
         document.getElementsByTagName("body")[0].appendChild(elLeftHalfClone);
@@ -1288,13 +1567,13 @@ function noMoreTracks() {
 }
 
 function gameOver() {
-    if (params.soundOnly) {
+    if (params[mode].soundOnly) {
         updateSide(1, true);
         updateSide(2, true);
     }
-    if (params.hidePopularity) {
-        revealTrackPopularity(1, true, false, true);
-        revealTrackPopularity(2, true, false, true);
+    if (params[mode].hidePopularity) {
+        revealPopularity(1, true, false, true);
+        revealPopularity(2, true, false, true);
     }
     showRestart();
 }
@@ -1328,10 +1607,11 @@ function restart() {
     document.getElementById("vs_container").style.display =
         document.getElementById("restart").style.display =
         document.getElementById("source").style.display =
-        document.getElementById("spotify").style.display =
+        document.getElementById("mode").style.display =
         document.getElementById("user_action").style.display =
         document.getElementById("play_btn").style.display =
         document.getElementById("params").style.display =
+        document.getElementById("modes").style.display =
             null;
 }
 
@@ -1403,17 +1683,18 @@ function setVolume(newVolume) {
 
 function getParamKey() {
     let d = {
-        hidePopularity: params.hidePopularity,
-        soundOnly: params.soundOnly,
+        mode,
+        hidePopularity: params[mode].hidePopularity,
+        soundOnly: params[mode].soundOnly,
     };
-    if (params.use === "search") d.identifier = getQueryString(params.query);
-    else if (params.use === "user_playlist")
-        d.identifier = `spotify:playlist:${params.userPlaylistId}`;
-    else if (params.use === "featured_playlist")
-        d.identifier = `spotify:playlist:${params.featuredPlaylistId}`;
-    else if (params.use === "album_playlist")
-        d.identifier = params.albumPlaylistURI;
-    else d.identifier = params.use;
+    if (params[mode].use === "search")
+        d.identifier = getQueryString(params[mode].query);
+    else if (params[mode].use === "user_playlist")
+        d.identifier = `spotify:playlist:${params[mode].userPlaylistId}`;
+    else if (params[mode].use === "featured_playlist")
+        d.identifier = `spotify:playlist:${params[mode].featuredPlaylistId}`;
+    else if (params[mode].use === "uri") d.identifier = params[mode].uri;
+    else d.identifier = params[mode].use;
 
     return JSON.stringify(d);
 }
@@ -1428,13 +1709,13 @@ function changeParams(newParams) {
         newParams.maxSearchResults !== undefined
     )
         document.getElementById("use_search").click();
-    else if (newParams.albumPlaylistURI !== undefined)
-        document.getElementById("use_album_playlist").click();
+    else if (newParams.uri !== undefined)
+        document.getElementById("use_uri").click();
 
     if (newParams.query && newParams.query.year && newParams.query.year === "-")
         newParams.query.year = "";
 
-    params = { ...params, ...newParams };
+    params[mode] = { ...params[mode], ...newParams };
 
     localStorage.setItem("params", JSON.stringify(params));
 
@@ -1453,27 +1734,99 @@ function validYearString(yearString) {
 }
 
 function updatePlayValidity(forceDisable = false) {
-    const elPlayBtn = document.getElementById("play_btn");
+    const elPlayBtn = document.getElementById("play_btn"),
+        elAdvancedParams = document.getElementById("advanced_params");
 
     if (
         !forceDisable &&
-        ((params.use === "user_playlist" && params.userPlaylistId) ||
-            (params.use === "featured_playlist" && params.featuredPlaylistId) ||
-            params.use === "liked_songs" ||
-            params.use === "top_songs" ||
-            (params.use === "search" &&
-                Object.values(params.query).some((val) => val) &&
-                validYearString(params.query.year)) ||
-            (params.use === "album_playlist" &&
-                URI_REGEX.test(params.albumPlaylistURI)))
+        ((params[mode].use === "user_playlist" &&
+            params[mode].userPlaylistId) ||
+            (params[mode].use === "featured_playlist" &&
+                params[mode].featuredPlaylistId) ||
+            params[mode].use === "liked_songs" ||
+            params[mode].use === "top_songs" ||
+            (params[mode].use === "search" &&
+                Object.values(params[mode].query).some((val) => val) &&
+                validYearString(params[mode].query.year)) ||
+            (params[mode].use === "uri" &&
+                (mode === "songs"
+                    ? ALBUM_PLAYLIST_URI_REGEX
+                    : ARTIST_URI_REGEX
+                ).test(params[mode].uri)))
     ) {
         elPlayBtn.disabled = false;
         elPlayBtn.className = "valid_play_btn";
         document.getElementById("toggle_advanced_params").disabled = false;
     } else {
+        if (
+            !elAdvancedParams.style.visibility ||
+            elAdvancedParams.style.visibility === "hidden"
+        )
+            toggleAdvancedParams();
+
         elPlayBtn.disabled = true;
         elPlayBtn.className = "";
         document.getElementById("toggle_advanced_params").disabled = true;
+    }
+}
+
+function updateParamValidity() {
+    const elUseLikedSongs = document.getElementById("use_liked_songs"),
+        elUseTopSongs = document.getElementById("use_top_songs"),
+        elUseLikedSongsLabel = document.getElementById("use_liked_songs_label"),
+        elUseTopSongsLabel = document.getElementById("use_top_songs_label"),
+        elUseUriLabel = document.getElementById("use_uri_label"),
+        elUri = document.getElementById("uri");
+
+    elUseLikedSongsLabel.style.color = elUseLikedSongs.disabled = null;
+
+    elUseTopSongsLabel.style.color = elUseTopSongs.disabled = null;
+
+    document.querySelectorAll(".hide_albums").forEach((el) => {
+        el.style.display = null;
+    });
+
+    document.querySelectorAll(".hide_artists").forEach((el) => {
+        el.style.display = null;
+    });
+
+    elUseUriLabel.innerText = "Album/Playlist URI";
+    elUri.placeholder = "spotify:album:5Z9iiGl2FcIfa3BMiv6OIw";
+
+    if (mode === "songs" && !signedIn) {
+        elUseLikedSongsLabel.style.color = "gray";
+        elUseLikedSongs.disabled = true;
+
+        elUseTopSongsLabel.style.color = "gray";
+        elUseTopSongs.disabled = true;
+
+        if (
+            params[mode].use === "user_playlist" ||
+            params[mode].use === "liked_songs" ||
+            params[mode].use === "top_songs"
+        )
+            document.getElementById("use_search").click();
+    } else if (mode === "albums") {
+        elUseUriLabel.innerText = "Artist URI";
+        elUri.placeholder = "spotify:artist:0gxyHStUsqpMadRV0Di1Qt";
+
+        document.querySelectorAll(".hide_albums").forEach((el) => {
+            el.style.display = "none";
+        });
+
+        if (
+            params[mode].use === "user_playlist" ||
+            params[mode].use === "featured_playlist" ||
+            params[mode].use === "liked_songs" ||
+            params[mode].use === "top_songs"
+        )
+            document.getElementById("use_search").click();
+    } else if (mode === "artists") {
+        document.querySelectorAll(".hide_artists").forEach((el) => {
+            el.style.display = "none";
+        });
+
+        document.getElementById("use_search").click();
     }
 }
 
@@ -1513,7 +1866,7 @@ function randomGenre() {
     elGenre.selectedIndex = Math.floor(
         Math.random() * (elGenre.length - 1) + 1
     );
-    changeParams({ query: { ...params.query, genre: elGenre.value } });
+    changeParams({ query: { ...params[mode].query, genre: elGenre.value } });
 }
 
 function toggleAdvancedParams() {
@@ -1554,11 +1907,20 @@ function signIn(showDialog = false) {
 
 function resetParams() {
     changeParams({
-        ...DEFAULT_PARAMS,
-        hidePopularity: params.hidePopularity,
-        muteExplicit: params.muteExplicit,
-        playSFX: params.playSFX,
-        soundOnly: params.soundOnly,
+        ...DEFAULT_PARAMS[mode],
+        hidePopularity: params[mode].hidePopularity,
+        soundOnly: params[mode].soundOnly,
     });
+
     updateParams();
+}
+
+function changeMode(newMode) {
+    mode = newMode;
+    localStorage.setItem("mode", mode);
+
+    updateParams();
+    updateParamValidity();
+    updatePlayValidity();
+    if (signedIn) updateHighScore();
 }
