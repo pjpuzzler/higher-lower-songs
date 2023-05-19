@@ -137,7 +137,7 @@ const load = async () => {
                 if (
                     !values[1].playlists.items.some(
                         (featuredPlaylist) =>
-                            featuredPlaylist.id === params.featuredPlaylistId
+                            featuredPlaylist?.id === params.featuredPlaylistId
                     )
                 )
                     params.featuredPlaylistId =
@@ -180,8 +180,7 @@ const load = async () => {
             updateParams();
             updatePlayValidity();
         })
-        .catch((e) => {
-            alert(e);
+        .catch(() => {
             alert("Error getting spotify data");
         });
 
@@ -1834,6 +1833,16 @@ function updateHighScore() {
     paramKey = getParamKey();
     document.getElementById("current_high_score").innerText =
         "High: " + (highScores[paramKey] ?? 0);
+}
+
+function allYears() {
+    const elFromYear = document.getElementById("from_year"),
+        elToYear = document.getElementById("to_year");
+    elFromYear.max = CURR_YEAR;
+    elToYear.min = 0;
+    elFromYear.value = 0;
+    elToYear.value = CURR_YEAR;
+    changeParams({ query: { ...params[mode].query, year: `0-${CURR_YEAR}` } });
 }
 
 function randomUserPlaylist() {

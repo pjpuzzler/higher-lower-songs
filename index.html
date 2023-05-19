@@ -292,6 +292,13 @@
                         oninput="changeParams({query: {...params[mode].query, year: `${document.getElementById('from_year').value}-${this.value}`}}); if (this.value !== '') document.getElementById('from_year').max = this.value"
                     />
                     <label for="from_year" class="hide_artists">Year</label>
+                    <button
+                        id="year_all"
+                        class="param_button hide_artists"
+                        onclick="allYears();"
+                    >
+                        All
+                    </button>
                     <br class="hide_albums" />
                     <select
                         id="genre"

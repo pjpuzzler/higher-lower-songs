@@ -150,7 +150,7 @@ label {
 }
 
 .album_art_album {
-    border-radius: 2dvh;
+    border-radius: 4dvh;
 }
 
 .track_details {
@@ -662,7 +662,7 @@ select {
     }
 
     body.adaptive .album_art_album {
-        border-radius: 1dvh;
+        border-radius: 2dvh;
     }
 
     body.adaptive .track_details {
