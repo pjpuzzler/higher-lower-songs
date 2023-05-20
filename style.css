@@ -153,6 +153,10 @@ label {
     border-radius: 4dvh;
 }
 
+.album_art_artist {
+    border-radius: 100%;
+}
+
 .track_details {
     width: 100%;
     display: flex;

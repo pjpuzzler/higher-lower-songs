@@ -269,7 +269,7 @@
                         min="100"
                         max="1000"
                         value="1000"
-                        step="100"
+                        step="50"
                         oninput="changeParams({maxSearchResults: this.value}); this.nextElementSibling.innerText = `Max Search Results (${this.value})`"
                     />
                     <label for="max_search_results"
@@ -442,13 +442,14 @@
                 oninput="changeParams({hidePopularity: this.checked})"
             />
             <label for="hide_popularity">Hide popularity</label>
-            <br />
+            <br class="hide_artists" />
             <input
                 id="sound_only"
                 type="checkbox"
+                class="hide_artists"
                 oninput="changeParams({soundOnly: this.checked})"
             />
-            <label for="sound_only">Sound only</label>
+            <label for="sound_only" class="hide_artists">Sound only</label>
             <br />
             <br />
             <input
