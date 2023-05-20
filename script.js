@@ -889,7 +889,7 @@ function getData(url, returnFirstTrack = true) {
                         });
                     }
                 } else if (mode === "albums") {
-                    const albumData = data.albums?.items[0];
+                    const albumData = data.albums?.items[0] ?? data.items[0];
 
                     if (!albumData) return reject();
 
@@ -1047,11 +1047,13 @@ function updateSide(sideNum, reveal = false) {
 
     if (noAudio) {
         elAlbumArtBtn.style.opacity = 0.5;
+        elAlbumArtBtn.style.cursor = "initial";
         elAlbumArtBtn.disabled = true;
         elAlbumArtBtn.classList.remove("album_art_hover");
         elAlbumArtBtn.style.animation = "initial";
     } else {
         elAlbumArtBtn.style.opacity = 1;
+        elAlbumArtBtn.style.cursor = "pointer";
         elAlbumArtBtn.disabled = false;
         elAlbumArtBtn.classList.add("album_art_hover");
     }
@@ -1240,11 +1242,6 @@ function clickTrack(elAlbumArtBtn, sideNum) {
 
     if (elTrackPlayer.src === previewUrl) {
         elTrackPlayer.src = "";
-        elAlbumArtBtn.onmouseout = () => {
-            if (elTrackPlayer.src !== previewUrl)
-                elAlbumArtBtn.classList.add("album_art_hover");
-            elAlbumArtBtn.onmouseout = () => {};
-        };
         elAlbumArtBtn.style.animation = "initial";
     } else {
         if (volume === 0) toggleMute();
@@ -1275,24 +1272,8 @@ function playTrack(sideNum) {
             `album_art_${sideNum === 1 ? 2 : 1}_btn`
         );
 
-    elAlbumArtBtn.classList.remove("album_art_hover");
     elAlbumArtBtn.style.animation =
         "pulse var(--pulse_duration) infinite ease-in-out";
-
-    const trackDataOther =
-        mode === "songs" || mode === "artists"
-            ? sideNum === 1
-                ? trackData2
-                : trackData1
-            : sideNum === 1
-            ? albumData2
-            : albumData1;
-
-    if (
-        trackDataOther.preview_url &&
-        !(params.muteExplicit && trackDataOther.explicit)
-    )
-        elAlbumArtBtnOther.classList.add("album_art_hover");
 
     elAlbumArtBtnOther.style.animation = "initial";
 }
@@ -1408,23 +1389,58 @@ function checkGuess(higher) {
 
     if (correct)
         checkPromises.push(
-            new Promise(async (resolve) => {
-                if (mode === "songs") trackDataTmp = await getRandomTrackData();
-                else if (mode === "albums")
-                    albumDataTmp = await getRandomAlbumData();
-                else if (mode === "artists") {
-                    artistDataTmp = await getRandomArtistData();
-                    trackDataTmp = await getRandomTopTrackData(
-                        artistDataTmp.id
-                    );
+            new Promise(async (resolve, reject) => {
+                try {
+                    if (mode === "songs")
+                        trackDataTmp = await getRandomTrackData();
+                    else if (mode === "albums")
+                        albumDataTmp = await getRandomAlbumData();
+                    else if (mode === "artists") {
+                        artistDataTmp = await getRandomArtistData();
+                        trackDataTmp = await getRandomTopTrackData(
+                            artistDataTmp.id
+                        );
+                    }
+                    resolve();
+                } catch {
+                    reject();
                 }
-                resolve();
             })
         );
 
-    Promise.all(checkPromises)
-        .then(correct ? nextRound : gameOver)
-        .catch(noMoreTracks);
+    Promise.allSettled(checkPromises).then((results) => {
+        if (correct) {
+            const elCurrentScore = document.getElementById("current_score"),
+                elCurrentHighScore =
+                    document.getElementById("current_high_score");
+
+            ++score;
+            elCurrentScore.style.animation = "bump 0.25s linear";
+            elCurrentScore.onanimationend = () => {
+                elCurrentScore.style.animation = "initial";
+            };
+            setTimeout(() => {
+                elCurrentScore.innerText = score;
+            }, 0.125 * 1000);
+
+            if (signedIn && score > (highScores[paramKey] ?? 0)) {
+                highScores[paramKey] = score;
+                window.storeHighScore(userData.id, paramKey, score);
+                elCurrentHighScore.style.animation = "bump 0.25s linear";
+                elCurrentHighScore.onanimationend = () => {
+                    elCurrentHighScore.style.animation = "initial";
+                };
+                setTimeout(() => {
+                    elCurrentHighScore.innerText =
+                        "High: " + highScores[paramKey];
+                }, 0.125 * 1000);
+            }
+
+            if (results[1].status === "rejected")
+                setTimeout(noMoreTracks, 0.25 * 1000);
+            else nextRound();
+        } else gameOver();
+    });
 }
 
 function revealPopularity(
@@ -1590,30 +1606,6 @@ async function getRandomTopTrackData(id) {
 }
 
 function nextRound() {
-    const elCurrentScore = document.getElementById("current_score"),
-        elCurrentHighScore = document.getElementById("current_high_score");
-
-    ++score;
-    elCurrentScore.style.animation = "bump 0.25s linear";
-    elCurrentScore.onanimationend = () => {
-        elCurrentScore.style.animation = "initial";
-    };
-    setTimeout(() => {
-        elCurrentScore.innerText = score;
-    }, 0.125 * 1000);
-
-    if (signedIn && score > (highScores[paramKey] ?? 0)) {
-        highScores[paramKey] = score;
-        window.storeHighScore(userData.id, paramKey, score);
-        elCurrentHighScore.style.animation = "bump 0.25s linear";
-        elCurrentHighScore.onanimationend = () => {
-            elCurrentHighScore.style.animation = "initial";
-        };
-        setTimeout(() => {
-            elCurrentHighScore.innerText = "High: " + highScores[paramKey];
-        }, 0.125 * 1000);
-    }
-
     trackData1 = trackData2;
     trackData2 = trackDataTmp;
 

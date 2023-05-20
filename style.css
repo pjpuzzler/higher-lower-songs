@@ -143,6 +143,7 @@ label {
 .album_art {
     width: 45dvh;
     height: 45dvh;
+    object-fit: cover;
 }
 
 .album_art_btn {
@@ -281,7 +282,8 @@ label {
 }
 
 .album_art_hover:hover {
-    transform: scale(1.05);
+    opacity: 0.8 !important;
+    transition: 0.3s opacity;
 }
 
 .album_art_hover:active {
