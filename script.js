@@ -470,6 +470,7 @@ async function play() {
     document.getElementById("play_btn").style.display =
         document.getElementById("params").style.display =
         document.getElementById("modes").style.display =
+        document.getElementById("user_action").style.display =
             "none";
 
     urlsLeft = [];
@@ -509,7 +510,6 @@ async function play() {
     elHalves[0].style.display = elHalves[1].style.display = "flex";
     elScore.style.display = "initial";
     document.getElementById("vs_container").style.display = "flex";
-    document.getElementById("user_action").style.display = "none";
     document.getElementById("mode").style.display = "flex";
     document.getElementById("mode").innerText = mode;
     document.getElementById("source").style.display = "flex";
@@ -1167,6 +1167,14 @@ function updateSide(sideNum, reveal = false) {
                 ? albumData.external_urls.spotify
                 : artistData.external_urls.spotify
             : "";
+
+    document.getElementById(`explicit_${sideNum}`).style.display = (mode ===
+        "songs" || mode === "artists"
+        ? trackData
+        : albumData
+    ).explicit
+        ? null
+        : "none";
 
     const elArtist = document.getElementById(`artist_${sideNum}`);
 

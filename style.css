@@ -214,6 +214,20 @@ label {
     color: #fff;
 }
 
+.explicit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2dvh;
+    height: 2.35dvh;
+    background-color: #c7c6c6;
+    color: #121212;
+    border-radius: 0.3dvh;
+    font-size: 1.25dvh;
+    margin-left: 1.5dvh;
+    margin-top: 0.5dvh;
+}
+
 .like_btn {
     margin-top: 5.25dvh;
     margin-left: 2.1dvh;
@@ -282,7 +296,7 @@ label {
 }
 
 .album_art_hover:hover {
-    opacity: 0.8 !important;
+    opacity: 0.75 !important;
     transition: 0.3s opacity;
 }
 
@@ -694,6 +708,15 @@ select {
 
     body.adaptive .all_artist_link {
         margin-left: 0.75dvh;
+    }
+
+    body.adaptive .explicit {
+        width: 1dvh;
+        height: 1.18dvh;
+        border-radius: 0.15dvh;
+        font-size: 0.63dvh;
+        margin-left: 0.75dvh;
+        margin-top: 0.25dvh;
     }
 
     body.adaptive .like_btn {
