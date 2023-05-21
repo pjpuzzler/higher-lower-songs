@@ -10,7 +10,7 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
         "user-read-email",
     ],
     CORRECT_SFX = new Audio("sounds/correct.mp3"),
-    GAME_OVER_SFX = new Audio("sounds/game-over.mp3"),
+    LOST_LIFE_SFX = new Audio("sounds/lost-life.mp3"),
     CURR_YEAR = new Date().getFullYear(),
     ALBUM_PLAYLIST_URI_REGEX = /^spotify:(album|playlist):[a-zA-Z0-9]{22}$/,
     ARTIST_URI_REGEX = /^spotify:artist:[a-zA-Z0-9]{22}$/,
@@ -25,6 +25,7 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
     DEFAULT_PARAMS = {
         songs: {
             featuredPlaylistId: "",
+            hardcore: false,
             hidePopularity: false,
             maxSearchResults: 1000,
             query: {
@@ -37,6 +38,7 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
             uri: "",
         },
         albums: {
+            hardcore: false,
             hidePopularity: false,
             maxSearchResults: 500,
             query: {
@@ -47,6 +49,7 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
             uri: "",
         },
         artists: {
+            hardcore: false,
             hidePopularity: false,
             maxSearchResults: 250,
             query: {

@@ -197,7 +197,7 @@
             <label for="artist_mode">Artists</label>
         </div>
 
-        <a id="mode" draggable="false"> </a>
+        <div id="lives" draggable="false"></div>
 
         <div id="user_info">
             <div id="user_image_container"></div>
@@ -439,6 +439,13 @@
             <br />
             <br />
             <input
+                id="hardcore"
+                type="checkbox"
+                oninput="changeParams({hardcore: this.checked})"
+            />
+            <label for="hardcore">Hardcore</label>
+            <br />
+            <input
                 id="hide_popularity"
                 type="checkbox"
                 oninput="changeParams({hidePopularity: this.checked})"
@@ -466,7 +473,7 @@
                 type="checkbox"
                 oninput="changeParams({playSFX: this.checked})"
             />
-            <label for="play_sfx">Play sound effects</label>
+            <label for="play_sfx">Sound effects</label>
         </div>
     </body>
 </html>

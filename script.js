@@ -187,6 +187,7 @@ const load = async () => {
     setVolume(Number(localStorage.getItem("volume") ?? DEFAULT_VOLUME));
 
     document.getElementById("mute_explicit").checked = params.muteExplicit;
+    document.getElementById("hardcore").checked = params[mode].hardcore;
     document.getElementById("sound_only").checked = params[mode].soundOnly;
     document.getElementById("play_sfx").checked = params.playSFX;
     document.getElementById("hide_popularity").checked =
@@ -247,6 +248,7 @@ let params,
     linearVolume,
     paramKey,
     highScores,
+    lives,
     fadeDirection = 0,
     score = 0,
     mode,
@@ -317,6 +319,7 @@ function updateParams() {
             break;
     }
 
+    document.getElementById("hardcore").checked = params[mode].hardcore;
     document.getElementById("hide_popularity").checked =
         params[mode].hidePopularity;
     document.getElementById("sound_only").checked = params[mode].soundOnly;
@@ -510,8 +513,14 @@ async function play() {
     elHalves[0].style.display = elHalves[1].style.display = "flex";
     elScore.style.display = "initial";
     document.getElementById("vs_container").style.display = "flex";
-    document.getElementById("mode").style.display = "flex";
-    document.getElementById("mode").innerText = mode;
+    document.getElementById("lives").style.display = "flex";
+    lives = params[mode].hardcore ? 1 : 3;
+    const lifeClassStr = params[mode].hardcore ? "hardcore_life" : "life";
+    document.getElementById("lives").innerHTML =
+        `<svg class="${lifeClassStr}" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>`.repeat(
+            lives
+        );
+
     document.getElementById("source").style.display = "flex";
 
     const elAlbumArt1Btn = document.getElementById("album_art_1_btn"),
@@ -1168,11 +1177,13 @@ function updateSide(sideNum, reveal = false) {
                 : artistData.external_urls.spotify
             : "";
 
-    document.getElementById(`explicit_${sideNum}`).style.display = (mode ===
-        "songs" || mode === "artists"
-        ? trackData
-        : albumData
-    ).explicit
+    document.getElementById(`explicit_${sideNum}`).style.display = (
+        mode === "songs"
+            ? trackData.explicit
+            : mode === "albums"
+            ? albumData.explicit
+            : false
+    )
         ? null
         : "none";
 
@@ -1395,7 +1406,7 @@ function checkGuess(higher) {
         ),
     ];
 
-    if (correct)
+    if (correct || lives > 1)
         checkPromises.push(
             new Promise(async (resolve, reject) => {
                 try {
@@ -1423,6 +1434,9 @@ function checkGuess(higher) {
                     document.getElementById("current_high_score");
 
             ++score;
+
+            if (score % 10 === 0) gainLife();
+
             elCurrentScore.style.animation = "bump 0.25s linear";
             elCurrentScore.onanimationend = () => {
                 elCurrentScore.style.animation = "initial";
@@ -1447,8 +1461,34 @@ function checkGuess(higher) {
             if (results[1].status === "rejected")
                 setTimeout(noMoreTracks, 0.25 * 1000);
             else nextRound();
-        } else gameOver();
+        } else {
+            loseLife();
+            if (!lives) gameOver();
+            else nextRound();
+        }
     });
+}
+
+function gainLife() {
+    const elLives = document.getElementById("lives");
+
+    ++lives;
+
+    elLives.innerHTML +=
+        '<svg class="life" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>';
+    elLives.lastChild.style.animation = "gain_life 0.3s ease-in";
+}
+
+function loseLife() {
+    const elLives = document.getElementById("lives");
+
+    --lives;
+
+    elLives.lastChild.style.animation = "lose_life 0.3s ease-out";
+    elLives.lastChild.onanimationend = () => {
+        elLives.removeChild(elLives.lastChild);
+        if (!lives) elLives.style.display = "none";
+    };
 }
 
 function revealPopularity(
@@ -1474,14 +1514,25 @@ function revealPopularity(
                     CORRECT_SFX.load();
                     CORRECT_SFX.play();
                 }
+                if (score % 10 === 0) {
+                    // GAIN_LIFE_SFX.volume = linearVolume / 2;
+                    // GAIN_LIFE_SFX.load();
+                    // GAIN_LIFE_SFX.play();
+                }
                 $elPopularity[0].style.animation = "bump 0.25s linear";
                 $elPopularity[0].onanimationend = () => {
                     $elPopularity[0].style.animation = "initial";
                 };
             } else if (sideNum === 2 && !forceShow && params.playSFX) {
-                GAME_OVER_SFX.volume = linearVolume / 2;
-                GAME_OVER_SFX.load();
-                GAME_OVER_SFX.play();
+                if (lives > 1) {
+                    LOST_LIFE_SFX.volume = linearVolume / 2;
+                    LOST_LIFE_SFX.load();
+                    LOST_LIFE_SFX.play();
+                } else {
+                    // GAME_OVER_SFX.volume = linearVolume / 2;
+                    // GAME_OVER_SFX.load();
+                    // GAME_OVER_SFX.play();
+                }
             }
         };
 
@@ -1730,7 +1781,7 @@ function restart() {
     document.getElementById("vs_container").style.display =
         document.getElementById("restart").style.display =
         document.getElementById("source").style.display =
-        document.getElementById("mode").style.display =
+        document.getElementById("lives").style.display =
         document.getElementById("user_action").style.display =
         document.getElementById("play_btn").style.display =
         document.getElementById("params").style.display =
@@ -1807,6 +1858,7 @@ function setVolume(newVolume) {
 function getParamKey() {
     let d = {
         mode,
+        hardcore: params[mode].hardcore,
         hidePopularity: params[mode].hidePopularity,
         soundOnly: params[mode].soundOnly,
     };
@@ -2050,6 +2102,7 @@ function signIn(showDialog = false) {
 function resetParams() {
     changeParams({
         ...DEFAULT_PARAMS[mode],
+        hardcore: params[mode].hardcore,
         hidePopularity: params[mode].hidePopularity,
         soundOnly: params[mode].soundOnly,
     });

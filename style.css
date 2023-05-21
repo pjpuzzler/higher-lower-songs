@@ -91,11 +91,11 @@ svg {
     fill: #b3b3b3;
 }
 
-svg:hover {
+svg:hover:not(.life) {
     fill: #fff;
 }
 
-svg:active {
+svg:active:not(.life) {
     fill: #b3b3b3;
 }
 
@@ -464,26 +464,27 @@ label {
     left: calc(env(safe-area-inset-left) + 2dvh);
 }
 
-#mode {
+#lives {
     position: fixed;
     top: 1dvh;
     padding: 1dvh 2dvh;
     border-radius: 3dvh;
     left: 50%;
     transform: translate(-50%);
-    height: 3.5dvh;
     display: none;
     justify-content: center;
     align-items: center;
     background-color: #232323;
-    text-transform: capitalize;
-    color: #fff;
-    font-weight: 300;
-    font-size: 2.5dvh;
 }
 
-#mode:hover {
-    text-decoration: initial;
+.life {
+    fill: red;
+    padding: 0 0.25dvh;
+}
+
+.hardcore_life {
+    fill: darkred;
+    padding: 0 0.25dvh;
 }
 
 #source {
@@ -791,11 +792,10 @@ select {
         left: 1dvh;
     }
 
-    body.adaptive #mode {
+    body.adaptive #lives {
         padding: 0.5dvh 1dvh;
         top: initial;
         bottom: 50%;
-        font-size: 1.25dvh;
         left: initial;
         right: 0.5dvh;
         transform: translate(0, 50%);
@@ -987,6 +987,22 @@ select {
 
     100% {
         transform: scale(1);
+    }
+}
+
+@keyframes gain_life {
+    0% {
+        transform: scale(0);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes lose_life {
+    100% {
+        transform: scale(0);
     }
 }
 
