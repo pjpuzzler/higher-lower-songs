@@ -515,7 +515,7 @@ async function play() {
     document.getElementById("vs_container").style.display = "flex";
     document.getElementById("lives").style.display = "flex";
     lives = params[mode].hardcore ? 1 : 3;
-    const lifeClassStr = params[mode].hardcore ? "hardcore_life" : "life";
+    const lifeClassStr = params[mode].hardcore ? "life hardcore" : "life";
     document.getElementById("lives").innerHTML =
         `<svg class="${lifeClassStr}" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>`.repeat(
             lives
@@ -971,20 +971,26 @@ function updateMarquees(sideNum) {
     clearTimeout(marqueeTimesoutIds[sideNum - 1]);
     clearTimeout(marqueeTimesoutIds[sideNum + 1]);
 
-    const elTrackTitle = document.getElementById(`track_title_${sideNum}`),
+    const trackData = sideNum === 1 ? trackData1 : trackData2,
+        elTrackTitle = document.getElementById(`track_title_${sideNum}`),
         elTrackInfo = document.getElementById(
             `${sideNum === 1 ? "left" : "right"}_track_info`
         ),
         elArtist = document.getElementById(`artist_${sideNum}`),
+        elArtistContanier = document.getElementById(
+            `artist_container_${sideNum}`
+        ),
         elTrackRightGradient = document.getElementById(
             `track_${sideNum}_right_gradient`
         ),
         trackTitleWidth = elTrackTitle.scrollWidth,
-        artistWidth = elArtist.scrollWidth,
+        artistContainerWidth = elArtistContanier.scrollWidth,
+        artistContainerWidthVisible = elArtistContanier.clientWidth,
         trackInfoWidth = elTrackInfo.offsetWidth,
         gradientWidth = elTrackRightGradient.offsetWidth,
-        threeHalvesVh = 0.015 * document.documentElement.clientHeight,
-        threeFourthsVh = 0.0075 * document.documentElement.clientHeight;
+        threeHalvesVh = 0.015 * document.documentElement.scrollHeight,
+        threeFourthsVh = 0.0075 * document.documentElement.scrollHeight,
+        halfVh = 0.005 * document.documentElement.scrollHeight;
 
     if (trackTitleWidth > trackInfoWidth - gradientWidth) {
         const titleMarqueeProperty = `--marquee_title_${sideNum}_distance`,
@@ -1011,17 +1017,25 @@ function updateMarquees(sideNum) {
                 elTrackTitle.style.animationPlayState = "running";
             }, MARQUEE_PAUSE_DURATION * 1000);
         };
+        elTrackTitle.onanimationiteration();
     } else elTrackTitle.style.animation = "initial";
 
-    if (artistWidth > trackInfoWidth - gradientWidth) {
+    if (trackData.explicit)
+        elArtist.style.marginLeft = window.matchMedia("(orientation:portrait)")
+            .matches
+            ? "0.5dvh"
+            : "1dvh";
+
+    if (artistContainerWidth > artistContainerWidthVisible - gradientWidth) {
         const artistMarqueeProperty = `--marquee_artist_${sideNum}_distance`,
             artistMarqueeDistance =
-                artistWidth -
-                (trackInfoWidth -
+                artistContainerWidth -
+                (artistContainerWidthVisible -
                     (window.matchMedia("(orientation:portrait)").matches
                         ? threeFourthsVh
-                        : threeHalvesVh) -
-                    gradientWidth);
+                        : threeHalvesVh) +
+                    (trackData.explicit ? halfVh : 0) -
+                    gradientWidth * (trackData.explicit ? 1 : 2));
 
         document.documentElement.style.setProperty(
             artistMarqueeProperty,
@@ -1038,6 +1052,7 @@ function updateMarquees(sideNum) {
                 elArtist.style.animationPlayState = "running";
             }, MARQUEE_PAUSE_DURATION * 1000);
         };
+        elArtist.onanimationiteration();
     } else elArtist.style.animation = "initial";
 }
 
@@ -1435,7 +1450,7 @@ function checkGuess(higher) {
 
             ++score;
 
-            if (score % 10 === 0) gainLife();
+            if (!params[mode].hardcore && score % 10 === 0) gainLife();
 
             elCurrentScore.style.animation = "bump 0.25s linear";
             elCurrentScore.onanimationend = () => {

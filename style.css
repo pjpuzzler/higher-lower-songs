@@ -13,6 +13,15 @@
     --mobile: false;
 }
 
+::-webkit-scrollbar {
+    display: none;
+}
+
+html {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
 * {
     font-family: "spotify-circular";
     user-select: none;
@@ -174,6 +183,7 @@ label {
 .artist_container {
     position: relative;
     display: flex;
+    overflow: hidden;
 }
 
 .left_gradient {
@@ -195,7 +205,7 @@ label {
 }
 
 .artist_gradient {
-    height: 75%;
+    height: 100%;
     top: initial;
     bottom: 0;
 }
@@ -214,18 +224,25 @@ label {
     color: #fff;
 }
 
+.artist_row {
+    display: flex;
+}
+
 .explicit {
+    min-width: 2.2dvh;
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 2dvh;
-    height: 2.35dvh;
+    width: 2.2dvh;
+    height: 2.2dvh;
     background-color: #c7c6c6;
     color: #121212;
     border-radius: 0.3dvh;
-    font-size: 1.25dvh;
+    font-size: 1.75dvh;
+    font-weight: 300;
     margin-left: 1.5dvh;
     margin-top: 0.5dvh;
+    margin-right: 0.5dvh;
 }
 
 .like_btn {
@@ -482,9 +499,8 @@ label {
     padding: 0 0.25dvh;
 }
 
-.hardcore_life {
+.hardcore {
     fill: darkred;
-    padding: 0 0.25dvh;
 }
 
 #source {
@@ -712,12 +728,14 @@ select {
     }
 
     body.adaptive .explicit {
-        width: 1dvh;
-        height: 1.18dvh;
+        min-width: 1.1dvh;
+        width: 1.1dvh;
+        height: 1.1dvh;
         border-radius: 0.15dvh;
-        font-size: 0.63dvh;
+        font-size: 0.88dvh;
         margin-left: 0.75dvh;
         margin-top: 0.25dvh;
+        margin-right: 0.25dvh;
     }
 
     body.adaptive .like_btn {
