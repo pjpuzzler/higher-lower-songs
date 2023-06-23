@@ -282,7 +282,7 @@
                         max="1000"
                         value="1000"
                         step="50"
-                        oninput="changeParams({maxSearchResults: this.value}); this.nextElementSibling.innerText = `Max Search Results (${this.value})`"
+                        oninput="changeParams({maxSearchResults: this.value}); this.nextElementSibling.innerText = `Max search results (${this.value})`"
                     />
                     <label for="max_search_results"
                         >Max Search Results (1000)</label
@@ -385,7 +385,7 @@
                     id="use_user_playlist_label"
                     for="use_user_playlist"
                     class="hide_albums hide_artists"
-                    >User playlist</label
+                    >User Playlist</label
                 >
                 <br class="hide_albums hide_artists" />
                 <div class="params_indent hide_albums hide_artists">
@@ -401,34 +401,28 @@
                         Random
                     </button>
                 </div>
-                <br class="hide_albums hide_artists" />
+                <br class="hide_artists" />
                 <input
-                    id="use_liked_songs"
+                    id="use_liked"
                     name="use"
+                    class="hide_artists"
                     type="radio"
-                    class="hide_albums hide_artists"
-                    onchange="changeParams({use: 'liked_songs'})"
+                    onchange="changeParams({use: 'liked'})"
                 />
-                <label
-                    id="use_liked_songs_label"
-                    for="use_liked_songs"
-                    class="hide_albums hide_artists"
-                    >Liked songs</label
+                <label id="use_liked_label" for="use_liked" class="hide_artists"
+                    >Liked Songs</label
                 >
-                <br class="hide_albums hide_artists" />
+                <br class="hide_albums" />
                 <br class="hide_albums hide_artists" />
                 <input
-                    id="use_top_songs"
+                    id="use_top"
                     name="use"
                     type="radio"
-                    class="hide_albums hide_artists"
-                    onchange="changeParams({use: 'top_songs'})"
+                    class="hide_albums"
+                    onchange="changeParams({use: 'top'})"
                 />
-                <label
-                    id="use_top_songs_label"
-                    for="use_top_songs"
-                    class="hide_albums hide_artists"
-                    >Top songs</label
+                <label id="use_top_label" for="use_top" class="hide_albums"
+                    >Top Songs</label
                 >
             </div>
             <br />
@@ -460,7 +454,7 @@
                 type="checkbox"
                 oninput="changeParams({hidePopularity: this.checked})"
             />
-            <label for="hide_popularity">Hide popularity</label>
+            <label for="hide_popularity">Hide Popularity</label>
             <br class="hide_artists" />
             <input
                 id="sound_only"
@@ -468,7 +462,7 @@
                 class="hide_artists"
                 oninput="changeParams({soundOnly: this.checked})"
             />
-            <label for="sound_only" class="hide_artists">Sound only</label>
+            <label for="sound_only" class="hide_artists">Sound Only</label>
             <br />
             <br />
             <input
@@ -476,14 +470,14 @@
                 type="checkbox"
                 oninput="changeParams({muteExplicit: this.checked})"
             />
-            <label for="mute_explicit">Mute explicit</label>
+            <label for="mute_explicit">Mute Explicit</label>
             <br />
             <input
                 id="play_sfx"
                 type="checkbox"
                 oninput="changeParams({playSFX: this.checked})"
             />
-            <label for="play_sfx">Sound effects</label>
+            <label for="play_sfx">Sound Effects</label>
         </div>
     </body>
 </html>

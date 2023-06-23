@@ -299,11 +299,11 @@ function updateParams() {
         case "featured_playlist":
             document.getElementById("use_featured_playlist").checked = true;
             break;
-        case "liked_songs":
-            document.getElementById("use_liked_songs").checked = true;
+        case "liked":
+            document.getElementById("use_liked").checked = true;
             break;
-        case "top_songs":
-            document.getElementById("use_top_songs").checked = true;
+        case "top":
+            document.getElementById("use_top").checked = true;
             break;
     }
 
@@ -601,7 +601,7 @@ async function loadUrls() {
                     );
                 break;
             }
-            case "liked_songs": {
+            case "liked": {
                 const maxOffset = (
                     await getData(
                         `https://api.spotify.com/v1/me/tracks?limit=1`,
@@ -628,7 +628,7 @@ async function loadUrls() {
                     );
                 break;
             }
-            case "top_songs": {
+            case "top": {
                 const maxOffset = (
                     await getData(
                         `https://api.spotify.com/v1/me/top/tracks?limit=1`,
@@ -639,7 +639,7 @@ async function loadUrls() {
                 const elSourceImg = document.getElementById("source_img");
 
                 document.getElementById("source").href =
-                    "https://open.spotify.com/collection";
+                    "https://open.spotify.com/collection/tracks";
                 document.getElementById("source_img_search").style.display =
                     "none";
                 elSourceImg.style.display = "initial";
@@ -749,6 +749,33 @@ async function loadUrls() {
         }
     } else if (mode === "albums") {
         switch (params[mode].use) {
+            case "liked": {
+                const maxOffset = (
+                    await getData(
+                        `https://api.spotify.com/v1/me/albums?limit=1`,
+                        false
+                    )
+                ).total;
+
+                const elSourceImg = document.getElementById("source_img");
+
+                document.getElementById("source").href =
+                    "https://open.spotify.com/collection/albums";
+                document.getElementById("source_img_search").style.display =
+                    "none";
+                elSourceImg.style.display = "initial";
+                elSourceImg.src =
+                    "https://t.scdn.co/images/3099b3803ad9496896c43f22fe9be8c4.png";
+                document.getElementById(
+                    "source_text"
+                ).innerText = `Liked Albums (${maxOffset})`;
+
+                for (let offset = 0; offset < maxOffset; ++offset)
+                    urlsLeft.push(
+                        `https://api.spotify.com/v1/me/albums?limit=1&offset=${offset}`
+                    );
+                break;
+            }
             case "uri": {
                 const artistId = params[mode].uri.split(":")[2];
 
@@ -829,32 +856,69 @@ async function loadUrls() {
             }
         }
     } else if (mode === "artists") {
-        const queryString = encodeURIComponent(
-                getQueryString(params[mode].query)
-            ),
-            maxOffset = (
-                await getData(
-                    `https://api.spotify.com/v1/search?q=${queryString}&type=artist&limit=1`,
-                    false
-                )
-            ).artists.total,
-            lastOffset = Math.min(maxOffset, params[mode].maxSearchResults);
+        switch (params[mode].use) {
+            case "top": {
+                const maxOffset = (
+                    await getData(
+                        `https://api.spotify.com/v1/me/top/artists?limit=1`,
+                        false
+                    )
+                ).total;
 
-        document.getElementById("source_img").style.display = "none";
-        document.getElementById("source_img_search").style.display = "initial";
+                const elSourceImg = document.getElementById("source_img");
 
-        document.getElementById("source").href =
-            "https://open.spotify.com/search/" + queryString + "/artists";
-        document.getElementById("source_text").innerText =
-            JSON.stringify(params[mode].query) ===
-            JSON.stringify(DEFAULT_PARAMS[mode].query)
-                ? `Last Decade (${lastOffset})`
-                : `Custom Search (${lastOffset})`;
+                document.getElementById("source").href =
+                    "https://open.spotify.com/collection/artists";
+                document.getElementById("source_img_search").style.display =
+                    "none";
+                elSourceImg.style.display = "initial";
+                elSourceImg.src =
+                    "https://play-lh.googleusercontent.com/OO06tTnQyEckM3dUDbHqmWXpI-7IbYlodDxVR7L4buzOX6KQvAeTJEV_Q45cznM63mJ-";
+                document.getElementById(
+                    "source_text"
+                ).innerText = `Top Artists (${maxOffset})`;
 
-        for (let offset = 0; offset < lastOffset; ++offset)
-            urlsLeft.push(
-                `https://api.spotify.com/v1/search?q=${queryString}&type=artist&limit=1&offset=${offset}`
-            );
+                for (let offset = 0; offset < maxOffset; ++offset)
+                    urlsLeft.push(
+                        `https://api.spotify.com/v1/me/top/artists?limit=1&offset=${offset}`
+                    );
+                break;
+            }
+            case "search": {
+                const queryString = encodeURIComponent(
+                        getQueryString(params[mode].query)
+                    ),
+                    maxOffset = (
+                        await getData(
+                            `https://api.spotify.com/v1/search?q=${queryString}&type=artist&limit=1`,
+                            false
+                        )
+                    ).artists.total,
+                    lastOffset = Math.min(
+                        maxOffset,
+                        params[mode].maxSearchResults
+                    );
+
+                document.getElementById("source_img").style.display = "none";
+                document.getElementById("source_img_search").style.display =
+                    "initial";
+
+                document.getElementById("source").href =
+                    "https://open.spotify.com/search/" +
+                    queryString +
+                    "/artists";
+                document.getElementById("source_text").innerText =
+                    JSON.stringify(params[mode].query) ===
+                    JSON.stringify(DEFAULT_PARAMS[mode].query)
+                        ? `Last Decade (${lastOffset})`
+                        : `Custom Search (${lastOffset})`;
+
+                for (let offset = 0; offset < lastOffset; ++offset)
+                    urlsLeft.push(
+                        `https://api.spotify.com/v1/search?q=${queryString}&type=artist&limit=1&offset=${offset}`
+                    );
+            }
+        }
     }
 }
 
@@ -898,7 +962,10 @@ function getData(url, returnFirstTrack = true) {
                         });
                     }
                 } else if (mode === "albums") {
-                    const albumData = data.albums?.items[0] ?? data.items[0];
+                    const albumData =
+                        data.albums?.items[0] ??
+                        data.items?.[0].album ??
+                        data.items?.[0];
 
                     if (!albumData) return reject();
 
@@ -918,7 +985,10 @@ function getData(url, returnFirstTrack = true) {
                         error: reject,
                     });
                 } else if (mode === "artists") {
-                    const artistData = data.artists?.items[0] ?? data.tracks;
+                    const artistData =
+                        data.artists?.items[0] ??
+                        data.items?.[0] ??
+                        data.tracks;
 
                     if (!artistData) return reject();
 
@@ -971,7 +1041,12 @@ function updateMarquees(sideNum) {
     clearTimeout(marqueeTimesoutIds[sideNum - 1]);
     clearTimeout(marqueeTimesoutIds[sideNum + 1]);
 
-    const trackData = sideNum === 1 ? trackData1 : trackData2,
+    const explicit =
+            mode === "songs"
+                ? (sideNum === 1 ? trackData1 : trackData2).explicit
+                : mode === "albums"
+                ? (sideNum === 1 ? albumData1 : albumData2).explicit
+                : false,
         elTrackTitle = document.getElementById(`track_title_${sideNum}`),
         elTrackInfo = document.getElementById(
             `${sideNum === 1 ? "left" : "right"}_track_info`
@@ -984,7 +1059,7 @@ function updateMarquees(sideNum) {
             `track_${sideNum}_right_gradient`
         ),
         trackTitleWidth = elTrackTitle.scrollWidth,
-        artistContainerWidth = elArtistContanier.scrollWidth,
+        elArtistWidth = elArtist.scrollWidth,
         artistContainerWidthVisible = elArtistContanier.clientWidth,
         trackInfoWidth = elTrackInfo.offsetWidth,
         gradientWidth = elTrackRightGradient.offsetWidth,
@@ -1020,22 +1095,22 @@ function updateMarquees(sideNum) {
         elTrackTitle.onanimationiteration();
     } else elTrackTitle.style.animation = "initial";
 
-    if (trackData.explicit)
+    if (explicit)
         elArtist.style.marginLeft = window.matchMedia("(orientation:portrait)")
             .matches
             ? "0.5dvh"
             : "1dvh";
 
-    if (artistContainerWidth > artistContainerWidthVisible - gradientWidth) {
+    if (elArtistWidth > artistContainerWidthVisible - gradientWidth) {
         const artistMarqueeProperty = `--marquee_artist_${sideNum}_distance`,
             artistMarqueeDistance =
-                artistContainerWidth -
+                elArtistWidth -
                 (artistContainerWidthVisible -
                     (window.matchMedia("(orientation:portrait)").matches
                         ? threeFourthsVh
                         : threeHalvesVh) +
-                    (trackData.explicit ? halfVh : 0) -
-                    gradientWidth * (trackData.explicit ? 1 : 2));
+                    (explicit ? halfVh : 0) -
+                    gradientWidth * (explicit ? 2 : 3));
 
         document.documentElement.style.setProperty(
             artistMarqueeProperty,
@@ -1941,8 +2016,8 @@ function updatePlayValidity(forceDisable = false) {
             params[mode].userPlaylistId) ||
             (params[mode].use === "featured_playlist" &&
                 params[mode].featuredPlaylistId) ||
-            params[mode].use === "liked_songs" ||
-            params[mode].use === "top_songs" ||
+            params[mode].use === "liked" ||
+            params[mode].use === "top" ||
             (params[mode].use === "search" &&
                 Object.values(params[mode].query).some((val) => val) &&
                 validYearString(params[mode].query.year)) ||
@@ -1969,16 +2044,16 @@ function updatePlayValidity(forceDisable = false) {
 }
 
 function updateParamValidity() {
-    const elUseLikedSongs = document.getElementById("use_liked_songs"),
-        elUseTopSongs = document.getElementById("use_top_songs"),
-        elUseLikedSongsLabel = document.getElementById("use_liked_songs_label"),
-        elUseTopSongsLabel = document.getElementById("use_top_songs_label"),
+    const elUseLiked = document.getElementById("use_liked"),
+        elUseTop = document.getElementById("use_top"),
+        elUseLikedLabel = document.getElementById("use_liked_label"),
+        elUseTopLabel = document.getElementById("use_top_label"),
         elUseUriLabel = document.getElementById("use_uri_label"),
         elUri = document.getElementById("uri");
 
-    elUseLikedSongsLabel.style.color = elUseLikedSongs.disabled = null;
+    elUseLikedLabel.style.color = elUseLiked.disabled = null;
 
-    elUseTopSongsLabel.style.color = elUseTopSongs.disabled = null;
+    elUseTopLabel.style.color = elUseTop.disabled = null;
 
     document.querySelectorAll(".hide_albums").forEach((el) => {
         el.style.display = null;
@@ -1991,41 +2066,53 @@ function updateParamValidity() {
     elUseUriLabel.innerText = "Album/Playlist URI";
     elUri.placeholder = "spotify:album:5Z9iiGl2FcIfa3BMiv6OIw";
 
-    if (mode === "songs" && !signedIn) {
-        elUseLikedSongsLabel.style.color = "gray";
-        elUseLikedSongs.disabled = true;
+    elUseLikedLabel.innerText = "Liked Songs";
 
-        elUseTopSongsLabel.style.color = "gray";
-        elUseTopSongs.disabled = true;
+    if (!signedIn) {
+        elUseLikedLabel.style.color = "gray";
+        elUseLiked.disabled = true;
+
+        elUseTopLabel.style.color = "gray";
+        elUseTop.disabled = true;
 
         if (
             params[mode].use === "user_playlist" ||
-            params[mode].use === "liked_songs" ||
-            params[mode].use === "top_songs"
+            params[mode].use === "liked" ||
+            params[mode].use === "top"
         )
             document.getElementById("use_search").click();
-    } else if (mode === "albums") {
+    }
+
+    if (mode === "albums") {
         elUseUriLabel.innerText = "Artist URI";
         elUri.placeholder = "spotify:artist:0gxyHStUsqpMadRV0Di1Qt";
+
+        elUseLikedLabel.innerText = "Liked Albums";
 
         document.querySelectorAll(".hide_albums").forEach((el) => {
             el.style.display = "none";
         });
 
-        if (
-            params[mode].use === "user_playlist" ||
-            params[mode].use === "featured_playlist" ||
-            params[mode].use === "liked_songs" ||
-            params[mode].use === "top_songs"
-        )
-            document.getElementById("use_search").click();
+        // if (
+        //     params[mode].use === "user_playlist" ||
+        //     params[mode].use === "featured_playlist" ||
+        //     params[mode].use === "top"
+        // )
+        //     document.getElementById("use_search").click();
     } else if (mode === "artists") {
+        elUseTopLabel.innerText = "Top Artists";
+
         document.querySelectorAll(".hide_artists").forEach((el) => {
             el.style.display = "none";
         });
 
-        if (params[mode].use !== "search")
-            document.getElementById("use_search").click();
+        // if (
+        //     params[mode].use === "user_playlist" ||
+        //     params[mode].use === "liked" ||
+        //     params[mode].use === "featured_playlist" ||
+        //     params[mode].use === "uri"
+        // )
+        //     document.getElementById("use_search").click();
     }
 }
 

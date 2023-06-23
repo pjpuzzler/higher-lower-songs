@@ -184,6 +184,7 @@ label {
     position: relative;
     display: flex;
     overflow: hidden;
+    width: 100%;
 }
 
 .left_gradient {
