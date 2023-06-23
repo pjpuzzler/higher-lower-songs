@@ -890,6 +890,33 @@ async function loadUrls() {
         }
     } else if (mode === "artists") {
         switch (params[mode].use) {
+            case "liked": {
+                const followedArtistData = await getData(
+                    `https://api.spotify.com/v1/me/following?type=artist&limit=50`,
+                    false
+                );
+
+                for (const artist of followedArtistData.artists.items)
+                    urlsLeft.push(
+                        `https://api.spotify.com/v1/artists/${artist.id}`
+                    );
+
+                const maxOffset = urlsLeft.length;
+
+                const elSourceImg = document.getElementById("source_img");
+
+                document.getElementById("source").href =
+                    "https://open.spotify.com/collection/artists";
+                document.getElementById("source_img_search").style.display =
+                    "none";
+                elSourceImg.style.display = "initial";
+                elSourceImg.src =
+                    "https://t.scdn.co/images/3099b3803ad9496896c43f22fe9be8c4.png";
+                document.getElementById(
+                    "source_text"
+                ).innerText = `Liked Artists (${maxOffset})`;
+                break;
+            }
             case "top": {
                 const maxOffset = (
                     await getData(
@@ -1022,7 +1049,8 @@ function getData(url, returnFirstTrack = true, type = null) {
                     const artistData =
                         data.artists?.items[0] ??
                         data.items?.[0] ??
-                        data.tracks;
+                        data.tracks ??
+                        data;
 
                     if (!artistData) return reject();
 
@@ -1350,6 +1378,8 @@ function updateSide(sideNum, reveal = false) {
     }
 
     updateMarquees(sideNum);
+
+    const elLikeBtn = document.getElementById(`like_btn_${sideNum}`);
 
     if (signedIn && (reveal || !params[mode].soundOnly)) {
         if (mode === "songs")
@@ -2165,6 +2195,8 @@ function updateParamValidity() {
         // )
         //     document.getElementById("use_search").click();
     } else if (mode === "artists") {
+        elUseLikedLabel.innerText = "Liked Artists";
+
         elUseTopLabel.innerText = "Top Artists";
 
         document.querySelectorAll(".hide_artists").forEach((el) => {
