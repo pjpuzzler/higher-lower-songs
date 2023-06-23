@@ -2195,7 +2195,7 @@ function updateParamValidity() {
         // )
         //     document.getElementById("use_search").click();
     } else if (mode === "artists") {
-        elUseLikedLabel.innerText = "Liked Artists";
+        elUseLikedLabel.innerText = "Liked Artists ";
 
         elUseTopLabel.innerText = "Top Artists";
 
