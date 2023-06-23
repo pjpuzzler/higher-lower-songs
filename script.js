@@ -656,29 +656,50 @@ async function loadUrls() {
                 break;
             }
             case "uri": {
-                const albumPlaylistURIParts = params[mode].uri.split(":"),
-                    albumPlaylistString = albumPlaylistURIParts[1],
-                    albumPlaylistId = albumPlaylistURIParts[2];
+                const albumArtistPlaylistURIParts = params[mode].uri.split(":"),
+                    albumArtistPlaylistString = albumArtistPlaylistURIParts[1],
+                    albumArtistPlaylistId = albumArtistPlaylistURIParts[2];
 
-                let albumPlaylistData,
-                    isAlbum = false;
+                let albumArtistPlaylistData;
 
-                if (albumPlaylistString === "album") {
+                if (albumArtistPlaylistString === "album") {
                     try {
-                        albumPlaylistData = await getData(
-                            `https://api.spotify.com/v1/albums/${albumPlaylistId}`,
+                        albumArtistPlaylistData = await getData(
+                            `https://api.spotify.com/v1/albums/${albumArtistPlaylistId}`,
                             false
                         );
                     } catch {
                         alert("Invalid album ID");
                         return true;
                     }
-                    albumCover = albumPlaylistData.images[0].url;
-                    isAlbum = true;
-                } else if (albumPlaylistString === "playlist") {
+                    albumCover = albumArtistPlaylistData.images[0].url;
+                } else if (albumArtistPlaylistString === "artist") {
                     try {
-                        albumPlaylistData = await getData(
-                            `https://api.spotify.com/v1/playlists/${albumPlaylistId}?fields=external_urls%2Cimages%2Cname%2Ctracks(total)`,
+                        albumArtistPlaylistData = await getData(
+                            `https://api.spotify.com/v1/artists/${albumArtistPlaylistId}?fields=external_urls%2Cimages%2Cname%2Ctracks(total)`,
+                            false
+                        );
+                        const artistAlbumData = await getData(
+                            `https://api.spotify.com/v1/artists/${albumArtistPlaylistData.id}/albums?include_groups=album&fields=total`,
+                            false,
+                            "albums"
+                        );
+                        var albumIds = [],
+                            albumTotals = [],
+                            totalOffset = 0;
+                        for (let albumData of artistAlbumData.items) {
+                            albumIds.push(albumData.id);
+                            albumTotals.push(albumData.total_tracks);
+                            totalOffset += albumData.total_tracks;
+                        }
+                    } catch {
+                        alert("Invalid artist ID");
+                        return true;
+                    }
+                } else if (albumArtistPlaylistString === "playlist") {
+                    try {
+                        albumArtistPlaylistData = await getData(
+                            `https://api.spotify.com/v1/playlists/${albumArtistPlaylistId}?fields=external_urls%2Cimages%2Cname%2Ctracks(total)`,
                             false
                         );
                     } catch {
@@ -687,28 +708,40 @@ async function loadUrls() {
                     }
                 }
 
-                const maxOffset = albumPlaylistData.tracks.total;
+                const maxOffset =
+                    albumArtistPlaylistString === "artist"
+                        ? totalOffset
+                        : albumArtistPlaylistData.tracks.total;
 
                 const elSourceImg = document.getElementById("source_img");
 
                 document.getElementById("source").href =
-                    albumPlaylistData.external_urls.spotify;
+                    albumArtistPlaylistData.external_urls.spotify;
                 document.getElementById("source_img_search").style.display =
                     "none";
                 elSourceImg.style.display = "initial";
-                elSourceImg.src = albumPlaylistData.images[0].url;
+                elSourceImg.src = albumArtistPlaylistData.images[0].url;
                 document.getElementById("source_text").innerText = `${
-                    albumPlaylistData.name.length >= 20
-                        ? albumPlaylistData.name.substring(0, 19) + "..."
-                        : albumPlaylistData.name
+                    albumArtistPlaylistData.name.length >= 20
+                        ? albumArtistPlaylistData.name.substring(0, 19) + "..."
+                        : albumArtistPlaylistData.name
                 } (${maxOffset})`;
 
-                for (let offset = 0; offset < maxOffset; ++offset)
-                    urlsLeft.push(
-                        isAlbum
-                            ? `https://api.spotify.com/v1/albums/${albumPlaylistId}/tracks?limit=1&offset=${offset}`
-                            : `https://api.spotify.com/v1/playlists/${albumPlaylistId}/tracks?fields=items&limit=1&offset=${offset}`
-                    );
+                if (albumArtistPlaylistString === "artist") {
+                    for (let i = 0; i < albumIds.length; ++i) {
+                        for (let offset = 0; offset < albumTotals[i]; ++offset)
+                            urlsLeft.push(
+                                `https://api.spotify.com/v1/albums/${albumIds[i]}/tracks?limit=1&offset=${offset}`
+                            );
+                    }
+                } else {
+                    for (let offset = 0; offset < maxOffset; ++offset)
+                        urlsLeft.push(
+                            albumArtistPlaylistString === "album"
+                                ? `https://api.spotify.com/v1/albums/${albumArtistPlaylistId}/tracks?limit=1&offset=${offset}`
+                                : `https://api.spotify.com/v1/playlists/${albumArtistPlaylistId}/tracks?fields=items&limit=1&offset=${offset}`
+                        );
+                }
                 break;
             }
             case "search": {
@@ -922,7 +955,8 @@ async function loadUrls() {
     }
 }
 
-function getData(url, returnFirstTrack = true) {
+function getData(url, returnFirstTrack = true, type = null) {
+    if (type === null) type = mode;
     return new Promise((resolve, reject) => {
         $.ajax({
             url,
@@ -933,7 +967,7 @@ function getData(url, returnFirstTrack = true) {
             success: (data) => {
                 if (!returnFirstTrack) return resolve(data);
 
-                if (mode === "songs") {
+                if (type === "songs") {
                     const trackData =
                         data.tracks?.items[0] ??
                         data.items?.[0].track ??
@@ -961,7 +995,7 @@ function getData(url, returnFirstTrack = true) {
                             error: reject,
                         });
                     }
-                } else if (mode === "albums") {
+                } else if (type === "albums") {
                     const albumData =
                         data.albums?.items[0] ??
                         data.items?.[0].album ??
@@ -984,7 +1018,7 @@ function getData(url, returnFirstTrack = true) {
                         },
                         error: reject,
                     });
-                } else if (mode === "artists") {
+                } else if (type === "artists") {
                     const artistData =
                         data.artists?.items[0] ??
                         data.items?.[0] ??
@@ -2023,7 +2057,7 @@ function updatePlayValidity(forceDisable = false) {
                 validYearString(params[mode].query.year)) ||
             (params[mode].use === "uri" &&
                 (mode === "songs"
-                    ? ALBUM_PLAYLIST_URI_REGEX
+                    ? ALBUM_ARTIST_PLAYLIST_URI_REGEX
                     : ARTIST_URI_REGEX
                 ).test(params[mode].uri)))
     ) {
@@ -2063,7 +2097,7 @@ function updateParamValidity() {
         el.style.display = null;
     });
 
-    elUseUriLabel.innerText = "Album/Playlist URI";
+    elUseUriLabel.innerText = "Album/Artist/Playlist URI";
     elUri.placeholder = "spotify:album:5Z9iiGl2FcIfa3BMiv6OIw";
 
     elUseLikedLabel.innerText = "Liked Songs";
