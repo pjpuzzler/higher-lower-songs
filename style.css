@@ -600,11 +600,29 @@ label {
     );
 }
 
+#volume_slider:hover::-moz-range-track {
+    background: linear-gradient(
+        to right,
+        #1db954 var(--volume_slider_offset),
+        #535353 var(--volume_slider_offset)
+    );
+}
+
 #volume_slider:hover::-webkit-slider-thumb {
     visibility: initial;
 }
 
 #volume_slider::-webkit-slider-runnable-track {
+    background: linear-gradient(
+        to right,
+        #b3b3b3 var(--volume_slider_offset),
+        #535353 var(--volume_slider_offset)
+    );
+    height: var(--volume_slider_height);
+    border-radius: var(--volume_slider_height);
+}
+
+#volume_slider::-moz-range-track {
     background: linear-gradient(
         to right,
         #b3b3b3 var(--volume_slider_offset),
