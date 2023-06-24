@@ -13,6 +13,7 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
     ],
     CORRECT_SFX = new Audio("sounds/correct.mp3"),
     LOST_LIFE_SFX = new Audio("sounds/lost-life.mp3"),
+    STREAK_LENGTH = 10,
     CURR_YEAR = new Date().getFullYear(),
     ALBUM_ARTIST_PLAYLIST_URI_REGEX =
         /^spotify:(album|artist|playlist):[a-zA-Z0-9]{22}$/,

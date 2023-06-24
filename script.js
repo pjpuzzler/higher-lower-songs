@@ -249,6 +249,7 @@ let params,
     paramKey,
     highScores,
     lives,
+    streakLeft = STREAK_LENGTH,
     fadeDirection = 0,
     score = 0,
     mode,
@@ -491,15 +492,11 @@ async function play() {
                 getRandomAlbumData(),
             ]);
         else if (mode === "artists") {
-            [artistData1, artistData2] = await Promise.all([
-                getRandomArtistData(),
-                getRandomArtistData(),
-            ]);
-
-            [trackData1, trackData2] = await Promise.all([
-                getRandomTopTrackData(artistData1.id),
-                getRandomTopTrackData(artistData2.id),
-            ]);
+            [[artistData1, trackData1], [artistData2, trackData2]] =
+                await Promise.all([
+                    getRandomArtistData(),
+                    getRandomArtistData(),
+                ]);
         }
     } catch {
         return notEnoughResults();
@@ -1600,10 +1597,8 @@ function checkGuess(higher) {
                     else if (mode === "albums")
                         albumDataTmp = await getRandomAlbumData();
                     else if (mode === "artists") {
-                        artistDataTmp = await getRandomArtistData();
-                        trackDataTmp = await getRandomTopTrackData(
-                            artistDataTmp.id
-                        );
+                        [artistDataTmp, trackDataTmp] =
+                            await getRandomArtistData();
                     }
                     resolve();
                 } catch {
@@ -1620,7 +1615,7 @@ function checkGuess(higher) {
 
             ++score;
 
-            if (!params[mode].hardcore && score % 10 === 0) gainLife();
+            if (!params[mode].hardcore && --streakLeft === 0) gainLife();
 
             elCurrentScore.style.animation = "bump 0.25s linear";
             elCurrentScore.onanimationend = () => {
@@ -1657,6 +1652,7 @@ function checkGuess(higher) {
 function gainLife() {
     const elLives = document.getElementById("lives");
 
+    streakLeft = STREAK_LENGTH;
     ++lives;
 
     elLives.innerHTML +=
@@ -1822,31 +1818,30 @@ async function getRandomAlbumData() {
 }
 
 async function getRandomArtistData() {
-    let artistData;
+    let artistData, topTracks, invalidForSoundOnly;
 
     do {
         if (!urlsLeft.length) throw "out of urls";
         artistData = await getData(getRandomUrl());
-    } while (!artistData.popularity);
+        topTracks = await getData(
+            `https://api.spotify.com/v1/artists/${artistData.id}/top-tracks?market=US`
+        );
+        topTracks = topTracks.filter(
+            (track) =>
+                track.preview_url &&
+                track.artists[0].id === artistData.id &&
+                (!params.muteExplicit || !track.explicit)
+        );
+        invalidForSoundOnly = params[mode].soundOnly && !topTracks.length;
+    } while (!artistData.popularity || invalidForSoundOnly);
+    console.log(topTracks);
 
-    return artistData;
-}
-
-async function getRandomTopTrackData(id) {
-    let topTracks = await getData(
-        `https://api.spotify.com/v1/artists/${id}/top-tracks?market=US`
-    );
-
-    topTracks = topTracks.filter(
-        (track) =>
-            track.preview_url &&
-            track.artists[0].id === id &&
-            (!params.muteExplicit || !track.explicit)
-    );
-
-    if (!topTracks.length) return {};
-
-    return topTracks[Math.floor(Math.random() * topTracks.length)];
+    return [
+        artistData,
+        topTracks.length === 0
+            ? {}
+            : topTracks[Math.floor(Math.random() * topTracks.length)],
+    ];
 }
 
 function nextRound() {
@@ -1863,21 +1858,21 @@ function nextRound() {
 
     elVs.style.animation = "vs_away 0.25s";
 
+    const elLeftHalfClone = document
+        .getElementById("left_half")
+        .cloneNode(true);
+
+    elLeftHalfClone.style.position = "fixed";
+    elLeftHalfClone.style.zIndex = -1;
+
+    document.getElementsByTagName("body")[0].appendChild(elLeftHalfClone);
+
     setTimeout(() => {
         elVs.style.display = "none";
-
-        const elLeftHalfClone = document
-            .getElementById("left_half")
-            .cloneNode(true);
-
-        elLeftHalfClone.style.position = "fixed";
-        elLeftHalfClone.style.zIndex = -1;
 
         updateSide(1);
         revealPopularity(1);
         updateSide(2);
-
-        document.getElementsByTagName("body")[0].appendChild(elLeftHalfClone);
 
         const elSlideHalves = document.getElementsByClassName("slide_half");
 
