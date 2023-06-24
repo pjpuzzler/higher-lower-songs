@@ -1642,6 +1642,7 @@ function checkGuess(higher) {
                 setTimeout(noMoreTracks, 0.25 * 1000);
             else nextRound();
         } else {
+            streakLeft = STREAK_LENGTH;
             loseLife();
             if (!lives) gameOver();
             else nextRound();
@@ -1658,6 +1659,9 @@ function gainLife() {
     elLives.innerHTML +=
         '<svg class="life" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>';
     elLives.lastChild.style.animation = "gain_life 0.3s ease-in";
+    elLives.lastChild.onanimationend = () => {
+        elLives.lastChild.style.animation = "initial";
+    };
 }
 
 function loseLife() {
@@ -1695,10 +1699,10 @@ function revealPopularity(
                     CORRECT_SFX.load();
                     CORRECT_SFX.play();
                 }
-                if (score % 10 === 0) {
-                    // GAIN_LIFE_SFX.volume = linearVolume / 2;
-                    // GAIN_LIFE_SFX.load();
-                    // GAIN_LIFE_SFX.play();
+                if (streakLeft === 1) {
+                    GAIN_LIFE_SFX.volume = linearVolume / 2;
+                    GAIN_LIFE_SFX.load();
+                    GAIN_LIFE_SFX.play();
                 }
                 $elPopularity[0].style.animation = "bump 0.25s linear";
                 $elPopularity[0].onanimationend = () => {
@@ -1710,9 +1714,9 @@ function revealPopularity(
                     LOST_LIFE_SFX.load();
                     LOST_LIFE_SFX.play();
                 } else {
-                    // GAME_OVER_SFX.volume = linearVolume / 2;
-                    // GAME_OVER_SFX.load();
-                    // GAME_OVER_SFX.play();
+                    GAME_OVER_SFX.volume = linearVolume / 2;
+                    GAME_OVER_SFX.load();
+                    GAME_OVER_SFX.play();
                 }
             }
         };
