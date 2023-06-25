@@ -292,6 +292,34 @@ label {
     border: 3dvh solid #535353;
 }
 
+#streak_progress {
+    position: fixed;
+    top: 7dvh;
+    left: 50%;
+    transform: translate(-50%);
+    display: none;
+    justify-content: center;
+    align-items: center;
+}
+
+#streak_bar_overflow {
+    position: relative;
+    overflow: hidden;
+    width: 7dvh;
+    height: 3.5dvh;
+}
+
+#streak_bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 7dvh;
+    height: 7dvh;
+    border-radius: 50%;
+    box-sizing: border-box;
+    border: 0.75dvh solid #535353;
+}
+
 .popularity {
     color: #fff;
 }

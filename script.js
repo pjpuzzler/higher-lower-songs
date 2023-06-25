@@ -249,7 +249,7 @@ let params,
     paramKey,
     highScores,
     lives,
-    streakLeft = STREAK_LENGTH,
+    streak = 0,
     fadeDirection = 0,
     score = 0,
     mode,
@@ -517,6 +517,9 @@ async function play() {
         `<svg class="${lifeClassStr}" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>`.repeat(
             lives
         );
+
+    if (!params[mode].hardcore)
+        document.getElementById("streak_progress").style.display = "flex";
 
     document.getElementById("source").style.display = "flex";
 
@@ -1553,6 +1556,31 @@ function like(elLikeBtn, sideNum) {
         });
 }
 
+function updateStreak(newValue) {
+    const $elStreakBar = $("#streak_bar");
+
+    $({ streak: (streak * 100) / STREAK_LENGTH }).animate(
+        { streak: (newValue * 100) / STREAK_LENGTH },
+        {
+            duration: STREAK_ANIMATION_DURATION * 1000,
+            easing: "swing",
+            step: (s) => {
+                const barColor = getBarColor(s);
+
+                $elStreakBar.css({
+                    transform: "rotate(" + (45 + s * 1.8) + "deg)",
+                    borderBottomColor: barColor,
+                    borderRightColor: barColor,
+                });
+            },
+            complete: () => {
+                streak = newValue;
+                if (streak == STREAK_LENGTH) gainLife();
+            },
+        }
+    );
+}
+
 function checkGuess(higher) {
     const popularity1 = (
             mode === "songs"
@@ -1614,8 +1642,7 @@ function checkGuess(higher) {
                     document.getElementById("current_high_score");
 
             ++score;
-
-            if (!params[mode].hardcore && --streakLeft === 0) gainLife();
+            if (!params[mode].hardcore) updateStreak(streak + 1);
 
             elCurrentScore.style.animation = "bump 0.25s linear";
             elCurrentScore.onanimationend = () => {
@@ -1642,7 +1669,7 @@ function checkGuess(higher) {
                 setTimeout(noMoreTracks, 0.25 * 1000);
             else nextRound();
         } else {
-            streakLeft = STREAK_LENGTH;
+            updateStreak(0);
             loseLife();
             if (!lives) gameOver();
             else nextRound();
@@ -1651,9 +1678,15 @@ function checkGuess(higher) {
 }
 
 function gainLife() {
+    if (params.playSFX) {
+        GAIN_LIFE_SFX.volume = linearVolume / 2;
+        GAIN_LIFE_SFX.load();
+        GAIN_LIFE_SFX.play();
+    }
+
     const elLives = document.getElementById("lives");
 
-    streakLeft = STREAK_LENGTH;
+    updateStreak(0);
     ++lives;
 
     elLives.innerHTML +=
@@ -1669,10 +1702,25 @@ function loseLife() {
 
     --lives;
 
+    if (params.playSFX) {
+        if (lives > 0) {
+            LOST_LIFE_SFX.volume = linearVolume / 2;
+            LOST_LIFE_SFX.load();
+            LOST_LIFE_SFX.play();
+        } else {
+            GAME_OVER_SFX.volume = linearVolume / 2;
+            GAME_OVER_SFX.load();
+            GAME_OVER_SFX.play();
+        }
+    }
+
     elLives.lastChild.style.animation = "lose_life 0.3s ease-out";
     elLives.lastChild.onanimationend = () => {
         elLives.removeChild(elLives.lastChild);
-        if (!lives) elLives.style.display = "none";
+        if (!lives) {
+            elLives.style.display = "none";
+            document.getElementById("streak_progress").style.display = "none";
+        }
     };
 }
 
@@ -1699,25 +1747,11 @@ function revealPopularity(
                     CORRECT_SFX.load();
                     CORRECT_SFX.play();
                 }
-                if (streakLeft === 1) {
-                    GAIN_LIFE_SFX.volume = linearVolume / 2;
-                    GAIN_LIFE_SFX.load();
-                    GAIN_LIFE_SFX.play();
-                }
+
                 $elPopularity[0].style.animation = "bump 0.25s linear";
                 $elPopularity[0].onanimationend = () => {
                     $elPopularity[0].style.animation = "initial";
                 };
-            } else if (sideNum === 2 && !forceShow && params.playSFX) {
-                if (lives > 1) {
-                    LOST_LIFE_SFX.volume = linearVolume / 2;
-                    LOST_LIFE_SFX.load();
-                    LOST_LIFE_SFX.play();
-                } else {
-                    GAME_OVER_SFX.volume = linearVolume / 2;
-                    GAME_OVER_SFX.load();
-                    GAME_OVER_SFX.play();
-                }
             }
         };
 
@@ -1966,6 +2000,7 @@ function restart() {
         document.getElementById("restart").style.display =
         document.getElementById("source").style.display =
         document.getElementById("lives").style.display =
+        document.getElementById("streak_progress").style.display =
         document.getElementById("user_action").style.display =
         document.getElementById("play_btn").style.display =
         document.getElementById("params").style.display =
