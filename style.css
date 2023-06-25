@@ -236,7 +236,7 @@ label {
     justify-content: center;
     width: 2.2dvh;
     height: 2.2dvh;
-    background-color: #c7c6c6;
+    background-color: #b3b3b3;
     color: #121212;
     border-radius: 0.3dvh;
     font-size: 1.75dvh;
@@ -289,7 +289,7 @@ label {
     height: 28dvh;
     border-radius: 50%;
     box-sizing: border-box;
-    border: 3dvh solid #535353;
+    border: 3dvh solid #b3b3b3;
 }
 
 #streak_progress {
@@ -317,7 +317,7 @@ label {
     height: 7dvh;
     border-radius: 50%;
     box-sizing: border-box;
-    border: 0.75dvh solid #535353;
+    border: 0.75dvh solid #232323;
 }
 
 .popularity {

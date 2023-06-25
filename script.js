@@ -622,7 +622,7 @@ async function loadUrls() {
                     "https://t.scdn.co/images/3099b3803ad9496896c43f22fe9be8c4.png";
                 document.getElementById(
                     "source_text"
-                ).innerText = `Liked Songs (${maxOffset})`;
+                ).innerText = `Liked (${maxOffset})`;
 
                 for (let offset = 0; offset < maxOffset; ++offset)
                     urlsLeft.push(
@@ -803,7 +803,7 @@ async function loadUrls() {
                     "https://t.scdn.co/images/3099b3803ad9496896c43f22fe9be8c4.png";
                 document.getElementById(
                     "source_text"
-                ).innerText = `Liked Albums (${maxOffset})`;
+                ).innerText = `Liked (${maxOffset})`;
 
                 for (let offset = 0; offset < maxOffset; ++offset)
                     urlsLeft.push(
@@ -916,7 +916,7 @@ async function loadUrls() {
                     "https://t.scdn.co/images/3099b3803ad9496896c43f22fe9be8c4.png";
                 document.getElementById(
                     "source_text"
-                ).innerText = `Liked Artists (${maxOffset})`;
+                ).innerText = `Liked (${maxOffset})`;
                 break;
             }
             case "top": {
@@ -2203,8 +2203,6 @@ function updateParamValidity() {
     elUseUriLabel.innerText = "Album/Artist/Playlist URI";
     elUri.placeholder = "spotify:album:5Z9iiGl2FcIfa3BMiv6OIw";
 
-    elUseLikedLabel.innerText = "Liked Songs";
-
     if (!signedIn) {
         elUseLikedLabel.style.color = "gray";
         elUseLiked.disabled = true;
@@ -2224,8 +2222,6 @@ function updateParamValidity() {
         elUseUriLabel.innerText = "Artist URI";
         elUri.placeholder = "spotify:artist:0gxyHStUsqpMadRV0Di1Qt";
 
-        elUseLikedLabel.innerText = "Liked Albums";
-
         document.querySelectorAll(".hide_albums").forEach((el) => {
             el.style.display = "none";
         });
@@ -2237,10 +2233,6 @@ function updateParamValidity() {
         // )
         //     document.getElementById("use_search").click();
     } else if (mode === "artists") {
-        elUseLikedLabel.innerText = "Liked Artists";
-
-        elUseTopLabel.innerText = "Top Artists";
-
         document.querySelectorAll(".hide_artists").forEach((el) => {
             el.style.display = "none";
         });
