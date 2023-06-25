@@ -31,6 +31,11 @@ window.onresize = () => {
 const load = async () => {
     updatePlayValidity(true);
 
+    mode = localStorage.getItem("mode") ?? DEFAULT_MODE;
+    params = JSON.parse(localStorage.getItem("params")) ?? DEFAULT_PARAMS;
+
+    updateParamValidity();
+
     const elUserImageContainer = document.getElementById(
             "user_image_container"
         ),
@@ -64,7 +69,7 @@ const load = async () => {
 
                 window.firestoreListen(userData.id, setHighScores);
             })
-            .catch((e) => {
+            .catch(() => {
                 alert("Error getting high scores");
             });
 
@@ -79,17 +84,14 @@ const load = async () => {
         elUserAction.innerText = "Sign out";
         elUserAction.onclick = signOut;
     } else {
+        setHighScores(JSON.parse(localStorage.getItem("high_scores")) ?? {});
+
         elUserAction.innerText = "Sign in";
         elUserAction.style.top = "4dvh";
         elUserAction.onclick = () => {
             signIn(true);
         };
     }
-
-    mode = localStorage.getItem("mode") ?? DEFAULT_MODE;
-    params = JSON.parse(localStorage.getItem("params")) ?? DEFAULT_PARAMS;
-
-    updateParamValidity();
 
     let loadPromises = [getGenres(), getFeaturedPlaylists()];
     if (signedIn) loadPromises.push(getUserPlaylists());
@@ -1652,9 +1654,15 @@ function checkGuess(higher) {
                 elCurrentScore.innerText = score;
             }, 0.125 * 1000);
 
-            if (signedIn && score > (highScores[paramKey] ?? 0)) {
+            if (score > (highScores[paramKey] ?? 0)) {
                 highScores[paramKey] = score;
-                window.storeHighScore(userData.id, paramKey, score);
+                if (signedIn)
+                    window.storeHighScore(userData.id, paramKey, score);
+                else
+                    localStorage.setItem(
+                        "high_scores",
+                        JSON.stringify(highScores)
+                    );
                 elCurrentHighScore.style.animation = "bump 0.25s linear";
                 elCurrentHighScore.onanimationend = () => {
                     elCurrentHighScore.style.animation = "initial";
@@ -2122,7 +2130,7 @@ function changeParams(newParams) {
     localStorage.setItem("params", JSON.stringify(params));
 
     updatePlayValidity();
-    if (signedIn) updateHighScore();
+    updateHighScore();
 }
 
 function validYearString(yearString) {
@@ -2350,5 +2358,5 @@ function changeMode(newMode) {
     updateParams();
     updateParamValidity();
     updatePlayValidity();
-    if (signedIn) updateHighScore();
+    updateHighScore();
 }

@@ -62,6 +62,7 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
             query: {
                 genre: "",
             },
+            soundOnly: false,
             use: "search",
         },
 
