@@ -139,11 +139,12 @@ const load = async () => {
                 if (
                     !values[1].playlists.items.some(
                         (featuredPlaylist) =>
-                            featuredPlaylist?.id === params.featuredPlaylistId
+                            featuredPlaylist?.id ===
+                            params[mode].featuredPlaylistId
                     )
                 )
-                    params.featuredPlaylistId =
-                        DEFAULT_PARAMS.featuredPlaylistId;
+                    params[mode].featuredPlaylistId =
+                        DEFAULT_PARAMS[mode].featuredPlaylistId;
             }
 
             const elUserPlaylist = document.getElementById("user_playlist");
@@ -511,34 +512,44 @@ async function play() {
 
     elHalves[0].style.display = elHalves[1].style.display = "flex";
     elScore.style.display = "initial";
-    document.getElementById("vs_container").style.display = "flex";
-    document.getElementById("lives").style.display = "flex";
+    document.getElementById("vs_container").style.display =
+        document.getElementById("top_info_container").style.display =
+        document.getElementById("lives").style.display =
+            "flex";
     lives = params[mode].hardcore ? 1 : 3;
+    streak = 0;
     const lifeClassStr = params[mode].hardcore ? "life hardcore" : "life";
     document.getElementById("lives").innerHTML =
         `<svg class="${lifeClassStr}" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>`.repeat(
             lives
         );
 
-    if (!params[mode].hardcore)
+    if (!params[mode].hardcore) {
         document.getElementById("streak_progress").style.display = "flex";
+        document.getElementById("streak_bar").style.transform = "rotate(45deg)";
+    }
 
     document.getElementById("source").style.display = "flex";
 
     const elAlbumArt1Btn = document.getElementById("album_art_1_btn"),
-        elAlbumArt2Btn = document.getElementById("album_art_2_btn");
+        elAlbumArt2Btn = document.getElementById("album_art_2_btn"),
+        elSourceImg = document.getElementById("source_img");
 
     elAlbumArt1Btn.classList.remove("album_art_album");
     elAlbumArt2Btn.classList.remove("album_art_album");
+    elSourceImg.classList.remove("album_art_album");
     elAlbumArt1Btn.classList.remove("album_art_artist");
     elAlbumArt2Btn.classList.remove("album_art_artist");
+    elSourceImg.classList.remove("album_art_artist");
 
     if (mode === "albums") {
         elAlbumArt1Btn.classList.add("album_art_album");
         elAlbumArt2Btn.classList.add("album_art_album");
+        elSourceImg.classList.add("album_art_album");
     } else if (mode === "artists") {
         elAlbumArt1Btn.classList.add("album_art_artist");
         elAlbumArt2Btn.classList.add("album_art_artist");
+        elSourceImg.classList.add("album_art_artist");
     }
 
     updateSide(1);
@@ -578,7 +589,7 @@ async function loadUrls() {
             }
             case "featured_playlist": {
                 const featuredPlayListData = await getData(
-                        `https://api.spotify.com/v1/playlists/${params.featuredPlaylistId}?fields=external_urls%2Cimages%2Cname%2Ctracks(total)`,
+                        `https://api.spotify.com/v1/playlists/${params[mode].featuredPlaylistId}?fields=external_urls%2Cimages%2Cname%2Ctracks(total)`,
                         false
                     ),
                     maxOffset = featuredPlayListData.tracks.total;
@@ -599,7 +610,7 @@ async function loadUrls() {
 
                 for (let offset = 0; offset < maxOffset; ++offset)
                     urlsLeft.push(
-                        `https://api.spotify.com/v1/playlists/${params.featuredPlaylistId}/tracks?fields=items&limit=1&offset=${offset}`
+                        `https://api.spotify.com/v1/playlists/${params[mode].featuredPlaylistId}/tracks?fields=items&limit=1&offset=${offset}`
                     );
                 break;
             }
@@ -649,7 +660,7 @@ async function loadUrls() {
                     "https://play-lh.googleusercontent.com/OO06tTnQyEckM3dUDbHqmWXpI-7IbYlodDxVR7L4buzOX6KQvAeTJEV_Q45cznM63mJ-";
                 document.getElementById(
                     "source_text"
-                ).innerText = `Top Songs (${maxOffset})`;
+                ).innerText = `Top (${maxOffset})`;
 
                 for (let offset = 0; offset < maxOffset; ++offset)
                     urlsLeft.push(
@@ -938,7 +949,7 @@ async function loadUrls() {
                     "https://play-lh.googleusercontent.com/OO06tTnQyEckM3dUDbHqmWXpI-7IbYlodDxVR7L4buzOX6KQvAeTJEV_Q45cznM63mJ-";
                 document.getElementById(
                     "source_text"
-                ).innerText = `Top Artists (${maxOffset})`;
+                ).innerText = `Top (${maxOffset})`;
 
                 for (let offset = 0; offset < maxOffset; ++offset)
                     urlsLeft.push(
@@ -1082,13 +1093,7 @@ function getData(url, returnFirstTrack = true, type = null) {
 }
 
 function getRandomUrl() {
-    const index = Math.floor(Math.random() * urlsLeft.length),
-        url = urlsLeft[index],
-        lastUrl = urlsLeft.pop();
-
-    if (index !== urlsLeft.length) urlsLeft[index] = lastUrl;
-
-    return url;
+    return urlsLeft.splice(Math.floor(Math.random() * urlsLeft.length), 1)[0];
 }
 
 function getRandomAlbumTrackUrl(albumData) {
@@ -1098,7 +1103,7 @@ function getRandomAlbumTrackUrl(albumData) {
 }
 
 function getBarColor(p) {
-    return `hsl(${p * 3.3}, 100%, 50%)`;
+    return p === 0 ? "initial" : `hsl(${p * 3.3}, 100%, 50%)`;
 }
 
 function updateMarquees(sideNum) {
@@ -1672,16 +1677,15 @@ function checkGuess(higher) {
                         "High: " + highScores[paramKey];
                 }, 0.125 * 1000);
             }
-
-            if (results[1].status === "rejected")
-                setTimeout(noMoreTracks, 0.25 * 1000);
-            else nextRound();
         } else {
             updateStreak(0);
             loseLife();
-            if (!lives) gameOver();
-            else nextRound();
         }
+
+        if (!lives) gameOver();
+        else if (results[1].status === "rejected")
+            setTimeout(noMoreTracks, 0.25 * 1000);
+        else nextRound();
     });
 }
 
@@ -1764,7 +1768,11 @@ function revealPopularity(
         };
 
     $elPopularity.text("?");
-    $elBar.css({ transform: "rotate(45deg)" });
+    $elBar.css({
+        transform: "rotate(45deg)",
+        borderBottomColor: "initial",
+        borderRightColor: "initial",
+    });
 
     if (params[mode].hidePopularity && !forceShow) {
         onRevealComplete();
@@ -1880,7 +1888,6 @@ async function getRandomArtistData() {
         );
         invalidForSoundOnly = params[mode].soundOnly && !topTracks.length;
     } while (!artistData.popularity || invalidForSoundOnly);
-    console.log(topTracks);
 
     return [
         artistData,
@@ -2007,7 +2014,7 @@ function restart() {
     document.getElementById("vs_container").style.display =
         document.getElementById("restart").style.display =
         document.getElementById("source").style.display =
-        document.getElementById("lives").style.display =
+        document.getElementById("top_info_container").style.display =
         document.getElementById("streak_progress").style.display =
         document.getElementById("user_action").style.display =
         document.getElementById("play_btn").style.display =

@@ -15,7 +15,6 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
     GAME_OVER_SFX = new Audio("sounds/game-over.wav"),
     GAIN_LIFE_SFX = new Audio("sounds/gain-life.wav"),
     LOST_LIFE_SFX = new Audio("sounds/lost-life.wav"),
-    STREAK_LENGTH = 7,
     CURR_YEAR = new Date().getFullYear(),
     ALBUM_ARTIST_PLAYLIST_URI_REGEX =
         /^spotify:(album|artist|playlist):[a-zA-Z0-9]{22}$/,
@@ -28,6 +27,7 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
     SHOW_POPULARITY_DURATION = 1,
     MARQUEE_PAUSE_DURATION = 1.75,
     SLIDE_HALVES_DURATION = 1,
+    STREAK_LENGTH = 7,
     DEFAULT_MODE = "songs",
     DEFAULT_PARAMS = {
         songs: {

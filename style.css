@@ -160,7 +160,7 @@ label {
 }
 
 .album_art_album {
-    border-radius: 4dvh;
+    border-radius: 10%;
 }
 
 .album_art_artist {
@@ -293,13 +293,10 @@ label {
 }
 
 #streak_progress {
-    position: fixed;
-    top: 7dvh;
-    left: 50%;
-    transform: translate(-50%);
     display: none;
     justify-content: center;
     align-items: center;
+    padding-top: 1dvh;
 }
 
 #streak_bar_overflow {
@@ -510,14 +507,21 @@ label {
     left: calc(env(safe-area-inset-left) + 2dvh);
 }
 
-#lives {
+#top_info_container {
+    display: none;
     position: fixed;
-    top: 1dvh;
-    padding: 1dvh 2dvh;
-    border-radius: 3dvh;
+    top: 2dvh;
     left: 50%;
     transform: translate(-50%);
-    display: none;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+#lives {
+    display: flex;
+    padding: 1dvh 2dvh;
+    border-radius: 3dvh;
     justify-content: center;
     align-items: center;
     background-color: #232323;
@@ -857,13 +861,31 @@ select {
         left: 1dvh;
     }
 
+    body.adaptive #top_info_container {
+        top: initial;
+        bottom: 49dvh;
+        left: initial;
+        right: 1dvh;
+        transform: translate(0, 50%);
+    }
+
     body.adaptive #lives {
         padding: 0.5dvh 1dvh;
-        top: initial;
-        bottom: 50%;
-        left: initial;
-        right: 0.5dvh;
-        transform: translate(0, 50%);
+    }
+
+    body.adaptive #streak_progress {
+        padding-top: 0.5dvh;
+    }
+    
+    body.adaptive #streak_bar_overflow {
+        width: 3.5dvh;
+        height: 1.75dvh;
+    }
+    
+    body.adaptive #streak_bar {
+        width: 3.5dvh;
+        height: 3.5dvh;
+        border: 0.38dvh solid #232323;
     }
 
     body.adaptive #source {
