@@ -526,7 +526,7 @@ async function play() {
 
     if (!params[mode].hardcore) {
         document.getElementById("streak_progress").style.display = "flex";
-        document.getElementById("streak_bar").style.transform = "rotate(45deg)";
+        updateStreak(0);
     }
 
     document.getElementById("source").style.display = "flex";
