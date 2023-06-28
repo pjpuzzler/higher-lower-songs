@@ -495,11 +495,10 @@ async function play() {
                 getRandomAlbumData(),
             ]);
         else if (mode === "artists") {
-            [[artistData1, trackData1], [artistData2, trackData2]] =
-                await Promise.all([
-                    getRandomArtistData(),
-                    getRandomArtistData(),
-                ]);
+            [artistData1, artistData2] = await Promise.all([
+                getRandomArtistData(),
+                getRandomArtistData(),
+            ]);
         }
     } catch {
         return notEnoughResults();
@@ -1114,8 +1113,10 @@ function updateMarquees(sideNum) {
             mode === "songs"
                 ? (sideNum === 1 ? trackData1 : trackData2).explicit
                 : mode === "albums"
-                ? (sideNum === 1 ? albumData1 : albumData2).explicit
-                : false,
+                ? (sideNum === 1 ? albumData1 : albumData2).preview_track
+                      ?.explicit
+                : (sideNum === 1 ? artistData1 : artistData2).preview_track
+                      ?.explicit,
         elTrackTitle = document.getElementById(`track_title_${sideNum}`),
         elTrackInfo = document.getElementById(
             `${sideNum === 1 ? "left" : "right"}_track_info`
@@ -1138,7 +1139,14 @@ function updateMarquees(sideNum) {
 
     elTrackTitle.style.animation = "none";
     elTrackTitle.offsetHeight;
-    if (trackTitleWidth > trackInfoWidth - gradientWidth) {
+    if (
+        trackTitleWidth >
+        trackInfoWidth -
+            (window.matchMedia("(orientation:portrait)").matches
+                ? threeFourthsVh
+                : threeHalvesVh) -
+            gradientWidth
+    ) {
         const titleMarqueeProperty = `--marquee_title_${sideNum}_distance`,
             titleMarqueeDistance =
                 trackTitleWidth -
@@ -1205,15 +1213,19 @@ function updateMarquees(sideNum) {
 }
 
 function updateSide(sideNum, reveal = false) {
-    const trackData = sideNum === 1 ? trackData1 : trackData2,
-        albumData = sideNum === 1 ? albumData1 : albumData2,
+    const albumData = sideNum === 1 ? albumData1 : albumData2,
         artistData = sideNum === 1 ? artistData1 : artistData2,
+        trackData =
+            mode === "songs"
+                ? sideNum === 1
+                    ? trackData1
+                    : trackData2
+                : mode === "albums"
+                ? albumData.preview_track
+                : artistData.preview_track,
         noAudio =
-            mode === "songs" || mode === "artists"
-                ? !trackData.preview_url ||
-                  (params.muteExplicit && trackData.explicit)
-                : !albumData.preview_url ||
-                  (params.muteExplicit && albumData.explicit),
+            !trackData?.preview_url ||
+            (params.muteExplicit && trackData.explicit),
         elAlbumArtBtn = document.getElementById(`album_art_${sideNum}_btn`),
         elTrackPlayer = document.getElementById("track_player");
 
@@ -1340,13 +1352,11 @@ function updateSide(sideNum, reveal = false) {
                 : artistData.external_urls.spotify
             : "";
 
-    document.getElementById(`explicit_${sideNum}`).style.display = (
-        mode === "songs"
-            ? trackData.explicit
-            : mode === "albums"
-            ? albumData.explicit
-            : false
-    )
+    document.getElementById(`explicit_${sideNum}`).style.display = (mode ===
+        "songs" || mode === "artists"
+        ? trackData
+        : albumData
+    )?.explicit
         ? null
         : "none";
 
@@ -1354,32 +1364,64 @@ function updateSide(sideNum, reveal = false) {
 
     elArtist.innerHTML = "";
 
-    if (mode !== "artists" && (reveal || !params[mode].soundOnly)) {
-        for (
-            let i = 0;
-            i < (mode === "songs" ? trackData : albumData).artists.length;
-            ++i
-        ) {
-            const artist = (mode === "songs" ? trackData : albumData).artists[
-                    i
-                ],
-                elA = document.createElement("a");
+    if (reveal || !params[mode].soundOnly) {
+        if (mode === "artists") {
+            if (!noAudio) {
+                const elA = document.createElement("a"),
+                    elI = document.createElement("i");
+                elA.innerText = trackData.name;
+                elA.href = trackData.external_urls.spotify;
+                elA.target = "_blank";
+                elA.className = "artist_link";
+                elA.draggable = false;
 
-            elA.innerText = artist.name;
-            elA.href = artist.external_urls.spotify;
-            elA.target = "_blank";
-            elA.className = "artist_link";
-            elA.draggable = false;
-
-            elArtist.appendChild(elA);
-
-            if (
-                i !=
-                (mode === "songs" ? trackData : albumData).artists.length - 1
+                elI.appendChild(elA);
+                elArtist.appendChild(elI);
+            }
+        } else {
+            for (
+                let i = 0;
+                i < (mode === "songs" ? trackData : albumData).artists.length;
+                ++i
             ) {
-                const elTextNode = document.createTextNode(", ");
+                const artist = (mode === "songs" ? trackData : albumData)
+                        .artists[i],
+                    elA = document.createElement("a");
+
+                elA.innerText = artist.name;
+                elA.href = artist.external_urls.spotify;
+                elA.target = "_blank";
+                elA.className = "artist_link";
+                elA.draggable = false;
+
+                elArtist.appendChild(elA);
+
+                if (
+                    i !=
+                    (mode === "songs" ? trackData : albumData).artists.length -
+                        1
+                ) {
+                    const elTextNode = document.createTextNode(", ");
+
+                    elArtist.appendChild(elTextNode);
+                }
+            }
+
+            if (mode === "albums" && !noAudio) {
+                const elTextNode = document.createTextNode(" - ");
 
                 elArtist.appendChild(elTextNode);
+
+                const elA = document.createElement("a"),
+                    elI = document.createElement("i");
+                elA.innerText = trackData.name;
+                elA.href = trackData.external_urls.spotify;
+                elA.target = "_blank";
+                elA.className = "artist_link";
+                elA.draggable = false;
+
+                elI.appendChild(elA);
+                elArtist.appendChild(elI);
             }
         }
     }
@@ -1417,15 +1459,18 @@ function updateLikeBtn(sideNum, saved) {
 
 function clickTrack(elAlbumArtBtn, sideNum) {
     const elTrackPlayer = document.getElementById("track_player"),
-        previewUrl = (
-            mode === "songs" || mode === "artists"
+        previewUrl =
+            mode === "songs"
                 ? sideNum === 1
-                    ? trackData1
-                    : trackData2
+                    ? trackData1.preview_url
+                    : trackData2.preview_url
+                : mode === "albums"
+                ? sideNum === 1
+                    ? albumData1.preview_track?.preview_url
+                    : albumData2.preview_track?.preview_url
                 : sideNum === 1
-                ? albumData1
-                : albumData2
-        ).preview_url;
+                ? artistData1.preview_track?.preview_url
+                : artistData2.preview_track?.preview_url;
 
     if (elTrackPlayer.src === previewUrl) {
         elTrackPlayer.src = "";
@@ -1442,15 +1487,18 @@ function playTrack(sideNum) {
 
     $elTrackPlayer.stop();
 
-    $elTrackPlayer[0].src = (
-        mode === "songs" || mode === "artists"
+    $elTrackPlayer[0].src =
+        mode === "songs"
             ? sideNum === 1
-                ? trackData1
-                : trackData2
+                ? trackData1.preview_url
+                : trackData2.preview_url
+            : mode === "albums"
+            ? sideNum === 1
+                ? albumData1.preview_track?.preview_url
+                : albumData2.preview_track?.preview_url
             : sideNum === 1
-            ? albumData1
-            : albumData2
-    ).preview_url;
+            ? artistData1.preview_track?.preview_url
+            : artistData2.preview_track?.preview_url;
     $elTrackPlayer[0].play();
     fadeIn();
 
@@ -1632,8 +1680,7 @@ function checkGuess(higher) {
                     else if (mode === "albums")
                         albumDataTmp = await getRandomAlbumData();
                     else if (mode === "artists") {
-                        [artistDataTmp, trackDataTmp] =
-                            await getRandomArtistData();
+                        artistDataTmp = await getRandomArtistData();
                     }
                     resolve();
                 } catch {
@@ -1842,29 +1889,27 @@ async function getRandomTrackData() {
 }
 
 async function getRandomAlbumData() {
-    let albumData, invalidForSoundOnly, validPreviewUrls;
+    let albumData, invalidForSoundOnly, validPreviewTracks;
 
     do {
         if (!urlsLeft.length) throw "out of urls";
         albumData = await getData(getRandomUrl());
-        validPreviewUrls = albumData.tracks.items.filter(
+        validPreviewTracks = albumData.tracks.items.filter(
             (track) =>
                 track.preview_url && (!track.explicit || !params.muteExplicit)
         );
 
-        invalidForSoundOnly = !validPreviewUrls.length;
-    } while (
-        !albumData.popularity ||
-        (params[mode].soundOnly && invalidForSoundOnly)
-    );
+        invalidForSoundOnly =
+            params[mode].soundOnly && !validPreviewTracks.length;
+    } while (!albumData.popularity || invalidForSoundOnly);
 
-    if (validPreviewUrls.length) {
-        const preview_url_track =
-            validPreviewUrls[
-                Math.floor(Math.random() * validPreviewUrls.length)
+    if (validPreviewTracks.length) {
+        const previewTrack =
+            validPreviewTracks[
+                Math.floor(Math.random() * validPreviewTracks.length)
             ];
-        albumData.preview_url = preview_url_track.preview_url;
-    } else albumData.preview_url = "";
+        albumData.preview_track = previewTrack;
+    } else albumData.preview_track = null;
 
     albumData.explicit = albumData.tracks.items.some((track) => track.explicit);
 
@@ -1886,15 +1931,17 @@ async function getRandomArtistData() {
                 track.artists[0].id === artistData.id &&
                 (!params.muteExplicit || !track.explicit)
         );
+
         invalidForSoundOnly = params[mode].soundOnly && !topTracks.length;
     } while (!artistData.popularity || invalidForSoundOnly);
 
-    return [
-        artistData,
-        topTracks.length === 0
-            ? {}
-            : topTracks[Math.floor(Math.random() * topTracks.length)],
-    ];
+    if (topTracks.length) {
+        const previewTrack =
+            topTracks[Math.floor(Math.random() * topTracks.length)];
+        artistData.preview_track = previewTrack;
+    } else artistData.preview_track = null;
+
+    return artistData;
 }
 
 function nextRound() {
