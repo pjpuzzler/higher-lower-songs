@@ -24,8 +24,10 @@ window.onresize = () => {
     if (document.getElementsByTagName("body")[0].className !== "adaptive")
         return;
 
-    updateMarquees(1);
-    updateMarquees(2);
+    requestAnimationFrame(() => {
+        updateMarquees(1);
+        updateMarquees(2);
+    });
 };
 
 const load = async () => {
@@ -1109,20 +1111,12 @@ function updateMarquees(sideNum) {
     clearTimeout(marqueeTimesoutIds[sideNum - 1]);
     clearTimeout(marqueeTimesoutIds[sideNum + 1]);
 
-    const explicit =
-            mode === "songs"
-                ? (sideNum === 1 ? trackData1 : trackData2).explicit
-                : mode === "albums"
-                ? (sideNum === 1 ? albumData1 : albumData2).preview_track
-                      ?.explicit
-                : (sideNum === 1 ? artistData1 : artistData2).preview_track
-                      ?.explicit,
-        elTrackTitle = document.getElementById(`track_title_${sideNum}`),
+    const elTrackTitle = document.getElementById(`track_title_${sideNum}`),
         elTrackInfo = document.getElementById(
             `${sideNum === 1 ? "left" : "right"}_track_info`
         ),
         elArtist = document.getElementById(`artist_${sideNum}`),
-        elArtistContanier = document.getElementById(
+        elArtistContainer = document.getElementById(
             `artist_container_${sideNum}`
         ),
         elTrackRightGradient = document.getElementById(
@@ -1130,31 +1124,25 @@ function updateMarquees(sideNum) {
         ),
         trackTitleWidth = elTrackTitle.scrollWidth,
         elArtistWidth = elArtist.scrollWidth,
-        artistContainerWidthVisible = elArtistContanier.clientWidth,
+        artistContainerWidthVisible = elArtistContainer.clientWidth,
         trackInfoWidth = elTrackInfo.offsetWidth,
         gradientWidth = elTrackRightGradient.offsetWidth,
-        threeHalvesVh = 0.015 * document.documentElement.scrollHeight,
-        threeFourthsVh = 0.0075 * document.documentElement.scrollHeight,
-        halfVh = 0.005 * document.documentElement.scrollHeight;
+        marginLeftOffset =
+            (window.matchMedia("(orientation:portrait)").matches
+                ? 0.008
+                : 0.015) * document.documentElement.scrollHeight,
+        explicitOffset =
+            (window.matchMedia("(orientation:portrait)").matches
+                ? 0.0025
+                : 0.005) * document.documentElement.scrollHeight;
 
     elTrackTitle.style.animation = "none";
     elTrackTitle.offsetHeight;
-    if (
-        trackTitleWidth >
-        trackInfoWidth -
-            (window.matchMedia("(orientation:portrait)").matches
-                ? threeFourthsVh
-                : threeHalvesVh) -
-            gradientWidth
-    ) {
+    if (trackTitleWidth > trackInfoWidth - marginLeftOffset - gradientWidth) {
         const titleMarqueeProperty = `--marquee_title_${sideNum}_distance`,
             titleMarqueeDistance =
                 trackTitleWidth -
-                (trackInfoWidth -
-                    (window.matchMedia("(orientation:portrait)").matches
-                        ? threeFourthsVh
-                        : threeHalvesVh) -
-                    gradientWidth);
+                (trackInfoWidth - marginLeftOffset - gradientWidth);
 
         document.documentElement.style.setProperty(
             titleMarqueeProperty,
@@ -1174,24 +1162,22 @@ function updateMarquees(sideNum) {
         elTrackTitle.onanimationiteration();
     }
 
-    if (explicit)
-        elArtist.style.marginLeft = window.matchMedia("(orientation:portrait)")
-            .matches
-            ? "0.5dvh"
-            : "1dvh";
-
     elArtist.style.animation = "none";
     elArtist.offsetHeight;
-    if (elArtistWidth > artistContainerWidthVisible - gradientWidth) {
+    if (
+        elArtistWidth >
+        artistContainerWidthVisible -
+            marginLeftOffset +
+            explicitOffset -
+            gradientWidth
+    ) {
         const artistMarqueeProperty = `--marquee_artist_${sideNum}_distance`,
             artistMarqueeDistance =
                 elArtistWidth -
                 (artistContainerWidthVisible -
-                    (window.matchMedia("(orientation:portrait)").matches
-                        ? threeFourthsVh
-                        : threeHalvesVh) +
-                    (explicit ? halfVh : 0) -
-                    gradientWidth * (explicit ? 2 : 3));
+                    marginLeftOffset +
+                    explicitOffset -
+                    gradientWidth);
 
         document.documentElement.style.setProperty(
             artistMarqueeProperty,
@@ -1226,6 +1212,7 @@ function updateSide(sideNum, reveal = false) {
         noAudio =
             !trackData?.preview_url ||
             (params.muteExplicit && trackData.explicit),
+        explicit = trackData.explicit,
         elAlbumArtBtn = document.getElementById(`album_art_${sideNum}_btn`),
         elTrackPlayer = document.getElementById("track_player");
 
@@ -1352,11 +1339,7 @@ function updateSide(sideNum, reveal = false) {
                 : artistData.external_urls.spotify
             : "";
 
-    document.getElementById(`explicit_${sideNum}`).style.display = (mode ===
-        "songs" || mode === "artists"
-        ? trackData
-        : albumData
-    )?.explicit
+    document.getElementById(`explicit_${sideNum}`).style.display = explicit
         ? null
         : "none";
 
@@ -1426,7 +1409,15 @@ function updateSide(sideNum, reveal = false) {
         }
     }
 
-    updateMarquees(sideNum);
+    if (explicit)
+        elArtist.style.marginLeft = window.matchMedia("(orientation:portrait)")
+            .matches
+            ? "0.5dvh"
+            : "1dvh";
+
+    setTimeout(() => {
+        updateMarquees(sideNum);
+    }, 10);
 
     const elLikeBtn = document.getElementById(`like_btn_${sideNum}`);
 
