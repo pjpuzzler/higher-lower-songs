@@ -143,6 +143,7 @@ label {
     float: left;
     width: 50vw;
     height: 100dvh;
+    will-change: transform;
 }
 
 .side_details {
@@ -290,6 +291,7 @@ label {
     border-radius: 50%;
     box-sizing: border-box;
     border: 3dvh solid #b3b3b3;
+    will-change: transform;
 }
 
 #streak_progress {
@@ -315,6 +317,7 @@ label {
     border-radius: 50%;
     box-sizing: border-box;
     border: 0.75dvh solid #232323;
+    will-change: transform;
 }
 
 .popularity {
@@ -608,7 +611,19 @@ label {
     );
 }
 
+#mute_btn:hover + #volume_slider::-moz-range-track {
+    background: linear-gradient(
+        to right,
+        #1db954 var(--volume_slider_offset),
+        #535353 var(--volume_slider_offset)
+    );
+}
+
 #mute_btn:hover + #volume_slider::-webkit-slider-thumb {
+    visibility: initial;
+}
+
+#mute_btn:hover + #volume_slider::-moz-range-thumb {
     visibility: initial;
 }
 
@@ -644,6 +659,10 @@ label {
     visibility: initial;
 }
 
+#volume_slider:hover::-moz-range-thumb {
+    visibility: initial;
+}
+
 #volume_slider::-webkit-slider-runnable-track {
     background: linear-gradient(
         to right,
@@ -667,6 +686,17 @@ label {
 #volume_slider::-webkit-slider-thumb {
     visibility: hidden;
     -webkit-appearance: none;
+    height: var(--volume_slider_thumb_height);
+    width: var(--volume_slider_thumb_height);
+    background-color: #fff;
+    border-radius: 100%;
+    margin-top: var(--volume_slider_thumb_margin_top);
+    margin-left: var(--volume_slider_thumb_margin);
+}
+
+#volume_slider::-moz-range-thumb {
+    visibility: hidden;
+    -moz-appearance: none;
     height: var(--volume_slider_thumb_height);
     width: var(--volume_slider_thumb_height);
     background-color: #fff;
@@ -933,7 +963,19 @@ select {
         border-radius: calc(var(--volume_slider_height) / 2);
     }
 
+    body.adaptive #volume_slider::-moz-range-track {
+        height: calc(var(--volume_slider_height) / 2);
+        border-radius: calc(var(--volume_slider_height) / 2);
+    }
+
     body.adaptive #volume_slider::-webkit-slider-thumb {
+        height: calc(var(--volume_slider_thumb_height) / 2);
+        width: calc(var(--volume_slider_thumb_height) / 2);
+        margin-top: calc(var(--volume_slider_thumb_margin_top) / 2);
+        margin-left: calc(var(--volume_slider_thumb_margin) / 2);
+    }
+
+    body.adaptive #volume_slider::-moz-range-thumb {
         height: calc(var(--volume_slider_thumb_height) / 2);
         width: calc(var(--volume_slider_thumb_height) / 2);
         margin-top: calc(var(--volume_slider_thumb_margin_top) / 2);
