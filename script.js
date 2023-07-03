@@ -1159,7 +1159,6 @@ function updateMarquees(sideNum) {
                 elTrackTitle.style.animationPlayState = "running";
             }, MARQUEE_PAUSE_DURATION * 1000);
         };
-        elTrackTitle.onanimationiteration();
     }
 
     elArtist.style.animation = "none";
@@ -1194,7 +1193,6 @@ function updateMarquees(sideNum) {
                 elArtist.style.animationPlayState = "running";
             }, MARQUEE_PAUSE_DURATION * 1000);
         };
-        elArtist.onanimationiteration();
     }
 }
 
@@ -1417,7 +1415,7 @@ function updateSide(sideNum, reveal = false) {
 
     setTimeout(() => {
         updateMarquees(sideNum);
-    }, 10);
+    }, MARQUEE_PAUSE_DURATION * 1000);
 
     const elLikeBtn = document.getElementById(`like_btn_${sideNum}`);
 
