@@ -24,10 +24,8 @@ window.onresize = () => {
     if (document.getElementsByTagName("body")[0].className !== "adaptive")
         return;
 
-    requestAnimationFrame(() => {
-        updateMarquees(1);
-        updateMarquees(2);
-    });
+    updateMarquees(1);
+    updateMarquees(2);
 };
 
 const load = async () => {
@@ -258,7 +256,7 @@ let params,
     fadeDirection = 0,
     score = 0,
     mode,
-    marqueeTimesoutIds = [null, null, null, null],
+    marqueeTimesoutIds = [null, null, null, null, null, null],
     prevVolume = DEFAULT_VOLUME;
 
 function setHighScores(data) {
@@ -1110,90 +1108,99 @@ function getBarColor(p) {
 function updateMarquees(sideNum) {
     clearTimeout(marqueeTimesoutIds[sideNum - 1]);
     clearTimeout(marqueeTimesoutIds[sideNum + 1]);
+    clearTimeout(marqueeTimesoutIds[sideNum + 3]);
 
     const elTrackTitle = document.getElementById(`track_title_${sideNum}`),
-        elTrackInfo = document.getElementById(
-            `${sideNum === 1 ? "left" : "right"}_track_info`
-        ),
-        elArtist = document.getElementById(`artist_${sideNum}`),
-        elArtistContainer = document.getElementById(
-            `artist_container_${sideNum}`
-        ),
-        elTrackRightGradient = document.getElementById(
-            `track_${sideNum}_right_gradient`
-        ),
-        trackTitleWidth = elTrackTitle.scrollWidth,
-        elArtistWidth = elArtist.scrollWidth,
-        artistContainerWidthVisible = elArtistContainer.clientWidth,
-        trackInfoWidth = elTrackInfo.offsetWidth,
-        gradientWidth = elTrackRightGradient.offsetWidth,
-        marginLeftOffset =
-            (window.matchMedia("(orientation:portrait)").matches
-                ? 0.008
-                : 0.015) * document.documentElement.scrollHeight,
-        explicitOffset =
-            (window.matchMedia("(orientation:portrait)").matches
-                ? 0.0025
-                : 0.005) * document.documentElement.scrollHeight;
+        elArtist = document.getElementById(`artist_${sideNum}`);
 
     elTrackTitle.style.animation = "none";
     elTrackTitle.offsetHeight;
-    if (trackTitleWidth > trackInfoWidth - marginLeftOffset - gradientWidth) {
-        const titleMarqueeProperty = `--marquee_title_${sideNum}_distance`,
-            titleMarqueeDistance =
-                trackTitleWidth -
-                (trackInfoWidth - marginLeftOffset - gradientWidth);
-
-        document.documentElement.style.setProperty(
-            titleMarqueeProperty,
-            `${-titleMarqueeDistance}px`
-        );
-
-        const titleMarqueeDuration = titleMarqueeDistance / 15,
-            titleAnimation = `${titleMarqueeDuration}s linear infinite alternate marquee_title_${sideNum}`;
-
-        elTrackTitle.style.animation = titleAnimation;
-        elTrackTitle.onanimationiteration = () => {
-            elTrackTitle.style.animationPlayState = "paused";
-            marqueeTimesoutIds[sideNum - 1] = setTimeout(() => {
-                elTrackTitle.style.animationPlayState = "running";
-            }, MARQUEE_PAUSE_DURATION * 1000);
-        };
-    }
 
     elArtist.style.animation = "none";
     elArtist.offsetHeight;
-    if (
-        elArtistWidth >
-        artistContainerWidthVisible -
-            marginLeftOffset +
-            explicitOffset -
-            gradientWidth
-    ) {
-        const artistMarqueeProperty = `--marquee_artist_${sideNum}_distance`,
-            artistMarqueeDistance =
-                elArtistWidth -
-                (artistContainerWidthVisible -
-                    marginLeftOffset +
-                    explicitOffset -
-                    gradientWidth);
 
-        document.documentElement.style.setProperty(
-            artistMarqueeProperty,
-            `${-artistMarqueeDistance}px`
-        );
+    marqueeTimesoutIds[sideNum + 3] = setTimeout(() => {
+        const elTrackInfo = document.getElementById(
+                `${sideNum === 1 ? "left" : "right"}_track_info`
+            ),
+            elArtistContainer = document.getElementById(
+                `artist_container_${sideNum}`
+            ),
+            elTrackRightGradient = document.getElementById(
+                `track_${sideNum}_right_gradient`
+            ),
+            trackTitleWidth = elTrackTitle.scrollWidth,
+            elArtistWidth = elArtist.scrollWidth,
+            artistContainerWidthVisible = elArtistContainer.clientWidth,
+            trackInfoWidth = elTrackInfo.offsetWidth,
+            gradientWidth = elTrackRightGradient.offsetWidth,
+            marginLeftOffset =
+                (window.matchMedia("(orientation:portrait)").matches
+                    ? 0.008
+                    : 0.015) * document.documentElement.scrollHeight,
+            explicitOffset =
+                (window.matchMedia("(orientation:portrait)").matches
+                    ? 0.0025
+                    : 0.005) * document.documentElement.scrollHeight;
 
-        const artistMarqueeDuration = artistMarqueeDistance / 15,
-            artistAnimation = `${artistMarqueeDuration}s linear infinite alternate marquee_artist_${sideNum}`;
+        if (
+            trackTitleWidth >
+            trackInfoWidth - marginLeftOffset - gradientWidth
+        ) {
+            const titleMarqueeProperty = `--marquee_title_${sideNum}_distance`,
+                titleMarqueeDistance =
+                    trackTitleWidth -
+                    (trackInfoWidth - marginLeftOffset - gradientWidth);
 
-        elArtist.style.animation = artistAnimation;
-        elArtist.onanimationiteration = () => {
-            elArtist.style.animationPlayState = "paused";
-            marqueeTimesoutIds[1 + sideNum] = setTimeout(() => {
-                elArtist.style.animationPlayState = "running";
-            }, MARQUEE_PAUSE_DURATION * 1000);
-        };
-    }
+            document.documentElement.style.setProperty(
+                titleMarqueeProperty,
+                `${-titleMarqueeDistance}px`
+            );
+
+            const titleMarqueeDuration = titleMarqueeDistance / 15,
+                titleAnimation = `${titleMarqueeDuration}s linear infinite alternate marquee_title_${sideNum}`;
+
+            elTrackTitle.style.animation = titleAnimation;
+            elTrackTitle.onanimationiteration = () => {
+                elTrackTitle.style.animationPlayState = "paused";
+                marqueeTimesoutIds[sideNum - 1] = setTimeout(() => {
+                    elTrackTitle.style.animationPlayState = "running";
+                }, MARQUEE_PAUSE_DURATION * 1000);
+            };
+        }
+
+        if (
+            elArtistWidth >
+            artistContainerWidthVisible -
+                marginLeftOffset +
+                explicitOffset -
+                gradientWidth
+        ) {
+            const artistMarqueeProperty = `--marquee_artist_${sideNum}_distance`,
+                artistMarqueeDistance =
+                    elArtistWidth -
+                    (artistContainerWidthVisible -
+                        marginLeftOffset +
+                        explicitOffset -
+                        gradientWidth);
+
+            document.documentElement.style.setProperty(
+                artistMarqueeProperty,
+                `${-artistMarqueeDistance}px`
+            );
+
+            const artistMarqueeDuration = artistMarqueeDistance / 15,
+                artistAnimation = `${artistMarqueeDuration}s linear infinite alternate marquee_artist_${sideNum}`;
+
+            elArtist.style.animation = artistAnimation;
+            elArtist.onanimationiteration = () => {
+                elArtist.style.animationPlayState = "paused";
+                marqueeTimesoutIds[1 + sideNum] = setTimeout(() => {
+                    elArtist.style.animationPlayState = "running";
+                }, MARQUEE_PAUSE_DURATION * 1000);
+            };
+        }
+    }, MARQUEE_PAUSE_DURATION * 1000);
 }
 
 function updateSide(sideNum, reveal = false) {
@@ -1337,9 +1344,8 @@ function updateSide(sideNum, reveal = false) {
                 : artistData.external_urls.spotify
             : "";
 
-    document.getElementById(`explicit_${sideNum}`).style.display = explicit
-        ? null
-        : "none";
+    document.getElementById(`explicit_${sideNum}`).style.display =
+        explicit && (!params[mode].soundOnly || reveal) ? null : "none";
 
     const elArtist = document.getElementById(`artist_${sideNum}`);
 
@@ -1407,15 +1413,16 @@ function updateSide(sideNum, reveal = false) {
         }
     }
 
-    if (explicit)
-        elArtist.style.marginLeft = window.matchMedia("(orientation:portrait)")
-            .matches
+    elArtist.style.marginLeft = window.matchMedia("(orientation:portrait)")
+        .matches
+        ? explicit
             ? "0.5dvh"
-            : "1dvh";
+            : "0.75dvh"
+        : explicit
+        ? "1dvh"
+        : "1.5dvh";
 
-    setTimeout(() => {
-        updateMarquees(sideNum);
-    }, MARQUEE_PAUSE_DURATION * 1000);
+    updateMarquees(sideNum);
 
     const elLikeBtn = document.getElementById(`like_btn_${sideNum}`);
 

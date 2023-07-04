@@ -318,6 +318,8 @@ label {
     box-sizing: border-box;
     border: 0.75dvh solid #232323;
     will-change: transform;
+    /* outline: 1px solid white;
+    outline-offset: -1px; */
 }
 
 .popularity {
@@ -528,6 +530,7 @@ label {
     justify-content: center;
     align-items: center;
     background-color: #232323;
+    outline: 1px solid white;
 }
 
 .life {
@@ -552,6 +555,7 @@ label {
     align-items: center;
     background-color: #000;
     opacity: 0.75;
+    outline: 1px solid white;
 }
 
 #source:hover {
