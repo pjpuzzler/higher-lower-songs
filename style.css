@@ -100,12 +100,8 @@ svg {
     fill: #b3b3b3;
 }
 
-svg:hover:not(.life) {
+svg:hover:not(.life):not(.liked_svg) {
     fill: #fff;
-}
-
-svg:active:not(.life) {
-    fill: #b3b3b3;
 }
 
 span {
@@ -258,9 +254,9 @@ label {
     fill: #1db954;
 }
 
-.liked_svg:active {
+/* .liked_svg:active {
     fill: #b3b3b3;
-}
+} */
 
 .guessing {
     display: flex;
@@ -605,6 +601,10 @@ label {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+#mute_img:active {
+    fill: #b3b3b3 !important;
 }
 
 #mute_btn:hover + #volume_slider::-webkit-slider-runnable-track {
