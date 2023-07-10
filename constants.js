@@ -32,39 +32,36 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
     DEFAULT_PARAMS = {
         songs: {
             featuredPlaylistId: "",
-            hardcore: false,
-            hidePopularity: false,
+
             maxSearchResults: 1000,
             query: {
                 genre: "",
                 year: `${CURR_YEAR - 10}-${CURR_YEAR}`,
             },
-            soundOnly: false,
             use: "search",
             userPlaylistId: "",
             uri: "",
         },
         albums: {
-            hardcore: false,
-            hidePopularity: false,
             maxSearchResults: 500,
             query: {
                 year: `${CURR_YEAR - 10}-${CURR_YEAR}`,
             },
-            soundOnly: false,
             use: "search",
             uri: "",
         },
         artists: {
-            hardcore: false,
-            hidePopularity: false,
             maxSearchResults: 250,
             query: {
                 genre: "",
             },
-            soundOnly: false,
             use: "search",
         },
+
+        hardcore: false,
+        hidePopularity: false,
+        soundOnly: false,
+        zen: false,
 
         muteExplicit: false,
         playSFX: true,

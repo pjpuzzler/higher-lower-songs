@@ -279,7 +279,9 @@
                     type="radio"
                     onchange="changeParams({use: 'search'})"
                 />
-                <label for="use_search">Search</label>
+                <label for="use_search" title="Items from a Spotify search"
+                    >Search</label
+                >
                 <br />
                 <div class="params_indent">
                     <input
@@ -291,7 +293,9 @@
                         step="50"
                         oninput="changeParams({maxSearchResults: this.value}); this.nextElementSibling.innerText = `Max search results (${this.value})`"
                     />
-                    <label for="max_search_results"
+                    <label
+                        for="max_search_results"
+                        title="How many of the top results to include"
                         >Max Search Results (1000)</label
                     >
                     <br class="hide_artists" />
@@ -310,7 +314,12 @@
                         min="0"
                         oninput="changeParams({query: {...params[mode].query, year: `${document.getElementById('from_year').value}-${this.value}`}}); if (this.value !== '') document.getElementById('from_year').max = this.value"
                     />
-                    <label for="from_year" class="hide_artists">Year</label>
+                    <label
+                        for="from_year"
+                        class="hide_artists"
+                        title="Items labeled in a certain year range"
+                        >Year</label
+                    >
                     <button
                         id="year_all"
                         class="param_button hide_artists"
@@ -324,7 +333,12 @@
                         class="hide_albums"
                         onchange="changeParams({query: {...params[mode].query, genre: this.value}})"
                     ></select>
-                    <label for="genre" class="hide_albums">Genre</label>
+                    <label
+                        for="genre"
+                        class="hide_albums"
+                        title="Items labeled as a certain genre"
+                        >Genre</label
+                    >
                     <button
                         id="genre_random"
                         class="param_button hide_albums"
@@ -341,7 +355,11 @@
                     class="hide_artists"
                     onchange="changeParams({use: 'uri'})"
                 />
-                <label id="use_uri_label" for="use_uri" class="hide_artists"
+                <label
+                    id="use_uri_label"
+                    for="use_uri"
+                    class="hide_artists"
+                    title="Items from a Spotify URI"
                     >Album/Artist/Playlist URI</label
                 >
                 <br class="hide_artists" />
@@ -365,6 +383,7 @@
                     id="use_featured_playlist_label"
                     for="use_featured_playlist"
                     class="hide_albums hide_artists"
+                    title="Songs from a featured Spotify playlist"
                 ></label>
                 <br class="hide_albums hide_artists" />
                 <div class="params_indent hide_albums hide_artists">
@@ -392,6 +411,7 @@
                     id="use_user_playlist_label"
                     for="use_user_playlist"
                     class="hide_albums hide_artists"
+                    title="Songs from a playlist in your library"
                     >User Playlist</label
                 >
                 <br class="hide_albums hide_artists" />
@@ -415,7 +435,12 @@
                     type="radio"
                     onchange="changeParams({use: 'liked'})"
                 />
-                <label id="use_liked_label" for="use_liked">Liked</label>
+                <label
+                    id="use_liked_label"
+                    for="use_liked"
+                    title="Items saved to your library"
+                    >Liked</label
+                >
                 <br class="hide_albums" />
                 <br class="hide_albums" />
                 <input
@@ -425,7 +450,11 @@
                     class="hide_albums"
                     onchange="changeParams({use: 'top'})"
                 />
-                <label id="use_top_label" for="use_top" class="hide_albums"
+                <label
+                    id="use_top_label"
+                    for="use_top"
+                    class="hide_albums"
+                    title="Most played items from the past ~6 months"
                     >Top</label
                 >
             </div>
@@ -451,21 +480,36 @@
                 type="checkbox"
                 oninput="changeParams({hardcore: this.checked})"
             />
-            <label for="hardcore">Hardcore</label>
+            <label for="hardcore" title="No extra lives or streak bonus"
+                >Hardcore</label
+            >
             <br />
             <input
                 id="hide_popularity"
                 type="checkbox"
                 oninput="changeParams({hidePopularity: this.checked})"
             />
-            <label for="hide_popularity">Hide Popularity</label>
+            <label for="hide_popularity" title="No popularity numbers"
+                >Hide Popularity</label
+            >
             <br />
             <input
                 id="sound_only"
                 type="checkbox"
                 oninput="changeParams({soundOnly: this.checked})"
             />
-            <label for="sound_only">Sound Only</label>
+            <label
+                for="sound_only"
+                title="No song, album, or artist name and no art"
+                >Sound Only</label
+            >
+            <br />
+            <input
+                id="zen"
+                type="checkbox"
+                oninput="changeParams({zen: this.checked})"
+            />
+            <label for="zen" title="Unlimited lives, no score">Zen</label>
             <br />
             <br />
             <input
@@ -473,14 +517,22 @@
                 type="checkbox"
                 oninput="changeParams({muteExplicit: this.checked})"
             />
-            <label for="mute_explicit">Mute Explicit</label>
+            <label
+                for="mute_explicit"
+                title="No song preview for songs marked explicit"
+                >Mute Explicit</label
+            >
             <br />
             <input
                 id="play_sfx"
                 type="checkbox"
                 oninput="changeParams({playSFX: this.checked})"
             />
-            <label for="play_sfx">Sound Effects</label>
+            <label
+                for="play_sfx"
+                title="Play correct, incorrect, level up, and game over SFX"
+                >Sound Effects</label
+            >
         </div>
     </body>
 </html>

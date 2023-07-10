@@ -190,11 +190,11 @@ const load = async () => {
     setVolume(Number(localStorage.getItem("volume") ?? DEFAULT_VOLUME));
 
     document.getElementById("mute_explicit").checked = params.muteExplicit;
-    document.getElementById("hardcore").checked = params[mode].hardcore;
-    document.getElementById("sound_only").checked = params[mode].soundOnly;
+    document.getElementById("hardcore").checked = params.hardcore;
+    document.getElementById("sound_only").checked = params.soundOnly;
+    document.getElementById("zen").checked = params.zen;
     document.getElementById("play_sfx").checked = params.playSFX;
-    document.getElementById("hide_popularity").checked =
-        params[mode].hidePopularity;
+    document.getElementById("hide_popularity").checked = params.hidePopularity;
 
     const advancedParamsVisibility =
         document.getElementById("advanced_params").style.visibility;
@@ -323,10 +323,10 @@ function updateParams() {
             break;
     }
 
-    document.getElementById("hardcore").checked = params[mode].hardcore;
-    document.getElementById("hide_popularity").checked =
-        params[mode].hidePopularity;
-    document.getElementById("sound_only").checked = params[mode].soundOnly;
+    document.getElementById("hardcore").checked = params.hardcore;
+    document.getElementById("hide_popularity").checked = params.hidePopularity;
+    document.getElementById("sound_only").checked = params.soundOnly;
+    document.getElementById("zen").checked = params.zen;
 }
 
 function getLinearGradient(hsl) {
@@ -512,18 +512,20 @@ async function play() {
     elHalves[0].style.display = elHalves[1].style.display = "flex";
     elScore.style.display = "initial";
     document.getElementById("vs_container").style.display =
-        document.getElementById("top_info_container").style.display =
-        document.getElementById("lives").style.display =
-            "flex";
-    lives = params[mode].hardcore ? 1 : 3;
+        document.getElementById("lives").style.display = "flex";
+    document.getElementById("top_info_container").style.display = params.zen
+        ? "none"
+        : "flex";
+
+    lives = params.hardcore ? 1 : 3;
     streak = 0;
-    const lifeClassStr = params[mode].hardcore ? "life hardcore" : "life";
+    const lifeClassStr = params.hardcore ? "life hardcore" : "life";
     document.getElementById("lives").innerHTML =
         `<svg class="${lifeClassStr}" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>`.repeat(
             lives
         );
 
-    if (!params[mode].hardcore) {
+    if (!params.hardcore) {
         document.getElementById("streak_progress").style.display = "flex";
         updateStreak(0);
     }
@@ -1271,7 +1273,7 @@ function updateSide(sideNum, reveal = false) {
         elArtistRightGradient.style.background =
             "initial";
 
-    if (reveal || !params[mode].soundOnly) {
+    if (reveal || !params.soundOnly) {
         if (!reveal && sideNum === 1 && score > 0) {
             elHalf.style.background =
                 document.getElementById("right_half").style.background;
@@ -1316,7 +1318,7 @@ function updateSide(sideNum, reveal = false) {
     }
 
     elAlbumArt.src = "";
-    if (reveal || !params[mode].soundOnly) {
+    if (reveal || !params.soundOnly) {
         elAlbumArt.style.visibility = "visible";
         elAlbumArtBtn.style.border = "none";
         elAlbumArt.src = albumArtUrl;
@@ -1328,7 +1330,7 @@ function updateSide(sideNum, reveal = false) {
     const elTrackTitle = document.getElementById(`track_title_${sideNum}`);
 
     elTrackTitle.innerText =
-        reveal || !params[mode].soundOnly
+        reveal || !params.soundOnly
             ? mode === "songs"
                 ? trackData.name
                 : mode === "albums"
@@ -1336,7 +1338,7 @@ function updateSide(sideNum, reveal = false) {
                 : artistData.name
             : "";
     elTrackTitle.href =
-        reveal || !params[mode].soundOnly
+        reveal || !params.soundOnly
             ? mode === "songs"
                 ? trackData.external_urls.spotify
                 : mode === "albums"
@@ -1345,13 +1347,13 @@ function updateSide(sideNum, reveal = false) {
             : "";
 
     document.getElementById(`explicit_${sideNum}`).style.display =
-        explicit && (!params[mode].soundOnly || reveal) ? null : "none";
+        explicit && (!params.soundOnly || reveal) ? null : "none";
 
     const elArtist = document.getElementById(`artist_${sideNum}`);
 
     elArtist.innerHTML = "";
 
-    if (reveal || !params[mode].soundOnly) {
+    if (reveal || !params.soundOnly) {
         if (mode === "artists") {
             if (!noAudio) {
                 const elA = document.createElement("a"),
@@ -1426,7 +1428,7 @@ function updateSide(sideNum, reveal = false) {
 
     const elLikeBtn = document.getElementById(`like_btn_${sideNum}`);
 
-    if (signedIn && (reveal || !params[mode].soundOnly)) {
+    if (signedIn && (reveal || !params.soundOnly)) {
         if (mode === "songs")
             hasTrackSaved(trackData.id).then((saved) => {
                 updateLikeBtn(sideNum, saved[0]);
@@ -1658,16 +1660,14 @@ function checkGuess(higher) {
         new Promise((resolve) =>
             setTimeout(
                 resolve,
-                ((params[mode].hidePopularity
-                    ? 0
-                    : POPULARITY_ANIMATION_DURATION) +
+                ((params.hidePopularity ? 0 : POPULARITY_ANIMATION_DURATION) +
                     SHOW_POPULARITY_DURATION) *
                     1000
             )
         ),
     ];
 
-    if (correct || lives > 1)
+    if (params.zen || correct || lives > 1)
         checkPromises.push(
             new Promise(async (resolve, reject) => {
                 try {
@@ -1692,7 +1692,7 @@ function checkGuess(higher) {
                     document.getElementById("current_high_score");
 
             ++score;
-            if (!params[mode].hardcore) updateStreak(streak + 1);
+            if (!params.hardcore && !params.zen) updateStreak(streak + 1);
 
             elCurrentScore.style.animation = "bump 0.25s linear";
             elCurrentScore.onanimationend = () => {
@@ -1702,7 +1702,7 @@ function checkGuess(higher) {
                 elCurrentScore.innerText = score;
             }, 0.125 * 1000);
 
-            if (score > (highScores[paramKey] ?? 0)) {
+            if (!params.zen && score > (highScores[paramKey] ?? 0)) {
                 highScores[paramKey] = score;
                 if (signedIn)
                     window.storeHighScore(userData.id, paramKey, score);
@@ -1721,7 +1721,7 @@ function checkGuess(higher) {
                 }, 0.125 * 1000);
             }
         } else {
-            updateStreak(0);
+            if (!params.zen) updateStreak(0);
             loseLife();
         }
 
@@ -1753,9 +1753,7 @@ function gainLife() {
 }
 
 function loseLife() {
-    const elLives = document.getElementById("lives");
-
-    --lives;
+    if (!params.zen) --lives;
 
     if (params.playSFX) {
         if (lives > 0) {
@@ -1769,14 +1767,19 @@ function loseLife() {
         }
     }
 
-    elLives.lastChild.style.animation = "lose_life 0.3s ease-out";
-    elLives.lastChild.onanimationend = () => {
-        elLives.removeChild(elLives.lastChild);
-        if (!lives) {
-            elLives.style.display = "none";
-            document.getElementById("streak_progress").style.display = "none";
-        }
-    };
+    if (!params.zen) {
+        const elLives = document.getElementById("lives");
+
+        elLives.lastChild.style.animation = "lose_life 0.3s ease-out";
+        elLives.lastChild.onanimationend = () => {
+            elLives.removeChild(elLives.lastChild);
+            if (!lives) {
+                elLives.style.display = "none";
+                document.getElementById("streak_progress").style.display =
+                    "none";
+            }
+        };
+    }
 }
 
 function revealPopularity(
@@ -1817,7 +1820,7 @@ function revealPopularity(
         borderRightColor: "initial",
     });
 
-    if (params[mode].hidePopularity && !forceShow) {
+    if (params.hidePopularity && !forceShow) {
         onRevealComplete();
         return;
     }
@@ -1878,7 +1881,7 @@ async function getRandomTrackData() {
             (trackData.explicit && params.muteExplicit);
     } while (
         !trackData.popularity ||
-        (params[mode].soundOnly && invalidForSoundOnly)
+        (params.soundOnly && invalidForSoundOnly)
     );
 
     return trackData;
@@ -1895,8 +1898,7 @@ async function getRandomAlbumData() {
                 track.preview_url && (!track.explicit || !params.muteExplicit)
         );
 
-        invalidForSoundOnly =
-            params[mode].soundOnly && !validPreviewTracks.length;
+        invalidForSoundOnly = params.soundOnly && !validPreviewTracks.length;
     } while (!albumData.popularity || invalidForSoundOnly);
 
     if (validPreviewTracks.length) {
@@ -1928,7 +1930,7 @@ async function getRandomArtistData() {
                 (!params.muteExplicit || !track.explicit)
         );
 
-        invalidForSoundOnly = params[mode].soundOnly && !topTracks.length;
+        invalidForSoundOnly = params.soundOnly && !topTracks.length;
     } while (!artistData.popularity || invalidForSoundOnly);
 
     if (topTracks.length) {
@@ -2017,11 +2019,11 @@ function noMoreTracks() {
 }
 
 function gameOver() {
-    if (params[mode].soundOnly) {
+    if (params.soundOnly) {
         updateSide(1, true);
         updateSide(2, true);
     }
-    if (params[mode].hidePopularity) {
+    if (params.hidePopularity) {
         revealPopularity(1, true, false, true);
         revealPopularity(2, true, false, true);
     }
@@ -2135,9 +2137,9 @@ function setVolume(newVolume) {
 function getParamKey() {
     let d = {
         mode,
-        hardcore: params[mode].hardcore,
-        hidePopularity: params[mode].hidePopularity,
-        soundOnly: params[mode].soundOnly,
+        hardcore: params.hardcore,
+        hidePopularity: params.hidePopularity,
+        soundOnly: params.soundOnly,
     };
     if (params[mode].use === "search")
         d.identifier = getQueryString(params[mode].query);
@@ -2167,7 +2169,19 @@ function changeParams(newParams) {
     if (newParams.query && newParams.query.year && newParams.query.year === "-")
         newParams.query.year = "";
 
-    if (newParams.muteExplicit !== undefined) {
+    if (newParams.hardcore !== undefined) {
+        params.hardcore = newParams.hardcore;
+        delete newParams.hardcore;
+    } else if (newParams.hidePopularity !== undefined) {
+        params.hidePopularity = newParams.hidePopularity;
+        delete newParams.hidePopularity;
+    } else if (newParams.soundOnly !== undefined) {
+        params.soundOnly = newParams.soundOnly;
+        delete newParams.soundOnly;
+    } else if (newParams.zen !== undefined) {
+        params.zen = newParams.zen;
+        delete newParams.zen;
+    } else if (newParams.muteExplicit !== undefined) {
         params.muteExplicit = newParams.muteExplicit;
         delete newParams.muteExplicit;
     } else if (newParams.playSFX !== undefined) {
@@ -2298,9 +2312,14 @@ function updateParamValidity() {
 }
 
 function updateHighScore() {
-    paramKey = getParamKey();
-    document.getElementById("current_high_score").innerText =
-        "High: " + (highScores[paramKey] ?? 0);
+    if (params.zen) {
+        document.getElementById("high_score").style.visibility = "hidden";
+    } else {
+        document.getElementById("high_score").style.visibility = "visible";
+        paramKey = getParamKey();
+        document.getElementById("current_high_score").innerText =
+            "High: " + (highScores[paramKey] ?? 0);
+    }
 }
 
 function allYears() {
@@ -2385,9 +2404,10 @@ function signIn(showDialog = false) {
 function resetParams() {
     changeParams({
         ...DEFAULT_PARAMS[mode],
-        hardcore: params[mode].hardcore,
-        hidePopularity: params[mode].hidePopularity,
-        soundOnly: params[mode].soundOnly,
+        hardcore: params.hardcore,
+        hidePopularity: params.hidePopularity,
+        soundOnly: params.soundOnly,
+        zen: params.zen,
     });
 
     updateParams();
