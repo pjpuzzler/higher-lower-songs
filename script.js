@@ -1113,13 +1113,24 @@ function updateMarquees(sideNum) {
     clearTimeout(marqueeTimesoutIds[sideNum + 3]);
 
     const elTrackTitle = document.getElementById(`track_title_${sideNum}`),
-        elArtist = document.getElementById(`artist_${sideNum}`);
+        elArtist = document.getElementById(`artist_${sideNum}`),
+        trackData = sideNum === 1 ? trackData1 : trackData2,
+        explicit = trackData.explicit;
 
     elTrackTitle.style.animation = "none";
     elTrackTitle.offsetHeight;
 
     elArtist.style.animation = "none";
     elArtist.offsetHeight;
+
+    elArtist.style.marginLeft = window.matchMedia("(orientation:portrait)")
+        .matches
+        ? explicit
+            ? "0.5dvh"
+            : "0.75dvh"
+        : explicit
+        ? "1dvh"
+        : "1.5dvh";
 
     marqueeTimesoutIds[sideNum + 3] = setTimeout(() => {
         const elTrackInfo = document.getElementById(
@@ -1414,15 +1425,6 @@ function updateSide(sideNum, reveal = false) {
             }
         }
     }
-
-    elArtist.style.marginLeft = window.matchMedia("(orientation:portrait)")
-        .matches
-        ? explicit
-            ? "0.5dvh"
-            : "0.75dvh"
-        : explicit
-        ? "1dvh"
-        : "1.5dvh";
 
     updateMarquees(sideNum);
 
