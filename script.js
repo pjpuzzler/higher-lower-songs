@@ -2172,6 +2172,11 @@ function changeParams(newParams) {
     if (newParams.hardcore !== undefined) {
         params.hardcore = newParams.hardcore;
         delete newParams.hardcore;
+
+        if (params.hardcore) {
+            params.zen = false;
+            document.getElementById("zen").checked = false;
+        }
     } else if (newParams.hidePopularity !== undefined) {
         params.hidePopularity = newParams.hidePopularity;
         delete newParams.hidePopularity;
@@ -2181,6 +2186,11 @@ function changeParams(newParams) {
     } else if (newParams.zen !== undefined) {
         params.zen = newParams.zen;
         delete newParams.zen;
+
+        if (params.zen) {
+            params.hardcore = false;
+            document.getElementById("hardcore").checked = false;
+        }
     } else if (newParams.muteExplicit !== undefined) {
         params.muteExplicit = newParams.muteExplicit;
         delete newParams.muteExplicit;
