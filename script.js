@@ -1114,7 +1114,16 @@ function updateMarquees(sideNum) {
 
     const elTrackTitle = document.getElementById(`track_title_${sideNum}`),
         elArtist = document.getElementById(`artist_${sideNum}`),
-        trackData = sideNum === 1 ? trackData1 : trackData2,
+        albumData = sideNum === 1 ? albumData1 : albumData2,
+        artistData = sideNum === 1 ? artistData1 : artistData2,
+        trackData =
+            mode === "songs"
+                ? sideNum === 1
+                    ? trackData1
+                    : trackData2
+                : mode === "albums"
+                ? albumData.preview_track
+                : artistData.preview_track,
         explicit = trackData.explicit;
 
     elTrackTitle.style.animation = "none";
