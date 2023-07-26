@@ -41,6 +41,10 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
             use: "search",
             userPlaylistId: "",
             uri: "",
+            uriSearch: {
+                q: "",
+                type: "artist",
+            },
         },
         albums: {
             maxSearchResults: 500,
@@ -49,6 +53,9 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
             },
             use: "search",
             uri: "",
+            uriSearch: {
+                q: "",
+            },
         },
         artists: {
             maxSearchResults: 250,

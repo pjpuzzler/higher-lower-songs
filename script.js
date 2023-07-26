@@ -278,6 +278,11 @@ function updateParams() {
 
     document.getElementById("uri").value = params[mode].uri ?? "";
 
+    document.getElementById("uri_search").value =
+        params[mode].uriSearch?.q ?? "";
+    document.getElementById("uri_search_type").value =
+        params[mode].uriSearch?.type ?? "";
+
     const elMaxSearchResults = document.getElementById("max_search_results");
 
     elMaxSearchResults.value = params[mode].maxSearchResults;
@@ -734,7 +739,7 @@ async function loadUrls() {
                 document.getElementById("source_img_search").style.display =
                     "none";
                 elSourceImg.style.display = "initial";
-                elSourceImg.src = albumArtistPlaylistData.images[0].url;
+                elSourceImg.src = albumArtistPlaylistData.images[0]?.url ?? "";
                 document.getElementById("source_text").innerText = `${
                     albumArtistPlaylistData.name.length >= 20
                         ? albumArtistPlaylistData.name.substring(0, 19) + "..."
@@ -996,7 +1001,7 @@ async function loadUrls() {
     }
 }
 
-function getData(url, returnFirstTrack = true, type = null) {
+function getData(url, returnFirstItem = true, type = null) {
     if (type === null) type = mode;
     return new Promise((resolve, reject) => {
         $.ajax({
@@ -1006,7 +1011,7 @@ function getData(url, returnFirstTrack = true, type = null) {
                 xhr.setRequestHeader("Authorization", "Bearer " + _token);
             },
             success: (data) => {
-                if (!returnFirstTrack) return resolve(data);
+                if (!returnFirstItem) return resolve(data);
 
                 if (type === "songs") {
                     const trackData =
@@ -2265,13 +2270,40 @@ function updatePlayValidity(forceDisable = false) {
     }
 }
 
+function updateUriPlaceholders() {
+    if (mode === "artists") return;
+
+    const elUri = document.getElementById("uri");
+
+    if (mode === "albums") {
+        elUri.placeholder = "spotify:artist:0gxyHStUsqpMadRV0Di1Qt";
+        return;
+    }
+
+    const elUriSearch = document.getElementById("uri_search");
+
+    switch (params[mode].uriSearch.type) {
+        case "album":
+            elUri.placeholder = "spotify:album:5Z9iiGl2FcIfa3BMiv6OIw";
+            elUriSearch.placeholder = "Whenever You Need Somebody";
+            break;
+        case "artist":
+            elUri.placeholder = "spotify:artist:0gxyHStUsqpMadRV0Di1Qt";
+            elUriSearch.placeholder = "Rick Astley";
+            break;
+        case "playlist":
+            elUri.placeholder = "spotify:playlist:37i9dQZF1DZ06evO05tE88";
+            elUriSearch.placeholder = "This Is Rick Astley";
+            break;
+    }
+}
+
 function updateParamValidity() {
     const elUseLiked = document.getElementById("use_liked"),
         elUseTop = document.getElementById("use_top"),
         elUseLikedLabel = document.getElementById("use_liked_label"),
         elUseTopLabel = document.getElementById("use_top_label"),
-        elUseUriLabel = document.getElementById("use_uri_label"),
-        elUri = document.getElementById("uri");
+        elUseUriLabel = document.getElementById("use_uri_label");
 
     elUseLikedLabel.style.color = elUseLiked.disabled = null;
 
@@ -2286,7 +2318,8 @@ function updateParamValidity() {
     });
 
     elUseUriLabel.innerText = "Album/Artist/Playlist URI";
-    elUri.placeholder = "spotify:album:5Z9iiGl2FcIfa3BMiv6OIw";
+
+    updateUriPlaceholders();
 
     if (!signedIn) {
         elUseLikedLabel.style.color = "gray";
@@ -2305,7 +2338,6 @@ function updateParamValidity() {
 
     if (mode === "albums") {
         elUseUriLabel.innerText = "Artist URI";
-        elUri.placeholder = "spotify:artist:0gxyHStUsqpMadRV0Di1Qt";
 
         document.querySelectorAll(".hide_albums").forEach((el) => {
             el.style.display = "none";
@@ -2442,4 +2474,28 @@ function changeMode(newMode) {
     updateParamValidity();
     updatePlayValidity();
     updateHighScore();
+}
+
+async function uriSearch(clear = false) {
+    const elUri = document.getElementById("uri");
+
+    elUri.value = "";
+    elUri.oninput();
+
+    if (clear || !params[mode].uriSearch.q) return;
+
+    const elUriSearch = document.getElementById("uri_search"),
+        searchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(
+            params[mode].uriSearch.q
+        )}&type=${
+            mode === "songs" ? params[mode].uriSearch.type : "artist"
+        }&limit=1&offset=0`,
+        data = await getData(searchUrl, false),
+        item = data[Object.keys(data)[0]].items[0];
+
+    elUriSearch.value = item?.name ?? elUriSearch.value;
+    elUriSearch.oninput();
+
+    elUri.value = item?.uri ?? "";
+    elUri.oninput();
 }

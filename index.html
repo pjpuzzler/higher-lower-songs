@@ -367,9 +367,39 @@
                     <input
                         id="uri"
                         type="text"
-                        placeholder="spotify:album:5Z9iiGl2FcIfa3BMiv6OIw"
+                        placeholder="spotify:artist:0gxyHStUsqpMadRV0Di1Qt"
                         oninput="changeParams({uri: this.value.trim()})"
                     />
+                    <br />
+                    <button
+                        id="uri_search_confirm"
+                        class="param_button"
+                        onclick="uriSearch()"
+                        style="transform: scaleX(-1)"
+                    >
+                        ⤴️
+                    </button>
+                    <input
+                        id="uri_search"
+                        type="text"
+                        placeholder="Rick Astley"
+                        oninput="changeParams({uriSearch: {...params[mode].uriSearch, q: this.value}}); uriSearch(true)"
+                    />
+                    <select
+                        id="uri_search_type"
+                        class="hide_albums"
+                        onchange="changeParams({uriSearch: {...params[mode].uriSearch, type: this.value}}); updateUriPlaceholders()"
+                    >
+                        <option value="album">Album</option>
+                        <option value="artist" selected>Artist</option>
+                        <option value="playlist">Playlist</option>
+                    </select>
+                    <label
+                        id="uri_search_label"
+                        for="uri_search"
+                        title="Search for a Spotify URI"
+                        >URI Quick Search</label
+                    >
                 </div>
                 <br class="hide_albums hide_artists" />
                 <input
