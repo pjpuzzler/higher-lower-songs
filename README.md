@@ -1,4 +1,4 @@
-# [Higher Lower- Songs](https://pjpuzzler.github.io/higher-lower-songs/)
+# [Higher-Lower Songs](https://pjpuzzler.github.io/higher-lower-songs/)
 
 A version of the Higher Lower game, made specifically for Spotify  
 
