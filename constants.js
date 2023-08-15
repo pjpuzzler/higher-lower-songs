@@ -27,7 +27,7 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
     SHOW_POPULARITY_DURATION = 1,
     MARQUEE_PAUSE_DURATION = 1.75,
     SLIDE_HALVES_DURATION = 1,
-    STREAK_LENGTH = 7,
+    STREAK_LENGTH = 10,
     DEFAULT_MODE = "songs",
     DEFAULT_PARAMS = {
         songs: {
