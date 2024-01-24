@@ -386,8 +386,8 @@ function getArtistMarqueeLinearGradient(hsl, to) {
 function getQueryString(query) {
     return Object.keys(query)
         .filter((key) => query[key])
-        .map((key) => `${key}:"${query[key]}"`)
-        .join("+");
+        .map((key) => `${key}:${query[key]}`)
+        .join(" AND ");
 }
 
 function trackPlayerTimeUpdated(currentTime) {
@@ -568,7 +568,7 @@ async function loadUrls() {
         switch (params[mode].use) {
             case "user_playlist": {
                 const userPlayListData = await getData(
-                        `https://api.spotify.com/v1/playlists/${params[mode].userPlaylistId}?fields=external_urls%2Cimages%2Cname%2Ctracks(total)`,
+                        `https://api.spotify.com/v1/playlists/${params[mode].userPlaylistId}`,
                         false
                     ),
                     maxOffset = userPlayListData.tracks.total;
@@ -589,13 +589,13 @@ async function loadUrls() {
 
                 for (let offset = 0; offset < maxOffset; ++offset)
                     urlsLeft.push(
-                        `https://api.spotify.com/v1/playlists/${params[mode].userPlaylistId}/tracks?fields=items&limit=1&offset=${offset}`
+                        `https://api.spotify.com/v1/playlists/${params[mode].userPlaylistId}/tracks?limit=1&offset=${offset}`
                     );
                 break;
             }
             case "featured_playlist": {
                 const featuredPlayListData = await getData(
-                        `https://api.spotify.com/v1/playlists/${params[mode].featuredPlaylistId}?fields=external_urls%2Cimages%2Cname%2Ctracks(total)`,
+                        `https://api.spotify.com/v1/playlists/${params[mode].featuredPlaylistId}`,
                         false
                     ),
                     maxOffset = featuredPlayListData.tracks.total;
@@ -616,7 +616,7 @@ async function loadUrls() {
 
                 for (let offset = 0; offset < maxOffset; ++offset)
                     urlsLeft.push(
-                        `https://api.spotify.com/v1/playlists/${params[mode].featuredPlaylistId}/tracks?fields=items&limit=1&offset=${offset}`
+                        `https://api.spotify.com/v1/playlists/${params[mode].featuredPlaylistId}/tracks?limit=1&offset=${offset}`
                     );
                 break;
             }
@@ -695,11 +695,11 @@ async function loadUrls() {
                 } else if (albumArtistPlaylistString === "artist") {
                     try {
                         albumArtistPlaylistData = await getData(
-                            `https://api.spotify.com/v1/artists/${albumArtistPlaylistId}?fields=external_urls%2Cimages%2Cname%2Ctracks(total)`,
+                            `https://api.spotify.com/v1/artists/${albumArtistPlaylistId}`,
                             false
                         );
                         const artistAlbumData = await getData(
-                            `https://api.spotify.com/v1/artists/${albumArtistPlaylistData.id}/albums?include_groups=album&fields=total`,
+                            `https://api.spotify.com/v1/artists/${albumArtistPlaylistData.id}/albums?include_groups=album`,
                             false,
                             "albums"
                         );
@@ -718,7 +718,7 @@ async function loadUrls() {
                 } else if (albumArtistPlaylistString === "playlist") {
                     try {
                         albumArtistPlaylistData = await getData(
-                            `https://api.spotify.com/v1/playlists/${albumArtistPlaylistId}?fields=external_urls%2Cimages%2Cname%2Ctracks(total)`,
+                            `https://api.spotify.com/v1/playlists/${albumArtistPlaylistId}`,
                             false
                         );
                     } catch {
@@ -758,7 +758,7 @@ async function loadUrls() {
                         urlsLeft.push(
                             albumArtistPlaylistString === "album"
                                 ? `https://api.spotify.com/v1/albums/${albumArtistPlaylistId}/tracks?limit=1&offset=${offset}`
-                                : `https://api.spotify.com/v1/playlists/${albumArtistPlaylistId}/tracks?fields=items&limit=1&offset=${offset}`
+                                : `https://api.spotify.com/v1/playlists/${albumArtistPlaylistId}/tracks?limit=1&offset=${offset}`
                         );
                 }
                 break;
@@ -836,11 +836,11 @@ async function loadUrls() {
                 try {
                     [artistData, artistAlbumData] = await Promise.all([
                         getData(
-                            `https://api.spotify.com/v1/artists/${artistId}?fields=external_urls%2Cimages%2Cname`,
+                            `https://api.spotify.com/v1/artists/${artistId}`,
                             false
                         ),
                         getData(
-                            `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album&fields=total`,
+                            `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album`,
                             false
                         ),
                     ]);
@@ -2270,6 +2270,10 @@ function updatePlayValidity(forceDisable = false) {
     }
 }
 
+function clearUriSearch() {
+    document.getElementById("uri_search").value = "";
+}
+
 function updateUriPlaceholders() {
     if (mode === "artists") return;
 
@@ -2280,20 +2284,15 @@ function updateUriPlaceholders() {
         return;
     }
 
-    const elUriSearch = document.getElementById("uri_search");
-
     switch (params[mode].uriSearch.type) {
         case "album":
             elUri.placeholder = "spotify:album:5Z9iiGl2FcIfa3BMiv6OIw";
-            elUriSearch.placeholder = "Whenever You Need Somebody";
             break;
         case "artist":
             elUri.placeholder = "spotify:artist:0gxyHStUsqpMadRV0Di1Qt";
-            elUriSearch.placeholder = "Rick Astley";
             break;
         case "playlist":
             elUri.placeholder = "spotify:playlist:37i9dQZF1DZ06evO05tE88";
-            elUriSearch.placeholder = "This Is Rick Astley";
             break;
     }
 }
@@ -2379,10 +2378,12 @@ function allYears() {
     const elFromYear = document.getElementById("from_year"),
         elToYear = document.getElementById("to_year");
     elFromYear.max = CURR_YEAR;
-    elToYear.min = 0;
-    elFromYear.value = 0;
+    elToYear.min = 1000;
+    elFromYear.value = 1000;
     elToYear.value = CURR_YEAR;
-    changeParams({ query: { ...params[mode].query, year: `0-${CURR_YEAR}` } });
+    changeParams({
+        query: { ...params[mode].query, year: `1000-${CURR_YEAR}` },
+    });
 }
 
 function randomUserPlaylist() {

@@ -291,7 +291,7 @@
                         max="1000"
                         value="1000"
                         step="50"
-                        oninput="changeParams({maxSearchResults: this.value}); this.nextElementSibling.innerText = `Max search results (${this.value})`"
+                        oninput="changeParams({maxSearchResults: this.value}); this.nextElementSibling.innerText = `Max Search Results (${this.value})`"
                     />
                     <label
                         for="max_search_results"
@@ -303,7 +303,7 @@
                         id="from_year"
                         type="number"
                         class="hide_artists"
-                        min="0"
+                        min="1000"
                         oninput="changeParams({query: {...params[mode].query, year: `${this.value}-${document.getElementById('to_year').value}`}}); if (this.value !== '') document.getElementById('to_year').min = this.value"
                     />
                     <label class="hide_artists">-</label>
@@ -311,7 +311,7 @@
                         id="to_year"
                         type="number"
                         class="hide_artists"
-                        min="0"
+                        min="1000"
                         oninput="changeParams({query: {...params[mode].query, year: `${document.getElementById('from_year').value}-${this.value}`}}); if (this.value !== '') document.getElementById('from_year').max = this.value"
                     />
                     <label
@@ -382,13 +382,12 @@
                     <input
                         id="uri_search"
                         type="text"
-                        placeholder="Rick Astley"
                         oninput="changeParams({uriSearch: {...params[mode].uriSearch, q: this.value}}); uriSearch(true)"
                     />
                     <select
                         id="uri_search_type"
                         class="hide_albums"
-                        onchange="changeParams({uriSearch: {...params[mode].uriSearch, type: this.value}}); updateUriPlaceholders()"
+                        onchange="changeParams({uriSearch: {...params[mode].uriSearch, type: this.value}}); updateUriPlaceholders(); clearUriSearch()"
                     >
                         <option value="album">Album</option>
                         <option value="artist" selected>Artist</option>
