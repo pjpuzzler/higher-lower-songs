@@ -2451,6 +2451,7 @@ function resetParams() {
     });
 
     updateParams();
+    updateUriPlaceholders();
 }
 
 function changeMode(newMode) {
