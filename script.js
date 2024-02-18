@@ -574,7 +574,7 @@ async function loadUrls() {
                 document.getElementById("source_img_search").style.display =
                     "none";
                 elSourceImg.style.display = "initial";
-                elSourceImg.src = userPlayListData.images[0]?.url ?? "";
+                elSourceImg.src = userPlayListData.images?.[0]?.url ?? "";
                 document.getElementById("source_text").innerText = `${
                     userPlayListData.name.length >= 20
                         ? userPlayListData.name.substring(0, 19) + "..."
@@ -2225,8 +2225,7 @@ function updatePlayValidity(forceDisable = false) {
             params[mode].use === "liked" ||
             params[mode].use === "top" ||
             (params[mode].use === "search" &&
-                Object.values(params[mode].query).some((val) => val) &&
-                validYearString(params[mode].query.year)) ||
+                Object.values(params[mode].query).some((val) => val)) ||
             (params[mode].use === "uri" &&
                 (mode === "songs"
                     ? ALBUM_ARTIST_PLAYLIST_URI_REGEX
