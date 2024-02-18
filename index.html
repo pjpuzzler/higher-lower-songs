@@ -284,7 +284,7 @@
                 >
                 <br />
                 <div class="params_indent">
-                    <input
+                    <!-- <input
                         id="max_search_results"
                         type="range"
                         min="50"
@@ -298,36 +298,36 @@
                         title="How many of the top results to include"
                         >Max Search Results (1000)</label
                     >
-                    <br class="hide_artists" />
+                    <br class="hide_artists" /> -->
                     <input
                         id="from_year"
                         type="number"
-                        class="hide_artists"
+                        class="hide_songs hide_artists"
                         min="1000"
                         oninput="changeParams({query: {...params[mode].query, year: `${this.value}-${document.getElementById('to_year').value}`}}); if (this.value !== '') document.getElementById('to_year').min = this.value"
                     />
-                    <label class="hide_artists">-</label>
+                    <label class="hide_songs hide_artists">-</label>
                     <input
                         id="to_year"
                         type="number"
-                        class="hide_artists"
+                        class="hide_songs hide_artists"
                         min="1000"
                         oninput="changeParams({query: {...params[mode].query, year: `${document.getElementById('from_year').value}-${this.value}`}}); if (this.value !== '') document.getElementById('from_year').max = this.value"
                     />
                     <label
                         for="from_year"
-                        class="hide_artists"
+                        class="hide_songs hide_artists"
                         title="Items labeled in a certain year range"
                         >Year</label
                     >
-                    <button
+                    <!-- <button
                         id="year_all"
                         class="param_button hide_artists"
                         onclick="allYears();"
                     >
                         All
-                    </button>
-                    <br class="hide_albums" />
+                    </button> -->
+                    <br class="hide_songs hide_artists" />
                     <select
                         id="genre"
                         class="hide_albums"

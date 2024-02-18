@@ -283,11 +283,6 @@ function updateParams() {
     document.getElementById("uri_search_type").value =
         params[mode].uriSearch?.type ?? "";
 
-    const elMaxSearchResults = document.getElementById("max_search_results");
-
-    elMaxSearchResults.value = params[mode].maxSearchResults;
-    elMaxSearchResults.nextElementSibling.innerText = `Max Search Results (${params[mode].maxSearchResults})`;
-
     const years = params[mode].query.year?.split("-") ?? ["", ""];
 
     elFromYear.value = years[0];
@@ -387,7 +382,7 @@ function getQueryString(query) {
     return Object.keys(query)
         .filter((key) => query[key])
         .map((key) => `${key}:${query[key]}`)
-        .join(" AND ");
+        .join(" + ");
 }
 
 function trackPlayerTimeUpdated(currentTime) {
@@ -499,12 +494,11 @@ async function play() {
                 getRandomAlbumData(),
                 getRandomAlbumData(),
             ]);
-        else if (mode === "artists") {
+        else if (mode === "artists")
             [artistData1, artistData2] = await Promise.all([
                 getRandomArtistData(),
                 getRandomArtistData(),
             ]);
-        }
     } catch {
         return notEnoughResults();
     }
@@ -767,16 +761,11 @@ async function loadUrls() {
                 const queryString = encodeURIComponent(
                         getQueryString(params[mode].query)
                     ),
-                    maxOffset = (
-                        await getData(
-                            `https://api.spotify.com/v1/search?q=${queryString}&type=track&limit=1`,
-                            false
-                        )
-                    ).tracks.total,
-                    lastOffset = Math.min(
-                        maxOffset,
-                        params[mode].maxSearchResults
-                    );
+                    trackRecommendationData = await getData(
+                        `https://api.spotify.com/v1/recommendations?limit=100&seed_genres=${params[mode].query.genre}`,
+                        false
+                    ),
+                    lastOffset = trackRecommendationData.tracks.length;
 
                 document.getElementById("source_img").style.display = "none";
                 document.getElementById("source_img_search").style.display =
@@ -786,15 +775,14 @@ async function loadUrls() {
                     "https://open.spotify.com/search/" +
                     queryString +
                     "/tracks";
-                document.getElementById("source_text").innerText =
-                    JSON.stringify(params[mode].query) ===
-                    JSON.stringify(DEFAULT_PARAMS[mode].query)
-                        ? `Last Decade (${lastOffset})`
-                        : `Custom Search (${lastOffset})`;
+                document.getElementById(
+                    "source_text"
+                ).innerText = `${params[mode].query.genre} (${lastOffset})`;
 
-                for (let offset = 0; offset < lastOffset; ++offset)
+                for (let i = 0; i < trackRecommendationData.tracks.length; ++i)
                     urlsLeft.push(
-                        `https://api.spotify.com/v1/search?q=${queryString}&type=track&limit=1&offset=${offset}`
+                        `https://api.spotify.com/v1/tracks/` +
+                            trackRecommendationData.tracks[i].id
                     );
                 break;
             }
@@ -881,10 +869,7 @@ async function loadUrls() {
                             false
                         )
                     ).albums.total,
-                    lastOffset = Math.min(
-                        maxOffset,
-                        params[mode].maxSearchResults
-                    );
+                    lastOffset = maxOffset;
 
                 document.getElementById("source_img").style.display = "none";
                 document.getElementById("source_img_search").style.display =
@@ -894,11 +879,9 @@ async function loadUrls() {
                     "https://open.spotify.com/search/" +
                     queryString +
                     "/albums";
-                document.getElementById("source_text").innerText =
-                    JSON.stringify(params[mode].query) ===
-                    JSON.stringify(DEFAULT_PARAMS[mode].query)
-                        ? `Last Decade (${lastOffset})`
-                        : `Custom Search (${lastOffset})`;
+                document.getElementById(
+                    "source_text"
+                ).innerText = `${params[mode].query.year} (${lastOffset})`;
 
                 for (let offset = 0; offset < lastOffset; ++offset)
                     urlsLeft.push(
@@ -973,10 +956,7 @@ async function loadUrls() {
                             false
                         )
                     ).artists.total,
-                    lastOffset = Math.min(
-                        maxOffset,
-                        params[mode].maxSearchResults
-                    );
+                    lastOffset = Math.min(100, maxOffset);
 
                 document.getElementById("source_img").style.display = "none";
                 document.getElementById("source_img_search").style.display =
@@ -986,11 +966,9 @@ async function loadUrls() {
                     "https://open.spotify.com/search/" +
                     queryString +
                     "/artists";
-                document.getElementById("source_text").innerText =
-                    JSON.stringify(params[mode].query) ===
-                    JSON.stringify(DEFAULT_PARAMS[mode].query)
-                        ? `Last Decade (${lastOffset})`
-                        : `Custom Search (${lastOffset})`;
+                document.getElementById(
+                    "source_text"
+                ).innerText = `${params[mode].query.genre} (${lastOffset})`;
 
                 for (let offset = 0; offset < lastOffset; ++offset)
                     urlsLeft.push(
@@ -1014,6 +992,8 @@ function getData(url, returnFirstItem = true, type = null) {
                 if (!returnFirstItem) return resolve(data);
 
                 if (type === "songs") {
+                    if (params[mode].use === "search") return resolve(data);
+
                     const trackData =
                         data.tracks?.items[0] ??
                         data.items?.[0].track ??
@@ -1129,7 +1109,7 @@ function updateMarquees(sideNum) {
                 : mode === "albums"
                 ? albumData.preview_track
                 : artistData.preview_track,
-        explicit = trackData.explicit;
+        explicit = trackData && trackData.explicit;
 
     elTrackTitle.style.animation = "none";
     elTrackTitle.offsetHeight;
@@ -1244,7 +1224,7 @@ function updateSide(sideNum, reveal = false) {
         noAudio =
             !trackData?.preview_url ||
             (params.muteExplicit && trackData.explicit),
-        explicit = trackData.explicit,
+        explicit = trackData && trackData.explicit,
         elAlbumArtBtn = document.getElementById(`album_art_${sideNum}_btn`),
         elTrackPlayer = document.getElementById("track_player");
 
@@ -1891,7 +1871,9 @@ async function getRandomTrackData() {
 
     do {
         if (!urlsLeft.length) throw "out of urls";
-        trackData = await getData(getRandomUrl());
+        let randomUrl = getRandomUrl();
+        // todo
+        trackData = await getData(randomUrl);
         invalidForSoundOnly =
             !trackData.preview_url ||
             (trackData.explicit && params.muteExplicit);
@@ -2174,10 +2156,7 @@ function changeParams(newParams) {
         document.getElementById("use_user_playlist").click();
     else if (newParams.featuredPlaylistId !== undefined)
         document.getElementById("use_featured_playlist").click();
-    else if (
-        newParams.query !== undefined ||
-        newParams.maxSearchResults !== undefined
-    )
+    else if (newParams.query !== undefined)
         document.getElementById("use_search").click();
     else if (newParams.uri !== undefined)
         document.getElementById("use_uri").click();
@@ -2308,6 +2287,10 @@ function updateParamValidity() {
 
     elUseTopLabel.style.color = elUseTop.disabled = null;
 
+    document.querySelectorAll(".hide_songs").forEach((el) => {
+        el.style.display = null;
+    });
+
     document.querySelectorAll(".hide_albums").forEach((el) => {
         el.style.display = null;
     });
@@ -2335,7 +2318,11 @@ function updateParamValidity() {
             document.getElementById("use_search").click();
     }
 
-    if (mode === "albums") {
+    if (mode === "songs") {
+        document.querySelectorAll(".hide_songs").forEach((el) => {
+            el.style.display = "none";
+        });
+    } else if (mode === "albums") {
         elUseUriLabel.innerText = "Artist URI";
 
         document.querySelectorAll(".hide_albums").forEach((el) => {
@@ -2374,17 +2361,17 @@ function updateHighScore() {
     }
 }
 
-function allYears() {
-    const elFromYear = document.getElementById("from_year"),
-        elToYear = document.getElementById("to_year");
-    elFromYear.max = CURR_YEAR;
-    elToYear.min = 1000;
-    elFromYear.value = 1000;
-    elToYear.value = CURR_YEAR;
-    changeParams({
-        query: { ...params[mode].query, year: `1000-${CURR_YEAR}` },
-    });
-}
+// function allYears() {
+//     const elFromYear = document.getElementById("from_year"),
+//         elToYear = document.getElementById("to_year");
+//     elFromYear.max = CURR_YEAR;
+//     elToYear.min = 1000;
+//     elFromYear.value = 1000;
+//     elToYear.value = CURR_YEAR;
+//     changeParams({
+//         query: { ...params[mode].query, year: `1000-${CURR_YEAR}` },
+//     });
+// }
 
 function randomUserPlaylist() {
     const elUserPlaylist = document.getElementById("user_playlist");
