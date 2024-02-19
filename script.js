@@ -253,7 +253,7 @@ let params,
     highScores,
     lives,
     streak = 0,
-    fadeDirection = 0,
+    fading = false,
     score = 0,
     mode,
     marqueeTimesoutIds = [null, null, null, null, null, null],
@@ -394,41 +394,27 @@ function getQueryString(query) {
 }
 
 function trackPlayerTimeUpdated(currentTime) {
-    if (volume === 0 || fadeDirection !== 0) return;
+    if (volume === 0) return;
 
-    if (0 <= currentTime && currentTime < SAMPLE_FADE_DURATION) fadeIn();
-    else if (
+    if (
+        !fading &&
         SAMPLE_DURATION - SAMPLE_FADE_DURATION <= currentTime &&
         currentTime < SAMPLE_DURATION
     )
         fadeOut();
 }
 
-function fadeIn() {
-    const $elTrackPlayer = $("#track_player");
-
-    $elTrackPlayer[0].volume = 0;
-    fadeDirection = 1;
-
-    $elTrackPlayer.animate(
-        { volume },
-        (SAMPLE_FADE_DURATION - $elTrackPlayer[0].currentTime) * 1000,
-        () => {
-            fadeDirection = 0;
-        }
-    );
-}
-
 function fadeOut() {
-    const $elTrackPlayer = $("#track_player");
+    fading = true;
 
-    fadeDirection = -1;
+    const $elTrackPlayer = $("#track_player");
 
     $elTrackPlayer.animate(
         { volume: 0 },
         (SAMPLE_DURATION - $elTrackPlayer[0].currentTime) * 1000,
         () => {
-            fadeDirection = 0;
+            fading = false;
+            $elTrackPlayer[0].volume = volume;
         }
     );
 }
@@ -1518,7 +1504,8 @@ function clickTrack(elAlbumArtBtn, sideNum) {
 function playTrack(sideNum) {
     const $elTrackPlayer = $("#track_player");
 
-    $elTrackPlayer.stop();
+    // $elTrackPlayer.stop();
+    $elTrackPlayer[0].volume = volume;
 
     $elTrackPlayer[0].src =
         mode === "songs"
@@ -1532,8 +1519,8 @@ function playTrack(sideNum) {
             : sideNum === 1
             ? artistData1.preview_track?.preview_url
             : artistData2.preview_track?.preview_url;
+    $elTrackPlayer[0].load();
     $elTrackPlayer[0].play();
-    fadeIn();
 
     const elAlbumArtBtn = document.getElementById(`album_art_${sideNum}_btn`),
         elAlbumArtBtnOther = document.getElementById(
@@ -1910,9 +1897,7 @@ async function getRandomTrackData() {
 
     do {
         if (!urlsLeft.length) throw "out of urls";
-        let randomUrl = getRandomUrl();
-        // todo
-        trackData = await getData(randomUrl);
+        trackData = await getData(getRandomUrl());
         invalidForSoundOnly =
             !trackData.preview_url ||
             (trackData.explicit && params.muteExplicit);
