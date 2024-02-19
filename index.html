@@ -284,21 +284,23 @@
                 >
                 <br />
                 <div class="params_indent">
-                    <!-- <input
-                        id="max_search_results"
+                    <input
+                        id="obscurity"
                         type="range"
-                        min="50"
-                        max="1000"
-                        value="1000"
-                        step="50"
-                        oninput="changeParams({maxSearchResults: this.value}); this.nextElementSibling.innerText = `Max Search Results (${this.value})`"
+                        class="hide_albums hide_artists"
+                        min="0"
+                        max="3"
+                        value="0"
+                        step="1"
+                        oninput="let obs = ['low', 'medium', 'high', 'higher'][this.value]; changeParams({obscurity: obs}); this.nextElementSibling.innerText = `Obscurity (${obs[0].toUpperCase() + obs.slice(1)})`"
                     />
                     <label
-                        for="max_search_results"
-                        title="How many of the top results to include"
-                        >Max Search Results (1000)</label
+                        class="hide_albums hide_artists"
+                        for="obscurity"
+                        title="How obscure the songs should be"
+                        >Obscurity (Low)</label
                     >
-                    <br class="hide_artists" /> -->
+                    <br class="hide_albums hide_artists" />
                     <input
                         id="from_year"
                         type="number"

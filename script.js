@@ -183,7 +183,8 @@ const load = async () => {
             updateParams();
             updatePlayValidity();
         })
-        .catch(() => {
+        .catch((e) => {
+            alert(JSON.stringify(e));
             alert("Error getting spotify data");
         });
 
@@ -265,6 +266,14 @@ function setHighScores(data) {
 }
 
 function updateParams() {
+    const elObscurity = document.getElementById("obscurity");
+    elObscurity.value = ["low", "medium", "high", "higher"].indexOf(
+        params[mode].obscurity
+    );
+    elObscurity.nextElementSibling.innerText = `Obscurity (${
+        params[mode].obscurity[0].toUpperCase() +
+        params[mode].obscurity.slice(1)
+    })`;
     document.getElementById("genre").value = params[mode].query.genre ?? "";
     document.getElementById("user_playlist").value =
         params[mode].userPlaylistId ?? "";
@@ -758,11 +767,49 @@ async function loadUrls() {
                 break;
             }
             case "search": {
-                const queryString = encodeURIComponent(
+                const minPopularity =
+                        GENRE_OBSCURITY_MIN_POPULARITIES[
+                            params[mode].query.genre
+                        ][params[mode].obscurity],
+                    maxPopularity =
+                        params[mode].obscurity === "low"
+                            ? 100
+                            : params[mode].obscurity === "medium"
+                            ? Math.max(
+                                  GENRE_OBSCURITY_MIN_POPULARITIES[
+                                      params[mode].query.genre
+                                  ]["medium"] + MIN_OBSCURITY_POPULARITY_RANGE,
+                                  GENRE_OBSCURITY_MIN_POPULARITIES[
+                                      params[mode].query.genre
+                                  ]["low"]
+                              )
+                            : params[mode].obscurity === "high"
+                            ? Math.max(
+                                  GENRE_OBSCURITY_MIN_POPULARITIES[
+                                      params[mode].query.genre
+                                  ]["high"] + MIN_OBSCURITY_POPULARITY_RANGE,
+                                  GENRE_OBSCURITY_MIN_POPULARITIES[
+                                      params[mode].query.genre
+                                  ]["medium"]
+                              )
+                            : Math.max(
+                                  GENRE_OBSCURITY_MIN_POPULARITIES[
+                                      params[mode].query.genre
+                                  ]["higher"] + MIN_OBSCURITY_POPULARITY_RANGE,
+                                  GENRE_OBSCURITY_MIN_POPULARITIES[
+                                      params[mode].query.genre
+                                  ]["high"]
+                              ),
+                    queryString = encodeURIComponent(
                         getQueryString(params[mode].query)
                     ),
                     trackRecommendationData = await getData(
-                        `https://api.spotify.com/v1/recommendations?limit=100&seed_genres=${params[mode].query.genre}`,
+                        `https://api.spotify.com/v1/recommendations?limit=100&seed_genres=${
+                            params[mode].query.genre
+                        }&min_popularity=${minPopularity}&max_popularity=${Math.min(
+                            100,
+                            maxPopularity
+                        )}`,
                         false
                     ),
                     lastOffset = trackRecommendationData.tracks.length;
