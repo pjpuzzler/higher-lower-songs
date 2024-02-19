@@ -289,10 +289,10 @@
                         type="range"
                         class="hide_albums hide_artists"
                         min="0"
-                        max="3"
+                        max="2"
                         value="0"
                         step="1"
-                        oninput="let obs = ['low', 'medium', 'high', 'higher'][this.value]; changeParams({obscurity: obs}); this.nextElementSibling.innerText = `Obscurity (${obs[0].toUpperCase() + obs.slice(1)})`"
+                        oninput="let obs = ['low', 'medium', 'high'][this.value]; changeParams({obscurity: obs}); this.nextElementSibling.innerText = `Obscurity (${obs[0].toUpperCase() + obs.slice(1)})`"
                     />
                     <label
                         class="hide_albums hide_artists"

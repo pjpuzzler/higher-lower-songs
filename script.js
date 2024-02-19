@@ -184,7 +184,7 @@ const load = async () => {
             updatePlayValidity();
         })
         .catch((e) => {
-            alert(JSON.stringify(e));
+            alert(e);
             alert("Error getting spotify data");
         });
 
@@ -267,7 +267,7 @@ function setHighScores(data) {
 
 function updateParams() {
     const elObscurity = document.getElementById("obscurity");
-    elObscurity.value = ["low", "medium", "high", "higher"].indexOf(
+    elObscurity.value = ["low", "medium", "high", "all"].indexOf(
         params[mode].obscurity
     );
     elObscurity.nextElementSibling.innerText = `Obscurity (${
@@ -767,10 +767,12 @@ async function loadUrls() {
                 break;
             }
             case "search": {
-                const minPopularity =
+                const minPopularity = Math.min(
+                        100 - MIN_OBSCURITY_POPULARITY_RANGE,
                         GENRE_OBSCURITY_MIN_POPULARITIES[
                             params[mode].query.genre
-                        ][params[mode].obscurity],
+                        ][params[mode].obscurity]
+                    ),
                     maxPopularity =
                         params[mode].obscurity === "low"
                             ? 100
@@ -783,22 +785,13 @@ async function loadUrls() {
                                       params[mode].query.genre
                                   ]["low"]
                               )
-                            : params[mode].obscurity === "high"
-                            ? Math.max(
+                            : Math.max(
                                   GENRE_OBSCURITY_MIN_POPULARITIES[
                                       params[mode].query.genre
                                   ]["high"] + MIN_OBSCURITY_POPULARITY_RANGE,
                                   GENRE_OBSCURITY_MIN_POPULARITIES[
                                       params[mode].query.genre
                                   ]["medium"]
-                              )
-                            : Math.max(
-                                  GENRE_OBSCURITY_MIN_POPULARITIES[
-                                      params[mode].query.genre
-                                  ]["higher"] + MIN_OBSCURITY_POPULARITY_RANGE,
-                                  GENRE_OBSCURITY_MIN_POPULARITIES[
-                                      params[mode].query.genre
-                                  ]["high"]
                               ),
                     queryString = encodeURIComponent(
                         getQueryString(params[mode].query)
@@ -2186,9 +2179,10 @@ function getParamKey() {
         hidePopularity: params.hidePopularity,
         soundOnly: params.soundOnly,
     };
-    if (params[mode].use === "search")
+    if (params[mode].use === "search") {
+        d.obscurity = params[mode].obscurity;
         d.identifier = getQueryString(params[mode].query);
-    else if (params[mode].use === "user_playlist")
+    } else if (params[mode].use === "user_playlist")
         d.identifier = `spotify:playlist:${params[mode].userPlaylistId}`;
     else if (params[mode].use === "featured_playlist")
         d.identifier = `spotify:playlist:${params[mode].featuredPlaylistId}`;
