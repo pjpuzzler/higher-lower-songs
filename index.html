@@ -221,6 +221,10 @@
             <h6 id="user_display_name"></h6>
 
             <a id="user_action"></a>
+            <br />
+            <h4 id="sign_in_tutorial" style="display: none">
+                <i>(Spotify makes most previews signed-in only)</i>
+            </h4>
         </div>
 
         <div id="score">
@@ -285,20 +289,20 @@
                 <br />
                 <div class="params_indent">
                     <input
-                        id="popularity_range"
+                        id="min_popularity"
                         type="range"
                         class="hide_albums hide_artists"
                         min="0"
                         max="2"
                         value="2"
                         step="1"
-                        oninput="let popularityRange = ['low', 'medium', 'high'][this.value]; changeParams({popularityRange}); this.nextElementSibling.innerText = `Popularity (${popularityRange[0].toUpperCase() + popularityRange.slice(1)})`"
+                        oninput="let minPopularity = ['low', 'medium', 'high'][this.value]; changeParams({minPopularity}); this.nextElementSibling.innerText = `Min Popularity (${minPopularity[0].toUpperCase() + minPopularity.slice(1)})`"
                     />
                     <label
                         class="hide_albums hide_artists"
-                        for="popularity_range"
-                        title="How popular the songs should be"
-                        >Popularity (High)</label
+                        for="min_popularity"
+                        title="How popular the least popular songs should be"
+                        >Min Popularity (High)</label
                     >
                     <br class="hide_albums hide_artists" />
                     <input
@@ -333,7 +337,7 @@
                     <select
                         id="genre"
                         class="hide_albums"
-                        onchange="changeParams({query: {...params[mode].query, genre: this.value}})"
+                        onchange="changeParams({query: {...params[mode].query, genre: this.value}}); hideTutorial()"
                     ></select>
                     <label
                         for="genre"
@@ -344,10 +348,17 @@
                     <button
                         id="genre_random"
                         class="param_button hide_albums"
-                        onclick="randomGenre()"
+                        onclick="randomGenre(); hideTutorial()"
                     >
                         Random
                     </button>
+                    <br />
+                    <label
+                        id="genre_tutorial"
+                        class="hide_albums hide_artists"
+                        style="color: lime; display: none"
+                        >^ Pick a genre to get started!</label
+                    >
                 </div>
                 <br class="hide_artists" />
                 <input

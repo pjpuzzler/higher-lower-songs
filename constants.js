@@ -1,6 +1,6 @@
 const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
-    CLIENT_ID = "71d0339159b743b8ac3546155df71eac",
-    CLIENT_SECRET = "e1fbfb916a964e40b56ad0a847b30d95",
+    CLIENT_ID = "6308248a392e4aafb063da7529495921",
+    CLIENT_SECRET = "ebaced59940f47d0a64bd23b6dca7236",
     SCOPES = [
         "user-library-read",
         "user-library-modify",
@@ -27,14 +27,14 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
     SHOW_POPULARITY_DURATION = 1,
     MARQUEE_PAUSE_DURATION = 1.75,
     SLIDE_HALVES_DURATION = 1,
-    STREAK_LENGTH = 10,
+    STREAK_LENGTH = 7,
     MIN_POPULARITY_RANGE = 20,
     DEFAULT_MODE = "songs",
     DEFAULT_PARAMS = {
         songs: {
             featuredPlaylistId: "",
             // maxSearchResults: 1000,
-            popularityRange: "high",
+            minPopularity: "high",
             query: {
                 genre: "",
             },
@@ -48,7 +48,7 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
         },
         albums: {
             // maxSearchResults: 500,
-            popularityRange: "all",
+            minPopularity: "all",
             query: {
                 year: `${CURR_YEAR - 10}-${CURR_YEAR}`,
             },
@@ -60,7 +60,7 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
         },
         artists: {
             // maxSearchResults: 250,
-            popularityRange: "all",
+            minPopularity: "all",
             query: {
                 genre: "",
             },

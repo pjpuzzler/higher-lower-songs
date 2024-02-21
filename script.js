@@ -83,6 +83,7 @@ const load = async () => {
 
         elUserAction.innerText = "Sign out";
         elUserAction.onclick = signOut;
+        document.getElementById("sign_in_tutorial").style.display = "none";
     } else {
         setHighScores(JSON.parse(localStorage.getItem("high_scores")) ?? {});
 
@@ -91,6 +92,7 @@ const load = async () => {
         elUserAction.onclick = () => {
             signIn(true);
         };
+        document.getElementById("sign_in_tutorial").style.display = null;
     }
 
     let loadPromises = [getGenres(), getFeaturedPlaylists()];
@@ -204,6 +206,10 @@ const load = async () => {
         (!advancedParamsVisibility || advancedParamsVisibility === "hidden")
     )
         toggleAdvancedParams();
+
+    if (localStorage.getItem("show_tutorial") !== "false")
+        document.getElementById("genre_tutorial").style.display = null;
+    else document.getElementById("genre_tutorial").style.display = "none";
 };
 
 function waitForLoad() {
@@ -265,13 +271,13 @@ function setHighScores(data) {
 }
 
 function updateParams() {
-    const elPopularityRange = document.getElementById("popularity_range");
-    elPopularityRange.value = ["low", "medium", "high", "all"].indexOf(
-        params[mode].popularityRange
+    const elMinPopularity = document.getElementById("min_popularity");
+    elMinPopularity.value = ["low", "medium", "high", "all"].indexOf(
+        params[mode].minPopularity
     );
-    elPopularityRange.nextElementSibling.innerText = `Popularity (${
-        params[mode].popularityRange[0].toUpperCase() +
-        params[mode].popularityRange.slice(1)
+    elMinPopularity.nextElementSibling.innerText = `Min Popularity (${
+        params[mode].minPopularity[0].toUpperCase() +
+        params[mode].minPopularity.slice(1)
     })`;
     document.getElementById("genre").value = params[mode].query.genre ?? "";
     document.getElementById("user_playlist").value =
@@ -755,39 +761,34 @@ async function loadUrls() {
                 const minPopularity = Math.min(
                         100 - MIN_POPULARITY_RANGE,
                         GENRE_MIN_POPULARITIES[params[mode].query.genre][
-                            params[mode].popularityRange
+                            params[mode].minPopularity
                         ]
                     ),
-                    maxPopularity =
-                        params[mode].popularityRange === "high"
-                            ? 100
-                            : params[mode].popularityRange === "medium"
-                            ? Math.max(
-                                  GENRE_MIN_POPULARITIES[
-                                      params[mode].query.genre
-                                  ]["medium"] + MIN_POPULARITY_RANGE,
-                                  GENRE_MIN_POPULARITIES[
-                                      params[mode].query.genre
-                                  ]["high"]
-                              )
-                            : Math.max(
-                                  GENRE_MIN_POPULARITIES[
-                                      params[mode].query.genre
-                                  ]["low"] + MIN_POPULARITY_RANGE,
-                                  GENRE_MIN_POPULARITIES[
-                                      params[mode].query.genre
-                                  ]["medium"]
-                              ),
+                    // maxPopularity =
+                    //     params[mode].minPopularity === "high"
+                    //         ? 100
+                    //         : params[mode].minPopularity === "medium"
+                    //         ? Math.max(
+                    //               GENRE_MIN_POPULARITIES[
+                    //                   params[mode].query.genre
+                    //               ]["medium"] + MIN_POPULARITY_RANGE,
+                    //               GENRE_MIN_POPULARITIES[
+                    //                   params[mode].query.genre
+                    //               ]["high"]
+                    //           )
+                    //         : Math.max(
+                    //               GENRE_MIN_POPULARITIES[
+                    //                   params[mode].query.genre
+                    //               ]["low"] + MIN_POPULARITY_RANGE,
+                    //               GENRE_MIN_POPULARITIES[
+                    //                   params[mode].query.genre
+                    //               ]["medium"]
+                    //           ),
                     queryString = encodeURIComponent(
                         getQueryString(params[mode].query)
                     ),
                     trackRecommendationData = await getData(
-                        `https://api.spotify.com/v1/recommendations?limit=100&seed_genres=${
-                            params[mode].query.genre
-                        }&min_popularity=${minPopularity}&max_popularity=${Math.min(
-                            100,
-                            maxPopularity
-                        )}`,
+                        `https://api.spotify.com/v1/recommendations?limit=100&seed_genres=${params[mode].query.genre}&min_popularity=${minPopularity}`,
                         false
                     ),
                     lastOffset = trackRecommendationData.tracks.length;
@@ -2164,7 +2165,7 @@ function getParamKey() {
         soundOnly: params.soundOnly,
     };
     if (params[mode].use === "search") {
-        if (mode === "songs") d.popularityRange = params[mode].popularityRange;
+        if (mode === "songs") d.minPopularity = params[mode].minPopularity;
         d.identifier = getQueryString(params[mode].query);
     } else if (params[mode].use === "user_playlist")
         d.identifier = `spotify:playlist:${params[mode].userPlaylistId}`;
@@ -2316,11 +2317,11 @@ function updateParamValidity() {
     });
 
     document.querySelectorAll(".hide_albums").forEach((el) => {
-        el.style.display = null;
+        if (el.id !== "genre_tutorial") el.style.display = null;
     });
 
     document.querySelectorAll(".hide_artists").forEach((el) => {
-        el.style.display = null;
+        if (el.id !== "genre_tutorial") el.style.display = null;
     });
 
     elUseUriLabel.innerText = "Album/Artist/Playlist URI";
@@ -2346,6 +2347,8 @@ function updateParamValidity() {
         document.querySelectorAll(".hide_songs").forEach((el) => {
             el.style.display = "none";
         });
+        if (localStorage.getItem("show_tutorial") !== "false")
+            document.getElementById("genre_tutorial").style.display = null;
     } else if (mode === "albums") {
         elUseUriLabel.innerText = "Artist URI";
 
@@ -2428,6 +2431,11 @@ function randomGenre() {
         Math.random() * (elGenre.length - 1) + 1
     );
     changeParams({ query: { ...params[mode].query, genre: elGenre.value } });
+}
+
+function hideTutorial() {
+    document.getElementById("genre_tutorial").style.display = "none";
+    localStorage.setItem("show_tutorial", "false");
 }
 
 function toggleAdvancedParams() {
