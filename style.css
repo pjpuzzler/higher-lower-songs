@@ -119,6 +119,7 @@ label {
 
 .valid_play_btn {
     opacity: 1 !important;
+    cursor: pointer;
 }
 
 .valid_play_btn:hover {
@@ -247,6 +248,11 @@ label {
     margin-top: 5.25dvh;
     margin-left: 2.1dvh;
     display: flex;
+    cursor: pointer;
+}
+
+.like_btn:hover {
+    transform: scale(1.05);
 }
 
 .liked_svg,
@@ -325,6 +331,7 @@ label {
 .guess_btn {
     color: #b3b3b3;
     font-size: 6dvh;
+    cursor: pointer;
 }
 
 .guess_btn:hover {
@@ -457,8 +464,13 @@ label {
     font-size: 5dvmin;
 }
 
+#modes label:hover {
+    color: #fff;
+}
+
 #modes input[type="radio"]:checked+label {
     color: #fff;
+    cursor: default;
 }
 
 #user_info {
@@ -499,6 +511,7 @@ label {
     color: #fff;
     right: calc(env(safe-area-inset-right) + 2dvh);
     top: 8dvh;
+    cursor: pointer;
 }
 
 #sign_in_tutorial {
@@ -609,6 +622,7 @@ label {
     display: flex;
     justify-content: center;
     align-items: center;
+    cursor: pointer;
 }
 
 #mute_img:active {
@@ -742,9 +756,9 @@ label {
     visibility: hidden;
 }
 
-#params input,
-select {
+#params :is(label, select, button, input:not([type="text"]):not([type="range"])) {
     margin: 2px 0;
+    cursor: pointer;
 }
 
 #use_featured_playlist_label {

@@ -478,6 +478,7 @@ async function play() {
         document.getElementById("params").style.display =
         document.getElementById("modes").style.display =
         document.getElementById("user_action").style.display =
+        document.getElementById("sign_in_tutorial").style.display =
             "none";
 
     urlsLeft = [];
@@ -2089,6 +2090,8 @@ function restart() {
         document.getElementById("params").style.display =
         document.getElementById("modes").style.display =
             null;
+    if (!signedIn)
+        document.getElementById("sign_in_tutorial").style.display = null;
 }
 
 function toggleMute() {
