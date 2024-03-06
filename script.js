@@ -1897,16 +1897,21 @@ function revealPopularity(
 async function getRandomTrackData() {
     let trackData, invalidForSoundOnly;
 
-    do {
+    while (true) {
         if (!urlsLeft.length) throw "out of urls";
-        trackData = await getData(getRandomUrl());
+        try {
+            trackData = await getData(getRandomUrl());
+        } catch {
+            continue;
+        }
+
         invalidForSoundOnly =
             !trackData.preview_url ||
             (trackData.explicit && params.muteExplicit);
-    } while (
-        !trackData.popularity ||
-        (params.soundOnly && invalidForSoundOnly)
-    );
+
+        if (trackData.popularity && (!params.soundOnly || !invalidForSoundOnly))
+            break;
+    }
 
     return trackData;
 }
