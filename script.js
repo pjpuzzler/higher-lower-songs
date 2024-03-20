@@ -2283,6 +2283,7 @@ function updatePlayValidity(forceDisable = false) {
 }
 
 function clearUriSearch() {
+    document.getElementById("uri").value = "";
     document.getElementById("uri_search").value = "";
 }
 
