@@ -207,9 +207,13 @@ const load = async () => {
     )
         toggleAdvancedParams();
 
-    if (localStorage.getItem("show_tutorial") !== "false")
+    if (localStorage.getItem("show_tutorial") !== "false") {
         document.getElementById("genre_tutorial").style.display = null;
-    else document.getElementById("genre_tutorial").style.display = "none";
+        document.getElementById("artist_tutorial").style.display = null;
+    } else {
+        document.getElementById("genre_tutorial").style.display = "none";
+        document.getElementById("artist_tutorial").style.display = "none";
+    }
 };
 
 function waitForLoad() {
@@ -2326,11 +2330,13 @@ function updateParamValidity() {
     });
 
     document.querySelectorAll(".hide_albums").forEach((el) => {
-        if (el.id !== "genre_tutorial") el.style.display = null;
+        if (el.id !== "genre_tutorial" && el.id !== "artist_tutorial")
+            el.style.display = null;
     });
 
     document.querySelectorAll(".hide_artists").forEach((el) => {
-        if (el.id !== "genre_tutorial") el.style.display = null;
+        if (el.id !== "genre_tutorial" && el.id !== "artist_tutorial")
+            el.style.display = null;
     });
 
     elUseUriLabel.innerText = "Album/Artist/Playlist URI";
@@ -2356,8 +2362,10 @@ function updateParamValidity() {
         document.querySelectorAll(".hide_songs").forEach((el) => {
             el.style.display = "none";
         });
-        if (localStorage.getItem("show_tutorial") !== "false")
+        if (localStorage.getItem("show_tutorial") !== "false") {
             document.getElementById("genre_tutorial").style.display = null;
+            document.getElementById("artist_tutorial").style.display = null;
+        }
     } else if (mode === "albums") {
         elUseUriLabel.innerText = "Artist URI";
 
@@ -2444,6 +2452,7 @@ function randomGenre() {
 
 function hideTutorial() {
     document.getElementById("genre_tutorial").style.display = "none";
+    document.getElementById("artist_tutorial").style.display = "none";
     localStorage.setItem("show_tutorial", "false");
 }
 
