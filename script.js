@@ -207,13 +207,13 @@ const load = async () => {
     )
         toggleAdvancedParams();
 
-    if (localStorage.getItem("show_tutorial") !== "false") {
+    if (localStorage.getItem("show_genre_tutorial") !== "false")
         document.getElementById("genre_tutorial").style.display = null;
+    else document.getElementById("genre_tutorial").style.display = "none";
+
+    if (localStorage.getItem("show_artist_tutorial") !== "false")
         document.getElementById("artist_tutorial").style.display = null;
-    } else {
-        document.getElementById("genre_tutorial").style.display = "none";
-        document.getElementById("artist_tutorial").style.display = "none";
-    }
+    else document.getElementById("artist_tutorial").style.display = "none";
 };
 
 function waitForLoad() {
@@ -2362,10 +2362,10 @@ function updateParamValidity() {
         document.querySelectorAll(".hide_songs").forEach((el) => {
             el.style.display = "none";
         });
-        if (localStorage.getItem("show_tutorial") !== "false") {
+        if (localStorage.getItem("show_genre_tutorial") !== "false")
             document.getElementById("genre_tutorial").style.display = null;
+        if (localStorage.getItem("show_artist_tutorial") !== "false")
             document.getElementById("artist_tutorial").style.display = null;
-        }
     } else if (mode === "albums") {
         elUseUriLabel.innerText = "Artist URI";
 
@@ -2450,10 +2450,14 @@ function randomGenre() {
     changeParams({ query: { ...params[mode].query, genre: elGenre.value } });
 }
 
-function hideTutorial() {
+function hideGenreTutorial() {
     document.getElementById("genre_tutorial").style.display = "none";
+    localStorage.setItem("show_genre_tutorial", "false");
+}
+
+function hideArtistTutorial() {
     document.getElementById("artist_tutorial").style.display = "none";
-    localStorage.setItem("show_tutorial", "false");
+    localStorage.setItem("show_artist_tutorial", "false");
 }
 
 function toggleAdvancedParams() {
@@ -2524,11 +2528,10 @@ async function uriSearch(clear = false) {
     if (clear || !params[mode].uriSearch.q) return;
 
     const elUriSearch = document.getElementById("uri_search"),
+        type = mode === "songs" ? params[mode].uriSearch.type : "artist",
         searchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(
             params[mode].uriSearch.q
-        )}&type=${
-            mode === "songs" ? params[mode].uriSearch.type : "artist"
-        }&limit=1&offset=0`,
+        )}&type=${type}&limit=1&offset=0`,
         data = await getData(searchUrl, false),
         item = data[Object.keys(data)[0]].items[0];
 
@@ -2537,4 +2540,6 @@ async function uriSearch(clear = false) {
 
     elUri.value = item?.uri ?? "";
     elUri.oninput();
+
+    if (type === "artist" && elUri.value) hideArtistTutorial();
 }

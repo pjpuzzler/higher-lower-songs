@@ -337,7 +337,7 @@
                     <select
                         id="genre"
                         class="hide_albums"
-                        onchange="changeParams({query: {...params[mode].query, genre: this.value}}); hideTutorial()"
+                        onchange="changeParams({query: {...params[mode].query, genre: this.value}}); hideGenreTutorial()"
                     ></select>
                     <label
                         for="genre"
@@ -348,7 +348,7 @@
                     <button
                         id="genre_random"
                         class="param_button hide_albums"
-                        onclick="randomGenre(); hideTutorial()"
+                        onclick="randomGenre(); hideGenreTutorial()"
                     >
                         Random
                     </button>
@@ -396,7 +396,7 @@
                     <button
                         id="uri_search_confirm"
                         class="param_button"
-                        onclick="uriSearch(); hideTutorial()"
+                        onclick="uriSearch()"
                         style="transform: scaleX(-1)"
                     >
                         ⤴️
