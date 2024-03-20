@@ -34,7 +34,7 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
         songs: {
             featuredPlaylistId: "",
             // maxSearchResults: 1000,
-            minPopularity: "high",
+            minPopularity: "medium",
             query: {
                 genre: "",
             },
