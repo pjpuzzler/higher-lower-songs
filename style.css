@@ -425,6 +425,7 @@ label {
     height: 15dvh;
     width: 15dvh;
     fill: #fff;
+    cursor: pointer;
 }
 
 #replay:hover {
