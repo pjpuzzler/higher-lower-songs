@@ -383,15 +383,6 @@
                         placeholder="spotify:artist:0gxyHStUsqpMadRV0Di1Qt"
                         oninput="changeParams({uri: this.value.trim()})"
                     />
-                    <select
-                        id="uri_search_type"
-                        class="hide_albums"
-                        onchange="changeParams({uriSearch: {...params[mode].uriSearch, type: this.value}}); updateUriPlaceholders(); clearUriSearch()"
-                    >
-                        <option value="album">Album</option>
-                        <option value="artist" selected>Artist</option>
-                        <option value="playlist">Playlist</option>
-                    </select>
                     <br />
                     <button
                         id="uri_search_confirm"
@@ -406,6 +397,15 @@
                         type="text"
                         oninput="changeParams({uriSearch: {...params[mode].uriSearch, q: this.value}}); uriSearch(true)"
                     />
+                    <select
+                        id="uri_search_type"
+                        class="hide_albums"
+                        onchange="changeParams({uriSearch: {...params[mode].uriSearch, type: this.value}}); updateUriPlaceholders(); clearUriSearch()"
+                    >
+                        <option value="album">Album</option>
+                        <option value="artist" selected>Artist</option>
+                        <option value="playlist">Playlist</option>
+                    </select>
                     <label
                         id="uri_search_label"
                         for="uri_search"
