@@ -1755,7 +1755,7 @@ function checkGuess(higher) {
 
         if (!lives) gameOver();
         else if (results[1].status === "rejected")
-            setTimeout(noMoreTracks, 0.25 * 1000);
+            setTimeout(noMoreItems, 0.25 * 1000);
         else nextRound();
     });
 }
@@ -2045,8 +2045,8 @@ function notEnoughResults() {
     restart();
 }
 
-function noMoreTracks() {
-    alert("No more tracks");
+function noMoreItems() {
+    alert("No more items");
 
     showRestart();
 }
