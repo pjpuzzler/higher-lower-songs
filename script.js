@@ -2527,11 +2527,13 @@ async function uriSearch(clear = false) {
 
     if (clear || !params[mode].uriSearch.q) return;
 
+    console.log(params[mode].uriSearch.q);
+
     const elUriSearch = document.getElementById("uri_search"),
         type = mode === "songs" ? params[mode].uriSearch.type : "artist",
         searchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(
             params[mode].uriSearch.q
-        )}&type=${type}&limit=1&offset=0`,
+        )}&type=${type}&offset=0`,
         data = await getData(searchUrl, false),
         item = data[Object.keys(data)[0]].items[0];
 
