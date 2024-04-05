@@ -521,7 +521,7 @@ async function play() {
         ? "none"
         : "flex";
 
-    lives = params.hardcore ? 1 : 3;
+    lives = params.hardcore ? 1 : NUM_LIVES;
     streak = 0;
     const lifeClassStr = params.hardcore ? "life hardcore" : "life";
     document.getElementById("lives").innerHTML =
@@ -1638,10 +1638,11 @@ function like(elLikeBtn, sideNum) {
 }
 
 function updateStreak(newValue) {
-    const $elStreakBar = $("#streak_bar");
+    const $elStreakBar = $("#streak_bar"),
+        streakLength = STREAK_LENGTH + (lives - NUM_LIVES);
 
-    $({ streak: (streak * 100) / STREAK_LENGTH }).animate(
-        { streak: (newValue * 100) / STREAK_LENGTH },
+    $({ streak: (streak * 100) / streakLength }).animate(
+        { streak: (newValue * 100) / streakLength },
         {
             duration: STREAK_ANIMATION_DURATION * 1000,
             easing: "swing",
@@ -1656,7 +1657,7 @@ function updateStreak(newValue) {
             },
             complete: () => {
                 streak = newValue;
-                if (streak == STREAK_LENGTH) gainLife();
+                if (streak == streakLength) gainLife();
             },
         }
     );
