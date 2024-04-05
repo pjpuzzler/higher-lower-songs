@@ -534,6 +534,14 @@
             >
             <br />
             <input
+                id="zen"
+                type="checkbox"
+                oninput="changeParams({zen: this.checked})"
+            />
+            <label for="zen" title="Unlimited lives, no score">Zen</label>
+            <br />
+            <br />
+            <input
                 id="hide_popularity"
                 type="checkbox"
                 oninput="changeParams({hidePopularity: this.checked})"
@@ -552,13 +560,6 @@
                 title="No song, album, or artist name and no art"
                 >Sound Only</label
             >
-            <br />
-            <input
-                id="zen"
-                type="checkbox"
-                oninput="changeParams({zen: this.checked})"
-            />
-            <label for="zen" title="Unlimited lives, no score">Zen</label>
             <br />
             <br />
             <input
