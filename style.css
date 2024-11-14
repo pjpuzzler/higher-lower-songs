@@ -113,6 +113,11 @@ select {
     max-width: 25dvh;
 }
 
+select[multiple] option:checked {
+    background-color: blue; /* You can adjust the color */
+    color: white;
+}
+
 label {
     color: #fff;
 }
@@ -141,6 +146,12 @@ label {
     width: 50vw;
     height: 100dvh;
     will-change: transform;
+}
+
+.slide_half {
+    will-change: transform;
+    /* backface-visibility: hidden;
+    perspective: 1000; */
 }
 
 .side_details {
@@ -753,6 +764,45 @@ label {
     visibility: hidden;
 }
 
+#checkbox_container {
+    position: fixed;
+    bottom: 20px; /* Distance from the bottom */
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: space-between;
+    width: 80%; /* Adjust width as needed */
+    max-width: 1000px; /* Max width for the container */
+}
+
+.checkbox_group {
+    display: flex;
+    flex-direction: column;
+    justify-content:flex-end;
+    align-items: center;
+}
+
+.checkbox_group.left {
+    /* align-items: flex-start; */
+    width: 30%; /* Adjust width for the left group */
+}
+
+.checkbox_group.center {
+    align-items: center;
+    width: 30%; /* Adjust width for the center group */
+}
+
+.checkbox_group.right {
+    /* align-items: flex-end; */
+    width: 30%; /* Adjust width for the right group */
+}
+
+/* Optional: Adjust spacing between the checkboxes */
+.checkbox_group input {
+    margin: 5px 0;
+}
+
+
 #reset_params {
     visibility: hidden;
 }
@@ -1096,33 +1146,33 @@ label {
 
 @keyframes slide_left {
     to {
-        transform: translateX(-100%);
+        transform: translate3d(-100%, 0, 0);
     }
 }
 
 @keyframes slide_right_left {
     from {
-        transform: translateX(100%);
+        transform: translate3d(100%, 0, 0);
     }
 
     to {
-        transform: translateX(0);
+        transform: translate3d(0, 0, 0);
     }
 }
 
 @keyframes slide_up {
     to {
-        transform: translateY(-100%);
+        transform: translate3d(0, -100%, 0);
     }
 }
 
 @keyframes slide_down_up {
     from {
-        transform: translateY(100%);
+        transform: translate3d(0, 100%, 0);
     }
 
     to {
-        transform: translateY(0);
+        transform: translate3d(0, 0, 0);
     }
 }
 

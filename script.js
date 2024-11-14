@@ -87,10 +87,15 @@ const load = async () => {
     } else {
         setHighScores(JSON.parse(localStorage.getItem("high_scores")) ?? {});
 
-        elUserAction.innerText = "Sign in";
+        elUserAction.innerText = "Sign in with Spotify";
         elUserAction.style.top = "4dvh";
         elUserAction.onclick = () => {
-            signIn(true);
+            if (
+                confirm(
+                    "For full functionality we require to view your Spotify username, public library, favorite songs, and modify your likes.\n\nYour likes will only ever be changed by using the heart-shaped buttons ingame.\n\nMake sure you are OK with this and read the following permissions list carefully before accepting."
+                )
+            )
+                signIn(true);
         };
         document.getElementById("sign_in_tutorial").style.display = null;
     }
@@ -100,20 +105,38 @@ const load = async () => {
 
     Promise.all(loadPromises)
         .then((values) => {
-            const elGenre = document.getElementById("genre");
-
-            elGenre.innerHTML = "<option selected></option>";
-
-            if (!values[0].genres.length)
-                document.getElementById("genre_random").disabled = true;
-            else {
-                for (const genre of values[0].genres) {
-                    if (genre) elGenre.add(new Option(genre, genre));
+            const popularGenres = [];
+            const otherGenres = [];
+            for (const genre of values[0].genres) {
+                if (!(genre in GENRE_DIFFICULTY_POPULARITIES)) {
+                    console.log(`New Genre: ${genre}`);
+                    continue;
                 }
-
-                if (!values[0].genres.includes(params[mode].query.genre))
-                    params[mode].query.genre = DEFAULT_PARAMS[mode].query.genre;
+                const popularity = GENRE_DIFFICULTY_POPULARITIES[genre].high;
+                if (popularity >= POPULAR_GENRE_MIN_POPULARITY)
+                    popularGenres.push({ genre, popularity });
+                else otherGenres.push(genre);
             }
+
+            popularGenres.sort((a, b) => b.popularity - a.popularity);
+
+            const elGenres = document.getElementById("genres");
+            // elGenres.innerHTML = "<option selected>Select Genres</option>";
+            popularGenres.forEach(({ genre }) =>
+                elGenres.add(new Option(genre, genre))
+            );
+            const separator = document.createElement("optgroup");
+            separator.label = "---------";
+            separator.disabled = true; // Make it unclickable
+            elGenres.appendChild(separator);
+            otherGenres.forEach((genre) =>
+                elGenres.add(new Option(genre, genre))
+            );
+
+            if (mode !== "albums")
+                params[mode].query.genres = params[mode].query.genres.filter(
+                    (genre) => values[0].genres.includes(genre)
+                );
 
             document.getElementById("use_featured_playlist_label").innerText =
                 values[1].message;
@@ -185,7 +208,8 @@ const load = async () => {
             updateParams();
             updatePlayValidity();
         })
-        .catch(() => {
+        .catch((e) => {
+            alert(JSON.stringify(e));
             alert("Error getting spotify data");
         });
 
@@ -207,7 +231,10 @@ const load = async () => {
     )
         toggleAdvancedParams();
 
-    if (localStorage.getItem("show_genre_tutorial") !== "false")
+    if (
+        mode === "songs" &&
+        localStorage.getItem("show_genre_tutorial") !== "false"
+    )
         document.getElementById("genre_tutorial").style.display = null;
     else document.getElementById("genre_tutorial").style.display = "none";
 
@@ -230,7 +257,8 @@ if (!_token) {
         url: "https://accounts.spotify.com/api/token",
         headers: {
             Authorization:
-                "Basic " + window.btoa(CLIENT_ID + ":" + CLIENT_SECRET),
+                "Basic " +
+                window.btoa(CLIENT_ID + ":e5fd37f722904b398e3806ac94d0fe02"),
         },
         data: "grant_type=client_credentials",
         success: (data) => {
@@ -275,15 +303,23 @@ function setHighScores(data) {
 }
 
 function updateParams() {
-    const elMinPopularity = document.getElementById("min_popularity");
-    elMinPopularity.value = ["low", "medium", "high", "all"].indexOf(
-        params[mode].minPopularity
-    );
-    elMinPopularity.nextElementSibling.innerText = `Min Popularity (${
-        params[mode].minPopularity[0].toUpperCase() +
-        params[mode].minPopularity.slice(1)
-    })`;
-    document.getElementById("genre").value = params[mode].query.genre ?? "";
+    if (params[mode].difficulty != null) {
+        const elDifficulty = document.getElementById("difficulty");
+        elDifficulty.value = ["low", "medium", "high"].indexOf(
+            params[mode].difficulty
+        );
+        elDifficulty.nextElementSibling.innerText = `Allow Unpopular Songs (${
+            params[mode].difficulty[0].toUpperCase() +
+            params[mode].difficulty.slice(1)
+        })`;
+    }
+    if (mode !== "albums")
+        Array.from(document.getElementById("genres").options).forEach(
+            (option) =>
+                (option.selected = params[mode].query.genres.includes(
+                    option.value
+                ))
+        );
     document.getElementById("user_playlist").value =
         params[mode].userPlaylistId ?? "";
     document.getElementById("featured_playlist").value =
@@ -301,7 +337,7 @@ function updateParams() {
     document.getElementById("uri_search_type").value =
         params[mode].uriSearch?.type ?? "";
 
-    const years = params[mode].query.year?.split("-") ?? ["", ""];
+    const years = params[mode].query.years?.split("-") ?? ["", ""];
 
     elFromYear.value = years[0];
     elToYear.value = years[1] ?? "";
@@ -397,10 +433,9 @@ function getArtistMarqueeLinearGradient(hsl, to) {
 }
 
 function getQueryString(query) {
-    return Object.keys(query)
-        .filter((key) => query[key])
-        .map((key) => `${key}:${query[key]}`)
-        .join(" + ");
+    if (mode === "songs") return query.genres.join(" ");
+    if (mode === "albums") return `year:${query.years}`;
+    if (mode === "artists") return `genre:${query.genres[0]}`;
 }
 
 function trackPlayerTimeUpdated(currentTime) {
@@ -456,7 +491,7 @@ function getUserPlaylists() {
 function getFeaturedPlaylists() {
     return Promise.resolve(
         $.ajax({
-            url: "https://api.spotify.com/v1/browse/featured-playlists?locale=en&limit=50",
+            url: "https://api.spotify.com/v1/browse/featured-playlists?locale=en_US&limit=50",
             type: "GET",
             beforeSend: (xhr) => {
                 xhr.setRequestHeader("Authorization", "Bearer " + _token);
@@ -567,7 +602,7 @@ async function loadUrls() {
         switch (params[mode].use) {
             case "user_playlist": {
                 const userPlayListData = await getData(
-                        `https://api.spotify.com/v1/playlists/${params[mode].userPlaylistId}`,
+                        `https://api.spotify.com/v1/playlists/${params[mode].userPlaylistId}?market=US`,
                         false
                     ),
                     maxOffset = userPlayListData.tracks.total;
@@ -586,15 +621,15 @@ async function loadUrls() {
                         : userPlayListData.name
                 } (${maxOffset})`;
 
-                for (let offset = 0; offset < maxOffset; ++offset)
+                for (let offset = 0; offset < maxOffset; offset++)
                     urlsLeft.push(
-                        `https://api.spotify.com/v1/playlists/${params[mode].userPlaylistId}/tracks?limit=1&offset=${offset}`
+                        `https://api.spotify.com/v1/playlists/${params[mode].userPlaylistId}/tracks?market=US&limit=1&offset=${offset}`
                     );
                 break;
             }
             case "featured_playlist": {
                 const featuredPlayListData = await getData(
-                        `https://api.spotify.com/v1/playlists/${params[mode].featuredPlaylistId}`,
+                        `https://api.spotify.com/v1/playlists/${params[mode].featuredPlaylistId}?market=US`,
                         false
                     ),
                     maxOffset = featuredPlayListData.tracks.total;
@@ -613,16 +648,16 @@ async function loadUrls() {
                         : featuredPlayListData.name
                 } (${maxOffset})`;
 
-                for (let offset = 0; offset < maxOffset; ++offset)
+                for (let offset = 0; offset < maxOffset; offset++)
                     urlsLeft.push(
-                        `https://api.spotify.com/v1/playlists/${params[mode].featuredPlaylistId}/tracks?limit=1&offset=${offset}`
+                        `https://api.spotify.com/v1/playlists/${params[mode].featuredPlaylistId}/tracks?market=US&limit=1&offset=${offset}`
                     );
                 break;
             }
             case "liked": {
                 const maxOffset = (
                     await getData(
-                        `https://api.spotify.com/v1/me/tracks?limit=1`,
+                        `https://api.spotify.com/v1/me/tracks?market=US&limit=1`,
                         false
                     )
                 ).total;
@@ -640,9 +675,9 @@ async function loadUrls() {
                     "source_text"
                 ).innerText = `Liked (${maxOffset})`;
 
-                for (let offset = 0; offset < maxOffset; ++offset)
+                for (let offset = 0; offset < maxOffset; offset++)
                     urlsLeft.push(
-                        `https://api.spotify.com/v1/me/tracks?limit=1&offset=${offset}`
+                        `https://api.spotify.com/v1/me/tracks?market=US&limit=1&offset=${offset}`
                     );
                 break;
             }
@@ -667,7 +702,7 @@ async function loadUrls() {
                     "source_text"
                 ).innerText = `Top (${maxOffset})`;
 
-                for (let offset = 0; offset < maxOffset; ++offset)
+                for (let offset = 0; offset < maxOffset; offset++)
                     urlsLeft.push(
                         `https://api.spotify.com/v1/me/top/tracks?limit=1&offset=${offset}`
                     );
@@ -683,7 +718,7 @@ async function loadUrls() {
                 if (albumArtistPlaylistString === "album") {
                     try {
                         albumArtistPlaylistData = await getData(
-                            `https://api.spotify.com/v1/albums/${albumArtistPlaylistId}`,
+                            `https://api.spotify.com/v1/albums/${albumArtistPlaylistId}?market=US`,
                             false
                         );
                     } catch {
@@ -698,7 +733,7 @@ async function loadUrls() {
                             false
                         );
                         const artistAlbumData = await getData(
-                            `https://api.spotify.com/v1/artists/${albumArtistPlaylistData.id}/albums?include_groups=album`,
+                            `https://api.spotify.com/v1/artists/${albumArtistPlaylistData.id}/albums?include_groups=album&market=US`,
                             false,
                             "albums"
                         );
@@ -717,7 +752,7 @@ async function loadUrls() {
                 } else if (albumArtistPlaylistString === "playlist") {
                     try {
                         albumArtistPlaylistData = await getData(
-                            `https://api.spotify.com/v1/playlists/${albumArtistPlaylistId}`,
+                            `https://api.spotify.com/v1/playlists/${albumArtistPlaylistId}?market=US`,
                             false
                         );
                     } catch {
@@ -746,74 +781,161 @@ async function loadUrls() {
                 } (${maxOffset})`;
 
                 if (albumArtistPlaylistString === "artist") {
-                    for (let i = 0; i < albumIds.length; ++i) {
-                        for (let offset = 0; offset < albumTotals[i]; ++offset)
+                    for (let i = 0; i < albumIds.length; i++) {
+                        for (let offset = 0; offset < albumTotals[i]; offset++)
                             urlsLeft.push(
-                                `https://api.spotify.com/v1/albums/${albumIds[i]}/tracks?limit=1&offset=${offset}`
+                                `https://api.spotify.com/v1/albums/${albumIds[i]}/tracks?market=US&limit=1&offset=${offset}`
                             );
                     }
                 } else {
-                    for (let offset = 0; offset < maxOffset; ++offset)
+                    for (let offset = 0; offset < maxOffset; offset++)
                         urlsLeft.push(
                             albumArtistPlaylistString === "album"
-                                ? `https://api.spotify.com/v1/albums/${albumArtistPlaylistId}/tracks?limit=1&offset=${offset}`
-                                : `https://api.spotify.com/v1/playlists/${albumArtistPlaylistId}/tracks?limit=1&offset=${offset}`
+                                ? `https://api.spotify.com/v1/albums/${albumArtistPlaylistId}/tracks?market=US&limit=1&offset=${offset}`
+                                : `https://api.spotify.com/v1/playlists/${albumArtistPlaylistId}/tracks?market=US&limit=1&offset=${offset}`
                         );
                 }
                 break;
             }
             case "search": {
-                const minPopularity = Math.min(
+                const averageGenrePopularity =
+                        params[mode].query.genres.reduce((sum, genre) => {
+                            const genrePopularity =
+                                GENRE_DIFFICULTY_POPULARITIES[genre][
+                                    params[mode].difficulty
+                                ];
+                            return sum + genrePopularity;
+                        }, 0) / params[mode].query.genres.length,
+                    minPopularity = Math.min(
                         100 - MIN_POPULARITY_RANGE,
-                        GENRE_MIN_POPULARITIES[params[mode].query.genre][
-                            params[mode].minPopularity
-                        ]
+                        Math.ceil(averageGenrePopularity)
                     ),
                     // maxPopularity =
-                    //     params[mode].minPopularity === "high"
+                    //     params[mode].difficulty === "high"
                     //         ? 100
-                    //         : params[mode].minPopularity === "medium"
+                    //         : params[mode].difficulty === "medium"
                     //         ? Math.max(
-                    //               GENRE_MIN_POPULARITIES[
+                    //               GENRE_DIFFICULTY_POPULARITIES[
                     //                   params[mode].query.genre
                     //               ]["medium"] + MIN_POPULARITY_RANGE,
-                    //               GENRE_MIN_POPULARITIES[
+                    //               GENRE_DIFFICULTY_POPULARITIES[
                     //                   params[mode].query.genre
                     //               ]["high"]
                     //           )
                     //         : Math.max(
-                    //               GENRE_MIN_POPULARITIES[
+                    //               GENRE_DIFFICULTY_POPULARITIES[
                     //                   params[mode].query.genre
                     //               ]["low"] + MIN_POPULARITY_RANGE,
-                    //               GENRE_MIN_POPULARITIES[
+                    //               GENRE_DIFFICULTY_POPULARITIES[
                     //                   params[mode].query.genre
                     //               ]["medium"]
                     //           ),
                     queryString = encodeURIComponent(
                         getQueryString(params[mode].query)
-                    ),
-                    trackRecommendationData = await getData(
-                        `https://api.spotify.com/v1/recommendations?limit=100&seed_genres=${params[mode].query.genre}&min_popularity=${minPopularity}`,
+                    );
+
+                const initialRecommendations = await Promise.all(
+                    params[mode].query.genres.map((genre) =>
+                        getData(
+                            `https://api.spotify.com/v1/recommendations?limit=100&market=US&seed_genres=${genre}&min_popularity=${Math.min(
+                                100 - MIN_POPULARITY_RANGE,
+                                GENRE_DIFFICULTY_POPULARITIES[genre][
+                                    params[mode].difficulty
+                                ]
+                            )}`,
+                            false
+                        )
+                    )
+                );
+
+                const seedTracks = [];
+                initialRecommendations.forEach((recommendation) => {
+                    const tracks = recommendation.tracks;
+                    const genreTracks = [];
+                    const usedIndices = new Set();
+
+                    while (
+                        genreTracks.length <
+                            (params[mode].query.genres.length > 1 ? 1 : 3) &&
+                        usedIndices.size < tracks.length
+                    ) {
+                        const randomIndex = Math.floor(
+                            Math.random() * tracks.length
+                        );
+                        if (!usedIndices.has(randomIndex)) {
+                            genreTracks.push(tracks[randomIndex]);
+                            usedIndices.add(randomIndex);
+                        }
+                    }
+                    seedTracks.push(...genreTracks);
+                });
+
+                seedTracks.forEach((track) =>
+                    console.log(JSON.stringify(track))
+                );
+
+                const trackRecommendationData = await getData(
+                        `https://api.spotify.com/v1/recommendations?limit=100&market=US&seed_genres=${params[
+                            mode
+                        ].query.genres.join("%2C")}&seed_tracks=${seedTracks
+                            .map((track) => track.id)
+                            .join("%2C")}&min_popularity=${minPopularity}`,
                         false
                     ),
                     lastOffset = trackRecommendationData.tracks.length;
 
-                document.getElementById("source_img").style.display = "none";
-                document.getElementById("source_img_search").style.display =
-                    "initial";
+                let genreData = null;
+                let foundGenreIdx = -1;
+                for (let i = 0; i < params[mode].query.genres.length; i++) {
+                    try {
+                        genreData = await getData(
+                            `https://api.spotify.com/v1/browse/categories/${params[
+                                mode
+                            ].query.genres[i].replace(/-/g, "")}?locale=en_US`
+                        );
+                        foundGenreIdx = i;
+                        break;
+                    } catch {
+                        continue;
+                    }
+                }
 
-                document.getElementById("source").href =
-                    "https://open.spotify.com/search/" +
-                    queryString +
-                    "/tracks";
+                const elSourceImg = document.getElementById("source_img");
+                let sourceGenres;
+                if (genreData != null) {
+                    const foundGenre = params[mode].query.genres[foundGenreIdx];
+                    sourceGenres = [
+                        foundGenre,
+                        ...params[mode].query.genres.filter(
+                            (genre) => genre !== foundGenre
+                        ),
+                    ].join(", ");
+
+                    document.getElementById("source_img_search").style.display =
+                        "none";
+                    elSourceImg.style.display = "initial";
+                    elSourceImg.src = genreData.icons[0].url;
+                    document.getElementById("source").href =
+                        "https://open.spotify.com/genre/" + genreData.id;
+                } else {
+                    sourceGenres = params[mode].query.genres.join(", ");
+                    document.getElementById("source_img").style.display =
+                        "none";
+                    document.getElementById("source_img_search").style.display =
+                        "initial";
+                    document.getElementById("source").href =
+                        "https://open.spotify.com/search/" +
+                        queryString +
+                        "/genres";
+                }
+
                 document.getElementById(
                     "source_text"
-                ).innerText = `${params[mode].query.genre} (${lastOffset})`;
+                ).innerText = `${sourceGenres} (${lastOffset})`;
 
-                for (let i = 0; i < trackRecommendationData.tracks.length; ++i)
+                for (let i = 0; i < trackRecommendationData.tracks.length; i++)
                     urlsLeft.push(
-                        `https://api.spotify.com/v1/tracks/` +
-                            trackRecommendationData.tracks[i].id
+                        `https://api.spotify.com/v1/tracks/${trackRecommendationData.tracks[i].id}?market=US`
                     );
                 break;
             }
@@ -823,7 +945,7 @@ async function loadUrls() {
             case "liked": {
                 const maxOffset = (
                     await getData(
-                        `https://api.spotify.com/v1/me/albums?limit=1`,
+                        `https://api.spotify.com/v1/me/albums?market=US&limit=1`,
                         false
                     )
                 ).total;
@@ -841,9 +963,9 @@ async function loadUrls() {
                     "source_text"
                 ).innerText = `Liked (${maxOffset})`;
 
-                for (let offset = 0; offset < maxOffset; ++offset)
+                for (let offset = 0; offset < maxOffset; offset++)
                     urlsLeft.push(
-                        `https://api.spotify.com/v1/me/albums?limit=1&offset=${offset}`
+                        `https://api.spotify.com/v1/me/albums?market=US&limit=1&offset=${offset}`
                     );
                 break;
             }
@@ -859,7 +981,7 @@ async function loadUrls() {
                             false
                         ),
                         getData(
-                            `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album`,
+                            `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album&market=US`,
                             false
                         ),
                     ]);
@@ -884,9 +1006,9 @@ async function loadUrls() {
                         : artistData.name
                 } (${maxOffset})`;
 
-                for (let offset = 0; offset < maxOffset; ++offset)
+                for (let offset = 0; offset < maxOffset; offset++)
                     urlsLeft.push(
-                        `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album&limit=1&offset=${offset}`
+                        `https://api.spotify.com/v1/artists/${artistId}/albums?include_groups=album&market=US&limit=1&offset=${offset}`
                     );
                 break;
             }
@@ -896,7 +1018,7 @@ async function loadUrls() {
                     ),
                     maxOffset = (
                         await getData(
-                            `https://api.spotify.com/v1/search?q=${queryString}&type=album&limit=1`,
+                            `https://api.spotify.com/v1/search?q=${queryString}&type=album&market=US&limit=1`,
                             false
                         )
                     ).albums.total,
@@ -912,11 +1034,11 @@ async function loadUrls() {
                     "/albums";
                 document.getElementById(
                     "source_text"
-                ).innerText = `${params[mode].query.year} (${lastOffset})`;
+                ).innerText = `${params[mode].query.years} (${lastOffset})`;
 
-                for (let offset = 0; offset < lastOffset; ++offset)
+                for (let offset = 0; offset < lastOffset; offset++)
                     urlsLeft.push(
-                        `https://api.spotify.com/v1/search?q=${queryString}&type=album&limit=1&offset=${offset}`
+                        `https://api.spotify.com/v1/search?q=${queryString}&type=album&market=US&limit=1&offset=${offset}`
                     );
                 break;
             }
@@ -971,7 +1093,7 @@ async function loadUrls() {
                     "source_text"
                 ).innerText = `Top (${maxOffset})`;
 
-                for (let offset = 0; offset < maxOffset; ++offset)
+                for (let offset = 0; offset < maxOffset; offset++)
                     urlsLeft.push(
                         `https://api.spotify.com/v1/me/top/artists?limit=1&offset=${offset}`
                     );
@@ -983,15 +1105,29 @@ async function loadUrls() {
                     ),
                     maxOffset = (
                         await getData(
-                            `https://api.spotify.com/v1/search?q=${queryString}&type=artist&limit=1`,
+                            `https://api.spotify.com/v1/search?q=${queryString}&type=artist&market=US&limit=1`,
                             false
                         )
                     ).artists.total,
                     lastOffset = Math.min(100, maxOffset);
 
-                document.getElementById("source_img").style.display = "none";
-                document.getElementById("source_img_search").style.display =
-                    "initial";
+                const elSourceImg = document.getElementById("source_img");
+                try {
+                    const genreData = await getData(
+                        `https://api.spotify.com/v1/browse/categories/${params[
+                            mode
+                        ].query.genres[0].replace(/-/g, "")}?locale=en_US`
+                    );
+
+                    document.getElementById("source_img_search").style.display =
+                        "none";
+                    elSourceImg.style.display = "initial";
+                    elSourceImg.src = genreData.icons[0].url;
+                } catch {
+                    elSourceImg.style.display = "none";
+                    document.getElementById("source_img_search").style.display =
+                        "initial";
+                }
 
                 document.getElementById("source").href =
                     "https://open.spotify.com/search/" +
@@ -999,11 +1135,11 @@ async function loadUrls() {
                     "/artists";
                 document.getElementById(
                     "source_text"
-                ).innerText = `${params[mode].query.genre} (${lastOffset})`;
+                ).innerText = `${params[mode].query.genres[0]} (${lastOffset})`;
 
-                for (let offset = 0; offset < lastOffset; ++offset)
+                for (let offset = 0; offset < lastOffset; offset++)
                     urlsLeft.push(
-                        `https://api.spotify.com/v1/search?q=${queryString}&type=artist&limit=1&offset=${offset}`
+                        `https://api.spotify.com/v1/search?q=${queryString}&type=artist&market=US&limit=1&offset=${offset}`
                     );
             }
         }
@@ -1036,9 +1172,7 @@ function getData(url, returnFirstItem = true, type = null) {
                         resolve(trackData);
                     else {
                         $.ajax({
-                            url:
-                                "https://api.spotify.com/v1/tracks/" +
-                                trackData.id,
+                            url: `https://api.spotify.com/v1/tracks/${trackData.id}?market=US`,
                             type: "GET",
                             beforeSend: (xhr) => {
                                 xhr.setRequestHeader(
@@ -1061,8 +1195,7 @@ function getData(url, returnFirstItem = true, type = null) {
                     if (!albumData) return reject();
 
                     $.ajax({
-                        url:
-                            "https://api.spotify.com/v1/albums/" + albumData.id,
+                        url: `https://api.spotify.com/v1/albums/${albumData.id}?market=US`,
                         type: "GET",
                         beforeSend: (xhr) => {
                             xhr.setRequestHeader(
@@ -1407,7 +1540,7 @@ function updateSide(sideNum, reveal = false) {
             for (
                 let i = 0;
                 i < (mode === "songs" ? trackData : albumData).artists.length;
-                ++i
+                i++
             ) {
                 const artist = (mode === "songs" ? trackData : albumData)
                         .artists[i],
@@ -1720,7 +1853,7 @@ function checkGuess(higher) {
                 elCurrentHighScore =
                     document.getElementById("current_high_score");
 
-            ++score;
+            score++;
             if (!params.hardcore && !params.zen) updateStreak(streak + 1);
 
             elCurrentScore.style.animation = "bump 0.25s linear";
@@ -1771,7 +1904,7 @@ function gainLife() {
     const elLives = document.getElementById("lives");
 
     updateStreak(0);
-    ++lives;
+    lives++;
 
     elLives.innerHTML +=
         '<svg class="life" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>';
@@ -1977,6 +2110,13 @@ async function getRandomArtistData() {
 }
 
 function nextRound() {
+    const elVs = document.getElementById("vs");
+    const elLeftHalf = document.getElementById("left_half");
+    const elSlideHalves = document.getElementsByClassName("slide_half");
+    const elGuessBtns = document.getElementsByClassName("guess_btn");
+    const elRightProgress = document.getElementById("right_progress");
+    const body = document.body;
+
     trackData1 = trackData2;
     trackData2 = trackDataTmp;
 
@@ -1986,18 +2126,12 @@ function nextRound() {
     artistData1 = artistData2;
     artistData2 = artistDataTmp;
 
-    const elVs = document.getElementById("vs");
+    elVs.style.animation = "vs_away 0.25s cubic-bezier(0.4, 0, 0.2, 1)";
 
-    elVs.style.animation = "vs_away 0.25s";
-
-    const elLeftHalfClone = document
-        .getElementById("left_half")
-        .cloneNode(true);
-
+    const elLeftHalfClone = elLeftHalf.cloneNode(true);
     elLeftHalfClone.style.position = "fixed";
     elLeftHalfClone.style.zIndex = -1;
-
-    document.getElementsByTagName("body")[0].appendChild(elLeftHalfClone);
+    body.appendChild(elLeftHalfClone);
 
     setTimeout(() => {
         elVs.style.display = "none";
@@ -2005,8 +2139,6 @@ function nextRound() {
         updateSide(1);
         revealPopularity(1);
         updateSide(2);
-
-        const elSlideHalves = document.getElementsByClassName("slide_half");
 
         if (window.matchMedia("(orientation:portrait)").matches) {
             elSlideHalves[0].style.animation =
@@ -2027,15 +2159,14 @@ function nextRound() {
             elSlideHalves[2].style.animation = "initial";
         };
 
-        const elGuessBtns = document.getElementsByClassName("guess_btn");
-
         elGuessBtns[0].style.display = elGuessBtns[1].style.display = "initial";
         document.getElementById("right_progress").style.display = "none";
 
         setTimeout(() => {
             elLeftHalfClone.remove();
             elVs.style.display = "flex";
-            elVs.style.animation = "vs_back 0.25s";
+            elVs.style.animation =
+                "vs_back 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)";
         }, SLIDE_HALVES_DURATION * 1000);
     }, 0.25 * 1000);
 }
@@ -2178,7 +2309,7 @@ function getParamKey() {
         soundOnly: params.soundOnly,
     };
     if (params[mode].use === "search") {
-        if (mode === "songs") d.minPopularity = params[mode].minPopularity;
+        if (mode === "songs") d.difficulty = params[mode].difficulty;
         d.identifier = getQueryString(params[mode].query);
     } else if (params[mode].use === "user_playlist")
         d.identifier = `spotify:playlist:${params[mode].userPlaylistId}`;
@@ -2200,8 +2331,12 @@ function changeParams(newParams) {
     else if (newParams.uri !== undefined)
         document.getElementById("use_uri").click();
 
-    if (newParams.query && newParams.query.year && newParams.query.year === "-")
-        newParams.query.year = "";
+    if (
+        newParams.query &&
+        newParams.query.years &&
+        newParams.query.years === "-"
+    )
+        newParams.query.years = "";
 
     if (newParams.hardcore !== undefined) {
         params.hardcore = newParams.hardcore;
@@ -2241,10 +2376,10 @@ function changeParams(newParams) {
     updateHighScore();
 }
 
-function validYearString(yearString) {
-    if (!yearString) return true;
+function validYearsString(yearsString) {
+    if (!yearsString) return true;
 
-    const years = yearString.split("-"),
+    const years = yearsString.split("-"),
         fromYear = parseInt(years[0]),
         toYear = parseInt(years[1]);
 
@@ -2264,7 +2399,9 @@ function updatePlayValidity(forceDisable = false) {
             params[mode].use === "liked" ||
             params[mode].use === "top" ||
             (params[mode].use === "search" &&
-                Object.values(params[mode].query).some((val) => val)) ||
+                (mode === "albums"
+                    ? params[mode].query.years
+                    : params[mode].query.genres.length > 0)) ||
             (params[mode].use === "uri" &&
                 (mode === "songs"
                     ? ALBUM_ARTIST_PLAYLIST_URI_REGEX
@@ -2363,9 +2500,18 @@ function updateParamValidity() {
         document.querySelectorAll(".hide_songs").forEach((el) => {
             el.style.display = "none";
         });
-        if (localStorage.getItem("show_genre_tutorial") !== "false")
+        document.getElementById("use_search_label").textContent = "Seed Genres";
+        document.getElementById("genres").setAttribute("multiple", "true");
+        document.getElementById("genres").setAttribute("size", "8");
+        if (
+            mode === "songs" &&
+            localStorage.getItem("show_genre_tutorial") !== "false"
+        )
             document.getElementById("genre_tutorial").style.display = null;
-        if (localStorage.getItem("show_artist_tutorial") !== "false")
+        if (
+            mode === "songs" &&
+            localStorage.getItem("show_artist_tutorial") !== "false"
+        )
             document.getElementById("artist_tutorial").style.display = null;
     } else if (mode === "albums") {
         elUseUriLabel.innerText = "Artist URI";
@@ -2373,6 +2519,8 @@ function updateParamValidity() {
         document.querySelectorAll(".hide_albums").forEach((el) => {
             el.style.display = "none";
         });
+
+        document.getElementById("use_search_label").textContent = "Years";
 
         // if (
         //     params[mode].use === "user_playlist" ||
@@ -2384,6 +2532,9 @@ function updateParamValidity() {
         document.querySelectorAll(".hide_artists").forEach((el) => {
             el.style.display = "none";
         });
+        document.getElementById("use_search_label").textContent = "Genre";
+        document.getElementById("genres").removeAttribute("multiple");
+        document.getElementById("genres").removeAttribute("size");
 
         // if (
         //     params[mode].use === "user_playlist" ||
@@ -2414,7 +2565,7 @@ function updateHighScore() {
 //     elFromYear.value = 1000;
 //     elToYear.value = CURR_YEAR;
 //     changeParams({
-//         query: { ...params[mode].query, year: `1000-${CURR_YEAR}` },
+//         query: { ...params[mode].query, years: `1000-${CURR_YEAR}` },
 //     });
 // }
 
@@ -2440,16 +2591,13 @@ function randomFeaturedPlaylist() {
     changeParams({ featuredPlaylistId: elFeaturedPlaylist.value });
 }
 
-function randomGenre() {
-    const elGenre = document.getElementById("genre");
-
-    if (elGenre.length === 1) return;
-
-    elGenre.selectedIndex = Math.floor(
-        Math.random() * (elGenre.length - 1) + 1
-    );
-    changeParams({ query: { ...params[mode].query, genre: elGenre.value } });
-}
+// function resetGenre() {
+//     const elGenres = document.getElementById("genres");
+//     elGenres.selectedIndex = 0;
+//     changeParams({
+//         query: { ...params[mode].query, genres: DEFAULT_PARAMS[mode].genres },
+//     });
+// }
 
 function hideGenreTutorial() {
     document.getElementById("genre_tutorial").style.display = "none";
@@ -2534,7 +2682,7 @@ async function uriSearch(clear = false) {
         type = mode === "songs" ? params[mode].uriSearch.type : "artist",
         searchUrl = `https://api.spotify.com/v1/search?q=${encodeURIComponent(
             params[mode].uriSearch.q
-        )}&type=${type}&offset=0`,
+        )}&type=${type}&market=US&offset=0`,
         data = await getData(searchUrl, false),
         item = data[Object.keys(data)[0]].items[0];
 

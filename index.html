@@ -223,7 +223,10 @@
             <a id="user_action"></a>
             <br />
             <h4 id="sign_in_tutorial" style="display: none">
-                <i>(Spotify makes most previews only available to signed-in)</i>
+                <i
+                    >More audio previews, play using your library, like/unlike
+                    songs</i
+                >
             </h4>
         </div>
 
@@ -283,34 +286,20 @@
                     type="radio"
                     onchange="changeParams({use: 'search'})"
                 />
-                <label for="use_search" title="Items from a Spotify search"
-                    >Search</label
+                <label
+                    id="use_search_label"
+                    for="use_search"
+                    title="Items from a Spotify search"
+                    >Seed Genres</label
                 >
                 <br />
                 <div class="params_indent">
-                    <input
-                        id="min_popularity"
-                        type="range"
-                        class="hide_albums hide_artists"
-                        min="0"
-                        max="2"
-                        value="1"
-                        step="1"
-                        oninput="let minPopularity = ['low', 'medium', 'high'][this.value]; changeParams({minPopularity}); this.nextElementSibling.innerText = `Min Popularity (${minPopularity[0].toUpperCase() + minPopularity.slice(1)})`"
-                    />
-                    <label
-                        class="hide_albums hide_artists"
-                        for="min_popularity"
-                        title="How popular the least popular songs should be"
-                        >Min Popularity (Medium)</label
-                    >
-                    <br class="hide_albums hide_artists" />
                     <input
                         id="from_year"
                         type="number"
                         class="hide_songs hide_artists"
                         min="1000"
-                        oninput="changeParams({query: {...params[mode].query, year: `${this.value}-${document.getElementById('to_year').value}`}}); if (this.value !== '') document.getElementById('to_year').min = this.value"
+                        oninput="changeParams({query: {...params[mode].query, years: `${this.value}-${document.getElementById('to_year').value}`}}); if (this.value !== '') document.getElementById('to_year').min = this.value"
                     />
                     <label class="hide_songs hide_artists">-</label>
                     <input
@@ -318,47 +307,46 @@
                         type="number"
                         class="hide_songs hide_artists"
                         min="1000"
-                        oninput="changeParams({query: {...params[mode].query, year: `${document.getElementById('from_year').value}-${this.value}`}}); if (this.value !== '') document.getElementById('from_year').max = this.value"
+                        oninput="changeParams({query: {...params[mode].query, years: `${document.getElementById('from_year').value}-${this.value}`}}); if (this.value !== '') document.getElementById('from_year').max = this.value"
                     />
-                    <label
-                        for="from_year"
-                        class="hide_songs hide_artists"
-                        title="Items labeled in a certain year range"
-                        >Year</label
-                    >
-                    <!-- <button
-                        id="year_all"
-                        class="param_button hide_artists"
-                        onclick="allYears();"
-                    >
-                        All
-                    </button> -->
                     <br class="hide_songs hide_artists" />
                     <select
-                        id="genre"
+                        id="genres"
                         class="hide_albums"
-                        onchange="changeParams({query: {...params[mode].query, genre: this.value}}); hideGenreTutorial()"
+                        multiple
+                        size="8"
+                        onchange="changeParams({query: {...params[mode].query, genres: Array.from(this.selectedOptions).map(option => option.value)}}); if (this.selectedOptions.length > 1 && localStorage.getItem('show_genre_tutorial') !== 'false') hideGenreTutorial();"
                     ></select>
-                    <label
-                        for="genre"
-                        class="hide_albums"
-                        title="Items labeled as a certain genre"
-                        >Genre</label
-                    >
-                    <button
-                        id="genre_random"
-                        class="param_button hide_albums"
-                        onclick="randomGenre(); hideGenreTutorial()"
-                    >
-                        Random
-                    </button>
                     <br class="hide_albums" />
-                    <label
+                    <div
                         id="genre_tutorial"
                         class="hide_albums hide_artists"
-                        style="color: lime; display: none"
-                        >^ Start by picking a genre</label
+                        style="display: none"
                     >
+                        <label style="color: lime"
+                            >^ Pick a genre to base your game around (Ctrl+Click
+                            for two)</label
+                        >
+                        <br />
+                    </div>
+
+                    <input
+                        id="difficulty"
+                        type="range"
+                        class="hide_albums hide_artists"
+                        min="0"
+                        max="2"
+                        value="1"
+                        step="1"
+                        oninput="let difficulty = ['low', 'medium', 'high'][this.value]; changeParams({difficulty}); this.nextElementSibling.innerText = `Allow Unpopular Songs (${difficulty[0].toUpperCase() + difficulty.slice(1)})`"
+                    />
+                    <label
+                        class="hide_albums hide_artists"
+                        for="difficulty"
+                        title="How obscure the songs can be"
+                        >Allow Unpopular Songs (Medium)</label
+                    >
+                    <br class="hide_albums hide_artists" />
                 </div>
                 <br class="hide_artists" />
                 <input
@@ -522,67 +510,107 @@
             >
                 Reset
             </button>
-            <br />
-            <br />
-            <input
-                id="hardcore"
-                type="checkbox"
-                oninput="changeParams({hardcore: this.checked})"
-            />
-            <label for="hardcore" title="No extra lives or streak bonus"
-                >Hardcore</label
-            >
-            <br />
-            <input
-                id="zen"
-                type="checkbox"
-                oninput="changeParams({zen: this.checked})"
-            />
-            <label for="zen" title="Unlimited lives, no score">Zen</label>
-            <br />
-            <br />
-            <input
-                id="hide_popularity"
-                type="checkbox"
-                oninput="changeParams({hidePopularity: this.checked})"
-            />
-            <label for="hide_popularity" title="No popularity numbers"
-                >Hide Popularity</label
-            >
-            <br />
-            <input
-                id="sound_only"
-                type="checkbox"
-                oninput="changeParams({soundOnly: this.checked})"
-            />
-            <label
-                for="sound_only"
-                title="No song, album, or artist name and no art"
-                >Sound Only</label
-            >
-            <br />
-            <br />
-            <input
-                id="mute_explicit"
-                type="checkbox"
-                oninput="changeParams({muteExplicit: this.checked})"
-            />
-            <label
-                for="mute_explicit"
-                title="No song preview for songs marked explicit"
-                >Mute Explicit</label
-            >
-            <br />
-            <input
-                id="play_sfx"
-                type="checkbox"
-                oninput="changeParams({playSFX: this.checked})"
-            />
-            <label
-                for="play_sfx"
-                title="Play correct, incorrect, level up, and game over SFX"
-                >Sound Effects</label
-            >
+
+            <div id="checkbox_container">
+                <!-- Group 1: Left aligned -->
+                <div class="checkbox_group left">
+                    <span>
+                        <input
+                            id="zen"
+                            type="checkbox"
+                            oninput="changeParams({zen: this.checked})"
+                        />
+                        <label for="zen" title="Unlimited lives, no high score"
+                            >Zen</label
+                        >
+                    </span>
+                </div>
+
+                <!-- Group 2: Centered -->
+                <div class="checkbox_group center">
+                    <span>
+                        <input
+                            id="hardcore"
+                            type="checkbox"
+                            oninput="changeParams({hardcore: this.checked})"
+                        />
+                        <label
+                            for="hardcore"
+                            title="No extra lives or streak bonus"
+                            >Hardcore</label
+                        >
+                    </span>
+                    <!-- <br /> -->
+                    <span>
+                        <input
+                            id="hide_popularity"
+                            type="checkbox"
+                            oninput="changeParams({hidePopularity: this.checked})"
+                        />
+                        <label
+                            for="hide_popularity"
+                            title="No popularity numbers"
+                            >Hidden Popularities</label
+                        >
+                    </span>
+                    <!-- <br /> -->
+                    <span>
+                        <input
+                            id="sound_only"
+                            type="checkbox"
+                            oninput="changeParams({soundOnly: this.checked})"
+                        />
+                        <label
+                            for="sound_only"
+                            title="No song, album, or artist name and no art"
+                            >Blindness</label
+                        >
+                    </span>
+                </div>
+
+                <!-- Group 3: Right aligned -->
+                <div class="checkbox_group right">
+                    <span>
+                        <input
+                            id="mute_explicit"
+                            type="checkbox"
+                            oninput="changeParams({muteExplicit: this.checked})"
+                        />
+                        <label
+                            for="mute_explicit"
+                            title="No song preview for songs marked explicit"
+                            >No Explicit Audio</label
+                        >
+                    </span>
+                    <!-- <br /> -->
+                    <span>
+                        <input
+                            id="play_sfx"
+                            type="checkbox"
+                            oninput="changeParams({playSFX: this.checked})"
+                        />
+                        <label
+                            for="play_sfx"
+                            title="Play correct, incorrect, level up, and game over SFX"
+                            >Sound Effects</label
+                        >
+                    </span>
+                </div>
+            </div>
         </div>
     </body>
 </html>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        var last_valid_selection = null;
+
+        $("#genres").change(function (event) {
+            if ($(this).val().length > 2) {
+                $(this).val(last_valid_selection);
+            } else {
+                last_valid_selection = $(this).val();
+            }
+        });
+    });
+</script>
