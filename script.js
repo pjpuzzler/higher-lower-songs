@@ -92,7 +92,7 @@ const load = async () => {
         elUserAction.onclick = () => {
             if (
                 confirm(
-                    "For full functionality we require to view your Spotify username, public library, favorite songs, and modify your likes.\n\nYour likes will only ever be changed by using the heart-shaped buttons ingame.\n\nMake sure you are OK with this and read the following permissions list carefully before accepting."
+                    "For full functionality we require to view your Spotify username, public library, favorite songs, and modify your likes.\n\nYour likes will only ever be changed by using the heart-shaped buttons ingame.\n\nMake sure you are OK with this and read the upcoming permissions list carefully before accepting."
                 )
             )
                 signIn(true);
@@ -123,14 +123,14 @@ const load = async () => {
             const elGenres = document.getElementById("genres");
             // elGenres.innerHTML = "<option selected>Select Genres</option>";
             popularGenres.forEach(({ genre }) =>
-                elGenres.add(new Option(genre, genre))
+                elGenres.add(new Option(formatGenre(genre), genre))
             );
             const separator = document.createElement("optgroup");
             separator.label = "---------";
             separator.disabled = true; // Make it unclickable
             elGenres.appendChild(separator);
             otherGenres.forEach((genre) =>
-                elGenres.add(new Option(genre, genre))
+                elGenres.add(new Option(formatGenre(genre), genre))
             );
 
             if (mode !== "albums")
@@ -238,7 +238,10 @@ const load = async () => {
         document.getElementById("genre_tutorial").style.display = null;
     else document.getElementById("genre_tutorial").style.display = "none";
 
-    if (localStorage.getItem("show_artist_tutorial") !== "false")
+    if (
+        mode === "songs" &&
+        localStorage.getItem("show_artist_tutorial") !== "false"
+    )
         document.getElementById("artist_tutorial").style.display = null;
     else document.getElementById("artist_tutorial").style.display = "none";
 };
@@ -258,7 +261,7 @@ if (!_token) {
         headers: {
             Authorization:
                 "Basic " +
-                window.btoa(CLIENT_ID + ":e5fd37f722904b398e3806ac94d0fe02"),
+                window.btoa(CLIENT_ID + ":87aef7fc43eb45318aae46026dd3012f"),
         },
         data: "grant_type=client_credentials",
         success: (data) => {
@@ -308,7 +311,7 @@ function updateParams() {
         elDifficulty.value = ["low", "medium", "high"].indexOf(
             params[mode].difficulty
         );
-        elDifficulty.nextElementSibling.innerText = `Allow Unpopular Songs (${
+        elDifficulty.nextElementSibling.innerText = `Unpopular Songs (${
             params[mode].difficulty[0].toUpperCase() +
             params[mode].difficulty.slice(1)
         })`;
@@ -909,7 +912,9 @@ async function loadUrls() {
                         ...params[mode].query.genres.filter(
                             (genre) => genre !== foundGenre
                         ),
-                    ].join(", ");
+                    ]
+                        .map((genre) => formatGenre(genre))
+                        .join(", ");
 
                     document.getElementById("source_img_search").style.display =
                         "none";
@@ -918,7 +923,9 @@ async function loadUrls() {
                     document.getElementById("source").href =
                         "https://open.spotify.com/genre/" + genreData.id;
                 } else {
-                    sourceGenres = params[mode].query.genres.join(", ");
+                    sourceGenres = params[mode].query.genres
+                        .map((genre) => formatGenre(genre))
+                        .join(", ");
                     document.getElementById("source_img").style.display =
                         "none";
                     document.getElementById("source_img_search").style.display =
@@ -1135,7 +1142,9 @@ async function loadUrls() {
                     "/artists";
                 document.getElementById(
                     "source_text"
-                ).innerText = `${params[mode].query.genres[0]} (${lastOffset})`;
+                ).innerText = `${formatGenre(
+                    params[mode].query.genres[0]
+                )} (${lastOffset})`;
 
                 for (let offset = 0; offset < lastOffset; offset++)
                     urlsLeft.push(
@@ -1250,6 +1259,13 @@ function getRandomAlbumTrackUrl(albumData) {
     return albumData.tracks.items[
         Math.floor(Math.random() * albumData.tracks.total)
     ].href;
+}
+
+function formatGenre(genre) {
+    return genre
+        .split("-")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join("-");
 }
 
 function getBarColor(p) {
@@ -1772,6 +1788,7 @@ function like(elLikeBtn, sideNum) {
 
 function updateStreak(newValue) {
     const $elStreakBar = $("#streak_bar"),
+        $elStreakNumber = $("#streak_number"),
         streakLength = STREAK_LENGTH + (lives - NUM_LIVES);
 
     $({ streak: (streak * 100) / streakLength }).animate(
@@ -1787,9 +1804,18 @@ function updateStreak(newValue) {
                     borderBottomColor: barColor,
                     borderRightColor: barColor,
                 });
+
+                if (s >= (newValue * 100) / streakLength / 2) {
+                    if (lives === 0) $elStreakNumber.text("");
+                    else if (newValue < streakLength)
+                        $elStreakNumber.text(streakLength - newValue);
+                }
+
+                $elStreakNumber.css("color", barColor); // Match the color
             },
             complete: () => {
                 streak = newValue;
+
                 if (streak == streakLength) gainLife();
             },
         }
@@ -1883,8 +1909,8 @@ function checkGuess(higher) {
                 }, 0.125 * 1000);
             }
         } else {
-            if (!params.zen) updateStreak(0);
             loseLife();
+            if (!params.zen) updateStreak(0);
         }
 
         if (!lives) gameOver();
@@ -1903,8 +1929,8 @@ function gainLife() {
 
     const elLives = document.getElementById("lives");
 
-    updateStreak(0);
     lives++;
+    updateStreak(0);
 
     elLives.innerHTML +=
         '<svg class="life" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>';
@@ -2126,7 +2152,7 @@ function nextRound() {
     artistData1 = artistData2;
     artistData2 = artistDataTmp;
 
-    elVs.style.animation = "vs_away 0.25s cubic-bezier(0.4, 0, 0.2, 1)";
+    elVs.style.animation = "vs_away 0.25s";
 
     const elLeftHalfClone = elLeftHalf.cloneNode(true);
     elLeftHalfClone.style.position = "fixed";
@@ -2165,8 +2191,7 @@ function nextRound() {
         setTimeout(() => {
             elLeftHalfClone.remove();
             elVs.style.display = "flex";
-            elVs.style.animation =
-                "vs_back 0.25s cubic-bezier(0.34, 1.56, 0.64, 1)";
+            elVs.style.animation = "vs_back 0.25s";
         }, SLIDE_HALVES_DURATION * 1000);
     }, 0.25 * 1000);
 }
@@ -2500,7 +2525,7 @@ function updateParamValidity() {
         document.querySelectorAll(".hide_songs").forEach((el) => {
             el.style.display = "none";
         });
-        document.getElementById("use_search_label").textContent = "Seed Genres";
+        document.getElementById("use_search_label").textContent = "Genres";
         document.getElementById("genres").setAttribute("multiple", "true");
         document.getElementById("genres").setAttribute("size", "8");
         if (

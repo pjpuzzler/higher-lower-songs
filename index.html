@@ -213,6 +213,7 @@
                 <div id="streak_bar_overflow">
                     <div id="streak_bar"></div>
                 </div>
+                <h6 id="streak_number">7</h6>
             </div>
         </div>
 
@@ -224,8 +225,8 @@
             <br />
             <h4 id="sign_in_tutorial" style="display: none">
                 <i
-                    >More audio previews, play using your library, like/unlike
-                    songs</i
+                    >(More audio previews, play using your library, like/unlike
+                    songs)</i
                 >
             </h4>
         </div>
@@ -290,7 +291,7 @@
                     id="use_search_label"
                     for="use_search"
                     title="Items from a Spotify search"
-                    >Seed Genres</label
+                    >Genres</label
                 >
                 <br />
                 <div class="params_indent">
@@ -324,8 +325,8 @@
                         style="display: none"
                     >
                         <label style="color: lime"
-                            >^ Pick a genre to base your game around (Ctrl+Click
-                            for two)</label
+                            >^ Pick your favorite genre(s) (Ctrl+Click for
+                            multiple)</label
                         >
                         <br />
                     </div>
@@ -338,13 +339,13 @@
                         max="2"
                         value="1"
                         step="1"
-                        oninput="let difficulty = ['low', 'medium', 'high'][this.value]; changeParams({difficulty}); this.nextElementSibling.innerText = `Allow Unpopular Songs (${difficulty[0].toUpperCase() + difficulty.slice(1)})`"
+                        oninput="let difficulty = ['low', 'medium', 'high'][this.value]; changeParams({difficulty}); this.nextElementSibling.innerText = `Unpopular Songs (${difficulty[0].toUpperCase() + difficulty.slice(1)})`"
                     />
                     <label
                         class="hide_albums hide_artists"
                         for="difficulty"
                         title="How obscure the songs can be"
-                        >Allow Unpopular Songs (Medium)</label
+                        >Unpopular Songs (Medium)</label
                     >
                     <br class="hide_albums hide_artists" />
                 </div>
@@ -405,7 +406,7 @@
                         id="artist_tutorial"
                         class="hide_albums hide_artists"
                         style="color: lime; display: none"
-                        >^ Or search for your favorite artist</label
+                        >^ Search for your favorite</label
                     >
                 </div>
                 <br class="hide_albums hide_artists" />
@@ -579,7 +580,7 @@
                         <label
                             for="mute_explicit"
                             title="No song preview for songs marked explicit"
-                            >No Explicit Audio</label
+                            >Mute Explicit Audio</label
                         >
                     </span>
                     <!-- <br /> -->

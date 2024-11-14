@@ -1,5 +1,5 @@
 const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
-    CLIENT_ID = "3e2f12ff08d742adaa6e57eadcdc1ea4",
+    CLIENT_ID = "9f73584e4cd14022b5efcc192f92f040",
     SCOPES = [
         "user-library-read",
         "user-library-modify",

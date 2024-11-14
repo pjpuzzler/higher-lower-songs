@@ -317,22 +317,30 @@ label {
 #streak_bar_overflow {
     position: relative;
     overflow: hidden;
-    width: 7dvh;
-    height: 3.5dvh;
+    width: 8dvh;
+    height: 4dvh;
 }
 
 #streak_bar {
     position: absolute;
     top: 0;
     left: 0;
-    width: 7dvh;
-    height: 7dvh;
+    width: 8dvh;
+    height: 8dvh;
     border-radius: 50%;
     box-sizing: border-box;
     border: 0.75dvh solid #232323;
     will-change: transform;
     /* outline: 1px solid white;
     outline-offset: -1px; */
+}
+
+#streak_number {
+    position: absolute;
+    font-size: 4dvh;
+    font-weight: bold;
+    margin-top: 2.5dvh;
+    text-align: center;
 }
 
 .popularity {
