@@ -216,6 +216,7 @@ const load = async () => {
     setVolume(Number(localStorage.getItem("volume") ?? DEFAULT_VOLUME));
 
     document.getElementById("mute_explicit").checked = params.muteExplicit;
+    document.getElementById("golden_lives").checked = params.golds;
     document.getElementById("hardcore").checked = params.hardcore;
     document.getElementById("sound_only").checked = params.soundOnly;
     document.getElementById("zen").checked = params.zen;
@@ -293,6 +294,7 @@ let params,
     paramKey,
     highScores,
     lives,
+    golden = false,
     streak = 0,
     fading = false,
     score = 0,
@@ -311,7 +313,7 @@ function updateParams() {
         elDifficulty.value = ["low", "medium", "high"].indexOf(
             params[mode].difficulty
         );
-        elDifficulty.nextElementSibling.innerText = `Unpopular Songs (${
+        elDifficulty.nextElementSibling.innerText = `Include Unpopular Songs (${
             params[mode].difficulty[0].toUpperCase() +
             params[mode].difficulty.slice(1)
         })`;
@@ -380,6 +382,9 @@ function updateParams() {
             break;
     }
 
+    document.getElementById("play_sfx").checked = params.playSFX;
+    document.getElementById("mute_explicit").checked = params.muteExplicit;
+    document.getElementById("golden_lives").checked = params.golds;
     document.getElementById("hardcore").checked = params.hardcore;
     document.getElementById("hide_popularity").checked = params.hidePopularity;
     document.getElementById("sound_only").checked = params.soundOnly;
@@ -569,7 +574,7 @@ async function play() {
 
     if (!params.hardcore) {
         document.getElementById("streak_progress").style.display = "flex";
-        updateStreak(0);
+        updateStreak(4);
     }
 
     document.getElementById("source").style.display = "flex";
@@ -595,9 +600,16 @@ async function play() {
         elSourceImg.classList.add("album_art_artist");
     }
 
+    golden = false;
     updateSide(1);
     revealPopularity(1, true);
-    updateSide(2);
+    golden = params.golds && !params.hardcore && Math.random() < GOLDEN_CHANCE;
+    if (golden && params.playSFX) {
+        GOLD_APPEAR_SFX.volume = linearVolume / 2;
+        GOLD_APPEAR_SFX.load();
+        GOLD_APPEAR_SFX.play();
+    }
+    updateSide(2, false);
 }
 
 async function loadUrls() {
@@ -872,10 +884,6 @@ async function loadUrls() {
                     }
                     seedTracks.push(...genreTracks);
                 });
-
-                seedTracks.forEach((track) =>
-                    console.log(JSON.stringify(track))
-                );
 
                 const trackRecommendationData = await getData(
                         `https://api.spotify.com/v1/recommendations?limit=100&market=US&seed_genres=${params[
@@ -1269,7 +1277,7 @@ function formatGenre(genre) {
 }
 
 function getBarColor(p) {
-    return p === 0 ? "initial" : `hsl(${p * 3.3}, 100%, 50%)`;
+    return p === 0 ? "" : `hsl(${p * 3.3}, 100%, 50%)`;
 }
 
 function updateMarquees(sideNum) {
@@ -1505,11 +1513,13 @@ function updateSide(sideNum, reveal = false) {
     elAlbumArt.src = "";
     if (reveal || !params.soundOnly) {
         elAlbumArt.style.visibility = "visible";
-        elAlbumArtBtn.style.border = "none";
+        elAlbumArtBtn.style.border = golden ? "0.25dvh solid #fdd017" : "none";
         elAlbumArt.src = albumArtUrl;
     } else {
         elAlbumArt.style.visibility = "hidden";
-        elAlbumArtBtn.style.border = "0.25dvh solid #fff";
+        elAlbumArtBtn.style.border = `0.25dvh solid ${
+            golden ? "#fdd017" : "#fff"
+        }`;
     }
 
     const elTrackTitle = document.getElementById(`track_title_${sideNum}`);
@@ -1531,7 +1541,9 @@ function updateSide(sideNum, reveal = false) {
                 : artistData.external_urls.spotify
             : "";
 
-    document.getElementById(`explicit_${sideNum}`).style.display =
+    const elExplicit = document.getElementById(`explicit_${sideNum}`);
+
+    elExplicit.style.display =
         explicit && (!params.soundOnly || reveal) ? null : "none";
 
     const elArtist = document.getElementById(`artist_${sideNum}`);
@@ -1547,6 +1559,7 @@ function updateSide(sideNum, reveal = false) {
                 elA.href = trackData.external_urls.spotify;
                 elA.target = "_blank";
                 elA.className = "artist_link";
+                if (golden) elA.classList.add("golden_secondary");
                 elA.draggable = false;
 
                 elI.appendChild(elA);
@@ -1566,6 +1579,7 @@ function updateSide(sideNum, reveal = false) {
                 elA.href = artist.external_urls.spotify;
                 elA.target = "_blank";
                 elA.className = "artist_link";
+                if (golden) elA.classList.add("golden_secondary");
                 elA.draggable = false;
 
                 elArtist.appendChild(elA);
@@ -1575,16 +1589,27 @@ function updateSide(sideNum, reveal = false) {
                     (mode === "songs" ? trackData : albumData).artists.length -
                         1
                 ) {
-                    const elTextNode = document.createTextNode(", ");
+                    // const elTextNode = document.createTextNode(", ");
+                    const spanElement = document.createElement("span");
+                    spanElement.innerHTML = ",&nbsp;";
 
-                    elArtist.appendChild(elTextNode);
+                    // spanElement.appendChild(elTextNode);
+
+                    if (golden) spanElement.style.color = "#bf9b30";
+
+                    elArtist.appendChild(spanElement);
                 }
             }
 
             if (mode === "albums" && !noAudio) {
-                const elTextNode = document.createTextNode(" - ");
+                // const elTextNode = document.createTextNode(" - ");
+                const spanElement = document.createElement("span");
+                spanElement.innerHTML = "&nbsp;-&nbsp;";
 
-                elArtist.appendChild(elTextNode);
+                // spanElement.appendChild(elTextNode);
+                if (golden) spanElement.style.color = "#bf9b30";
+
+                elArtist.appendChild(spanElement);
 
                 const elA = document.createElement("a"),
                     elI = document.createElement("i");
@@ -1592,6 +1617,7 @@ function updateSide(sideNum, reveal = false) {
                 elA.href = trackData.external_urls.spotify;
                 elA.target = "_blank";
                 elA.className = "artist_link";
+                if (golden) elA.classList.add("golden_secondary");
                 elA.draggable = false;
 
                 elI.appendChild(elA);
@@ -1607,28 +1633,44 @@ function updateSide(sideNum, reveal = false) {
     if (signedIn && (reveal || !params.soundOnly)) {
         if (mode === "songs")
             hasTrackSaved(trackData.id).then((saved) => {
-                updateLikeBtn(sideNum, saved[0]);
+                updateLikeBtn(sideNum, saved[0], golden && sideNum === 2);
             });
         else if (mode === "albums")
             hasAlbumSaved(albumData.id).then((saved) => {
-                updateLikeBtn(sideNum, saved[0]);
+                updateLikeBtn(sideNum, saved[0], golden && sideNum === 2);
             });
         else if (mode === "artists")
             hasArtistSaved(artistData.id).then((saved) => {
-                updateLikeBtn(sideNum, saved[0]);
+                updateLikeBtn(sideNum, saved[0], golden && sideNum === 2);
             });
     } else elLikeBtn.innerHTML = "";
+
+    if (golden) {
+        elTrackTitle.classList.add("golden_primary");
+        document.querySelectorAll(".guess_btn").forEach((button) => {
+            button.classList.add("golden_secondary");
+        });
+        elExplicit.classList.add("golden_secondary_background");
+    } else {
+        elTrackTitle.classList.remove("golden_primary");
+        document.querySelectorAll(".guess_btn").forEach((button) => {
+            button.classList.remove("golden_secondary");
+        });
+        elExplicit.classList.remove("golden_secondary_background");
+    }
 }
 
-function updateLikeBtn(sideNum, saved) {
+function updateLikeBtn(sideNum, saved, goldenBtn) {
     const elLikeBtn = document.getElementById(`like_btn_${sideNum}`);
 
     if (saved)
-        elLikeBtn.innerHTML =
-            '<svg class="liked_svg" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>';
+        elLikeBtn.innerHTML = `<svg class="liked_svg${
+            goldenBtn ? " golden_secondary" : ""
+        }" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>`;
     else
-        elLikeBtn.innerHTML =
-            '<svg viewBox="0 0 16 16"><path d="M1.69 2A4.582 4.582 0 018 2.023 4.583 4.583 0 0111.88.817h.002a4.618 4.618 0 013.782 3.65v.003a4.543 4.543 0 01-1.011 3.84L9.35 14.629a1.765 1.765 0 01-2.093.464 1.762 1.762 0 01-.605-.463L1.348 8.309A4.582 4.582 0 011.689 2zm3.158.252A3.082 3.082 0 002.49 7.337l.005.005L7.8 13.664a.264.264 0 00.311.069.262.262 0 00.09-.069l5.312-6.33a3.043 3.043 0 00.68-2.573 3.118 3.118 0 00-2.551-2.463 3.079 3.079 0 00-2.612.816l-.007.007a1.501 1.501 0 01-2.045 0l-.009-.008a3.082 3.082 0 00-2.121-.861z"></path></svg>';
+        elLikeBtn.innerHTML = `<svg class="${
+            goldenBtn ? "golden_secondary" : ""
+        }" viewBox="0 0 16 16"><path d="M1.69 2A4.582 4.582 0 018 2.023 4.583 4.583 0 0111.88.817h.002a4.618 4.618 0 013.782 3.65v.003a4.543 4.543 0 01-1.011 3.84L9.35 14.629a1.765 1.765 0 01-2.093.464 1.762 1.762 0 01-.605-.463L1.348 8.309A4.582 4.582 0 011.689 2zm3.158.252A3.082 3.082 0 002.49 7.337l.005.005L7.8 13.664a.264.264 0 00.311.069.262.262 0 00.09-.069l5.312-6.33a3.043 3.043 0 00.68-2.573 3.118 3.118 0 00-2.551-2.463 3.079 3.079 0 00-2.612.816l-.007.007a1.501 1.501 0 01-2.045 0l-.009-.008a3.082 3.082 0 00-2.121-.861z"></path></svg>`;
 }
 
 function clickTrack(elAlbumArtBtn, sideNum) {
@@ -1741,9 +1783,13 @@ function like(elLikeBtn, sideNum) {
             : artistData2
     ).id;
 
+    let goldenSvg =
+        elLikeBtn.firstChild.className &&
+        elLikeBtn.firstChild.className.baseVal.includes("golden_secondary");
+
     if (
         elLikeBtn.firstChild.className &&
-        elLikeBtn.firstChild.className.baseVal === "liked_svg"
+        elLikeBtn.firstChild.className.baseVal.includes("liked_svg")
     )
         $.ajax({
             url:
@@ -1759,8 +1805,9 @@ function like(elLikeBtn, sideNum) {
             success: () => {
                 elLikeBtn.style.animation = "unlike 0.2s ease-in";
                 setTimeout(() => {
-                    elLikeBtn.innerHTML =
-                        '<svg viewBox="0 0 16 16"><path d="M1.69 2A4.582 4.582 0 018 2.023 4.583 4.583 0 0111.88.817h.002a4.618 4.618 0 013.782 3.65v.003a4.543 4.543 0 01-1.011 3.84L9.35 14.629a1.765 1.765 0 01-2.093.464 1.762 1.762 0 01-.605-.463L1.348 8.309A4.582 4.582 0 011.689 2zm3.158.252A3.082 3.082 0 002.49 7.337l.005.005L7.8 13.664a.264.264 0 00.311.069.262.262 0 00.09-.069l5.312-6.33a3.043 3.043 0 00.68-2.573 3.118 3.118 0 00-2.551-2.463 3.079 3.079 0 00-2.612.816l-.007.007a1.501 1.501 0 01-2.045 0l-.009-.008a3.082 3.082 0 00-2.121-.861z"></path></svg>';
+                    elLikeBtn.innerHTML = `<svg class="${
+                        goldenSvg ? "golden_secondary" : ""
+                    }" viewBox="0 0 16 16"><path d="M1.69 2A4.582 4.582 0 018 2.023 4.583 4.583 0 0111.88.817h.002a4.618 4.618 0 013.782 3.65v.003a4.543 4.543 0 01-1.011 3.84L9.35 14.629a1.765 1.765 0 01-2.093.464 1.762 1.762 0 01-.605-.463L1.348 8.309A4.582 4.582 0 011.689 2zm3.158.252A3.082 3.082 0 002.49 7.337l.005.005L7.8 13.664a.264.264 0 00.311.069.262.262 0 00.09-.069l5.312-6.33a3.043 3.043 0 00.68-2.573 3.118 3.118 0 00-2.551-2.463 3.079 3.079 0 00-2.612.816l-.007.007a1.501 1.501 0 01-2.045 0l-.009-.008a3.082 3.082 0 00-2.121-.861z"></path></svg>`;
                 }, 0.2 * 1000);
             },
         });
@@ -1779,20 +1826,55 @@ function like(elLikeBtn, sideNum) {
             success: () => {
                 elLikeBtn.style.animation = "like 0.1s ease-in";
                 setTimeout(() => {
-                    elLikeBtn.innerHTML =
-                        '<svg class="liked_svg" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>';
+                    elLikeBtn.innerHTML = `<svg class="liked_svg${
+                        goldenSvg ? " golden_secondary" : ""
+                    }" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>`;
                 }, 0.1 * 1000);
             },
         });
 }
 
-function updateStreak(newValue) {
+function updateStreak(type) {
     const $elStreakBar = $("#streak_bar"),
-        $elStreakNumber = $("#streak_number"),
-        streakLength = STREAK_LENGTH + (lives - NUM_LIVES);
+        $elStreakNumber = $("#streak_number");
 
-    $({ streak: (streak * 100) / streakLength }).animate(
-        { streak: (newValue * 100) / streakLength },
+    if (type === 4) {
+        $elStreakNumber.text(0);
+        const barColor = getBarColor(0);
+
+        $elStreakBar.css({
+            transform: "rotate(" + (45 + 0 * 1.8) + "deg)",
+            borderBottomColor: barColor,
+            borderRightColor: barColor,
+        });
+
+        $elStreakNumber.css("color", barColor);
+
+        return;
+    }
+
+    let curSkipProgress, newSkipProgress, newStreak;
+
+    if (type === 0) {
+        curSkipProgress = streak % STREAK_LENGTH;
+        newSkipProgress = 0;
+        newStreak = 0;
+    } else if (type === 1) {
+        curSkipProgress = streak % STREAK_LENGTH;
+        newSkipProgress = curSkipProgress + 1;
+        newStreak = streak + 1;
+    } else if (type === 2) {
+        curSkipProgress = STREAK_LENGTH;
+        newSkipProgress = 0;
+    }
+
+    if (type !== 2)
+        setTimeout(() => {
+            $elStreakNumber.text(newStreak);
+        }, STREAK_ANIMATION_DURATION * 500);
+
+    $({ progress: (curSkipProgress * 100) / STREAK_LENGTH }).animate(
+        { progress: (newSkipProgress * 100) / STREAK_LENGTH },
         {
             duration: STREAK_ANIMATION_DURATION * 1000,
             easing: "swing",
@@ -1805,18 +1887,22 @@ function updateStreak(newValue) {
                     borderRightColor: barColor,
                 });
 
-                if (s >= (newValue * 100) / streakLength / 2) {
-                    if (lives === 0) $elStreakNumber.text("");
-                    else if (newValue < streakLength)
-                        $elStreakNumber.text(streakLength - newValue);
+                if (type !== 2) {
+                    $elStreakNumber.css("color", barColor);
                 }
-
-                $elStreakNumber.css("color", barColor); // Match the color
             },
             complete: () => {
-                streak = newValue;
+                if (type !== 2) {
+                    streak = newStreak;
 
-                if (streak == streakLength) gainLife();
+                    if (streak % STREAK_LENGTH === 0 && streak > 0) {
+                        STREAK_BONUS_SFX.volume = linearVolume / 2;
+                        STREAK_BONUS_SFX.load();
+                        STREAK_BONUS_SFX.play();
+
+                        updateStreak(2);
+                    }
+                }
             },
         }
     );
@@ -1880,7 +1966,8 @@ function checkGuess(higher) {
                     document.getElementById("current_high_score");
 
             score++;
-            if (!params.hardcore && !params.zen) updateStreak(streak + 1);
+            if (golden) gainLife();
+            if (!params.hardcore && !params.zen) updateStreak(1);
 
             elCurrentScore.style.animation = "bump 0.25s linear";
             elCurrentScore.onanimationend = () => {
@@ -1930,10 +2017,9 @@ function gainLife() {
     const elLives = document.getElementById("lives");
 
     lives++;
-    updateStreak(0);
 
     elLives.innerHTML +=
-        '<svg class="life" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>';
+        '<svg class="life golden_primary" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>';
     elLives.lastChild.style.animation = "gain_life 0.3s ease-in";
     elLives.lastChild.onanimationend = () => {
         elLives.lastChild.style.animation = "initial";
@@ -2162,9 +2248,17 @@ function nextRound() {
     setTimeout(() => {
         elVs.style.display = "none";
 
+        golden = false;
         updateSide(1);
         revealPopularity(1);
-        updateSide(2);
+        golden =
+            params.golds && !params.hardcore && Math.random() < GOLDEN_CHANCE;
+        if (golden && params.playSFX) {
+            GOLD_APPEAR_SFX.volume = linearVolume / 2;
+            GOLD_APPEAR_SFX.load();
+            GOLD_APPEAR_SFX.play();
+        }
+        updateSide(2, false);
 
         if (window.matchMedia("(orientation:portrait)").matches) {
             elSlideHalves[0].style.animation =
@@ -2363,13 +2457,23 @@ function changeParams(newParams) {
     )
         newParams.query.years = "";
 
-    if (newParams.hardcore !== undefined) {
+    if (newParams.golds !== undefined) {
+        params.golds = newParams.golds;
+        delete newParams.golds;
+
+        if (params.golds) {
+            params.hardcore = false;
+            document.getElementById("hardcore").checked = false;
+        }
+    } else if (newParams.hardcore !== undefined) {
         params.hardcore = newParams.hardcore;
         delete newParams.hardcore;
 
         if (params.hardcore) {
             params.zen = false;
             document.getElementById("zen").checked = false;
+            params.golds = false;
+            document.getElementById("golden_lives").checked = false;
         }
     } else if (newParams.hidePopularity !== undefined) {
         params.hidePopularity = newParams.hidePopularity;
@@ -2525,7 +2629,7 @@ function updateParamValidity() {
         document.querySelectorAll(".hide_songs").forEach((el) => {
             el.style.display = "none";
         });
-        document.getElementById("use_search_label").textContent = "Genres";
+        document.getElementById("use_search_label").textContent = "Genre";
         document.getElementById("genres").setAttribute("multiple", "true");
         document.getElementById("genres").setAttribute("size", "8");
         if (
@@ -2673,6 +2777,7 @@ function signIn(showDialog = false) {
 function resetParams() {
     changeParams({
         ...DEFAULT_PARAMS[mode],
+        golds: params.golds,
         hardcore: params.hardcore,
         hidePopularity: params.hidePopularity,
         soundOnly: params.soundOnly,
@@ -2700,8 +2805,6 @@ async function uriSearch(clear = false) {
     elUri.oninput();
 
     if (clear || !params[mode].uriSearch.q) return;
-
-    console.log(params[mode].uriSearch.q);
 
     const elUriSearch = document.getElementById("uri_search"),
         type = mode === "songs" ? params[mode].uriSearch.type : "artist",

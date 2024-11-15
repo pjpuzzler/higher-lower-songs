@@ -291,7 +291,7 @@
                     id="use_search_label"
                     for="use_search"
                     title="Items from a Spotify search"
-                    >Genres</label
+                    >Genre</label
                 >
                 <br />
                 <div class="params_indent">
@@ -316,7 +316,7 @@
                         class="hide_albums"
                         multiple
                         size="8"
-                        onchange="changeParams({query: {...params[mode].query, genres: Array.from(this.selectedOptions).map(option => option.value)}}); if (this.selectedOptions.length > 1 && localStorage.getItem('show_genre_tutorial') !== 'false') hideGenreTutorial();"
+                        onchange="changeParams({query: {...params[mode].query, genres: Array.from(this.selectedOptions).map(option => option.value)}}); if (localStorage.getItem('show_genre_tutorial') !== 'false') hideGenreTutorial();"
                     ></select>
                     <br class="hide_albums" />
                     <div
@@ -325,8 +325,7 @@
                         style="display: none"
                     >
                         <label style="color: lime"
-                            >^ Pick your favorite genre(s) (Ctrl+Click for
-                            multiple)</label
+                            >^ Choose a genre (Ctrl+Click for multiple)</label
                         >
                         <br />
                     </div>
@@ -339,13 +338,13 @@
                         max="2"
                         value="1"
                         step="1"
-                        oninput="let difficulty = ['low', 'medium', 'high'][this.value]; changeParams({difficulty}); this.nextElementSibling.innerText = `Unpopular Songs (${difficulty[0].toUpperCase() + difficulty.slice(1)})`"
+                        oninput="let difficulty = ['low', 'medium', 'high'][this.value]; changeParams({difficulty}); this.nextElementSibling.innerText = `Include Unpopular Songs (${difficulty[0].toUpperCase() + difficulty.slice(1)})`"
                     />
                     <label
                         class="hide_albums hide_artists"
                         for="difficulty"
                         title="How obscure the songs can be"
-                        >Unpopular Songs (Medium)</label
+                        >Include Unpopular Songs (Medium)</label
                     >
                     <br class="hide_albums hide_artists" />
                 </div>
@@ -406,7 +405,7 @@
                         id="artist_tutorial"
                         class="hide_albums hide_artists"
                         style="color: lime; display: none"
-                        >^ Search for your favorite</label
+                        >^ Or search for your favorite artist</label
                     >
                 </div>
                 <br class="hide_albums hide_artists" />
@@ -517,12 +516,14 @@
                 <div class="checkbox_group left">
                     <span>
                         <input
-                            id="zen"
+                            id="golden_lives"
                             type="checkbox"
-                            oninput="changeParams({zen: this.checked})"
+                            oninput="changeParams({golds: this.checked})"
                         />
-                        <label for="zen" title="Unlimited lives, no high score"
-                            >Endless</label
+                        <label
+                            for="golden_lives"
+                            title="Random extra-life chances"
+                            >Golden Lives</label
                         >
                     </span>
                 </div>
@@ -565,6 +566,17 @@
                             for="sound_only"
                             title="No song, album, or artist name and no art"
                             >Blindness</label
+                        >
+                    </span>
+                    <br />
+                    <span>
+                        <input
+                            id="zen"
+                            type="checkbox"
+                            oninput="changeParams({zen: this.checked})"
+                        />
+                        <label for="zen" title="Unlimited lives, no high score"
+                            >Endless</label
                         >
                     </span>
                 </div>

@@ -341,6 +341,7 @@ label {
     font-weight: bold;
     margin-top: 2.5dvh;
     text-align: center;
+    color: #232323;
 }
 
 .popularity {
@@ -359,6 +360,34 @@ label {
 
 .guess_btn:active {
     color: #b3b3b3;
+}
+
+.golden_primary {
+    color: #fdd017 !important;
+    fill: #fdd017 !important;
+}
+
+.golden_secondary {
+    color: #bf9b30 !important;
+    fill: #bf9b30 !important;
+}
+
+.golden_secondary.liked_svg {
+    fill: #fdd017 !important;
+}
+
+.golden_secondary_background {
+    background-color: #bf9b30 !important;
+}
+
+.golden_secondary:hover {
+    color: #fdd017 !important;
+    fill: #fdd017 !important;
+}
+
+.golden_secondary:not(svg):active {
+    color: #bf9b30 !important;
+    fill: #bf9b30 !important;
 }
 
 .album_art_muted {
