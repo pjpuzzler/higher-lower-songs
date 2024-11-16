@@ -1038,14 +1038,24 @@ label {
     }
     
     body.adaptive #streak_bar_overflow {
-        width: 3.5dvh;
-        height: 1.75dvh;
+        width: 4dvh;
+        height: 2dvh;
     }
     
     body.adaptive #streak_bar {
-        width: 3.5dvh;
-        height: 3.5dvh;
+        width: 4dvh;
+        height: 4dvh;
         border: 0.38dvh solid #232323;
+    }
+
+    body.adaptive #streak_number {
+        font-size: 2dvh;
+        margin-top: 1.25dvh;
+    }
+
+    body.adaptive #skip_button {
+        font-size: 2dvh;
+        padding-top: 1dvh;
     }
 
     body.adaptive #source {

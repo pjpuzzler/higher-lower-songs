@@ -259,7 +259,7 @@ if (!_token) {
         headers: {
             Authorization:
                 "Basic " +
-                window.btoa(CLIENT_ID + ":1cd7be6d11da418e9099f53ef57ca34f"),
+                window.btoa(CLIENT_ID + ":617dc851edac413997a536413a312350"),
         },
         data: "grant_type=client_credentials",
         success: (data) => {
@@ -311,7 +311,7 @@ function updateParams() {
         elDifficulty.value = ["low", "medium", "high"].indexOf(
             params[mode].difficulty
         );
-        elDifficulty.nextElementSibling.innerText = `Include Unpopular Songs (${
+        elDifficulty.nextElementSibling.innerText = `Min Popularity (${
             params[mode].difficulty[0].toUpperCase() +
             params[mode].difficulty.slice(1)
         })`;
@@ -1680,8 +1680,12 @@ function playTrack(sideNum) {
             `album_art_${sideNum === 1 ? 2 : 1}_btn`
         );
 
-    elAlbumArtBtn.style.animation =
-        "pulse var(--pulse_duration) infinite ease-in-out";
+    // const tempo = sideNum === 1 ? trackData1.tempo : trackData2.tempo;
+    const tempo = 120;
+
+    elAlbumArtBtn.style.animation = `pulse ${
+        (60 / (tempo || 120)) * 4
+    }s infinite ease-in-out`;
 
     elAlbumArtBtnOther.style.animation = "initial";
 }
@@ -2135,6 +2139,16 @@ async function getRandomTrackData() {
         } catch {
             continue;
         }
+
+        // try {
+        //     const audioFeatures = await getData(
+        //         `https://api.spotify.com/v1/audio-features/${trackData.id}`,
+        //         false
+        //     );
+        //     trackData.tempo = audioFeatures.tempo;
+        // } catch {
+        //     trackData.tempo = null;
+        // }
 
         invalidForSoundOnly =
             !trackData.preview_url ||

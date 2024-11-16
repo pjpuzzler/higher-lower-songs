@@ -271,6 +271,7 @@
             ontimeupdate="trackPlayerTimeUpdated(this.currentTime)"
             loop
         ></audio>
+        <audio id="track_player2" loop></audio>
 
         <button id="play_btn" class="valid_play_btn" onclick="play()">
             <svg id="play_btn_svg" viewBox="0 0 16 16">
@@ -337,13 +338,13 @@
                         max="2"
                         value="1"
                         step="1"
-                        oninput="let difficulty = ['low', 'medium', 'high'][this.value]; changeParams({difficulty}); this.nextElementSibling.innerText = `Include Unpopular Songs (${difficulty[0].toUpperCase() + difficulty.slice(1)})`"
+                        oninput="let difficulty = ['low', 'medium', 'high'][this.value]; changeParams({difficulty}); this.nextElementSibling.innerText = `Min Popularity (${difficulty[0].toUpperCase() + difficulty.slice(1)})`"
                     />
                     <label
                         class="hide_albums hide_artists"
                         for="difficulty"
                         title="How obscure the songs can be"
-                        >Include Unpopular Songs (Medium)</label
+                        >Min Popularity (Medium)</label
                     >
                     <br class="hide_albums hide_artists" />
                 </div>
