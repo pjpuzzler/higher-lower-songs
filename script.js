@@ -120,23 +120,21 @@ const load = async () => {
 
             popularGenres.sort((a, b) => b.popularity - a.popularity);
 
-            const elGenres = document.getElementById("genres");
-            // elGenres.innerHTML = "<option selected>Select Genres</option>";
+            const elGenre = document.getElementById("genre");
+            elGenre.innerHTML = "<option selected></option>";
             popularGenres.forEach(({ genre }) =>
-                elGenres.add(new Option(formatGenre(genre), genre))
+                elGenre.add(new Option(formatGenre(genre), genre))
             );
             const separator = document.createElement("optgroup");
             separator.label = "---------";
             separator.disabled = true; // Make it unclickable
-            elGenres.appendChild(separator);
+            elGenre.appendChild(separator);
             otherGenres.forEach((genre) =>
-                elGenres.add(new Option(formatGenre(genre), genre))
+                elGenre.add(new Option(formatGenre(genre), genre))
             );
 
-            if (mode !== "albums")
-                params[mode].query.genres = params[mode].query.genres.filter(
-                    (genre) => values[0].genres.includes(genre)
-                );
+            if (!values[0].genres.includes(params[mode].query.genre))
+                params[mode].query.genre = DEFAULT_PARAMS[mode].query.genre;
 
             document.getElementById("use_featured_playlist_label").innerText =
                 values[1].message;
@@ -216,7 +214,6 @@ const load = async () => {
     setVolume(Number(localStorage.getItem("volume") ?? DEFAULT_VOLUME));
 
     document.getElementById("mute_explicit").checked = params.muteExplicit;
-    document.getElementById("golden_lives").checked = params.golds;
     document.getElementById("hardcore").checked = params.hardcore;
     document.getElementById("sound_only").checked = params.soundOnly;
     document.getElementById("zen").checked = params.zen;
@@ -262,7 +259,7 @@ if (!_token) {
         headers: {
             Authorization:
                 "Basic " +
-                window.btoa(CLIENT_ID + ":87aef7fc43eb45318aae46026dd3012f"),
+                window.btoa(CLIENT_ID + ":1cd7be6d11da418e9099f53ef57ca34f"),
         },
         data: "grant_type=client_credentials",
         success: (data) => {
@@ -295,6 +292,7 @@ let params,
     highScores,
     lives,
     golden = false,
+    hasSkip = false,
     streak = 0,
     fading = false,
     score = 0,
@@ -319,12 +317,7 @@ function updateParams() {
         })`;
     }
     if (mode !== "albums")
-        Array.from(document.getElementById("genres").options).forEach(
-            (option) =>
-                (option.selected = params[mode].query.genres.includes(
-                    option.value
-                ))
-        );
+        document.getElementById("genre").value = params[mode].query.genre;
     document.getElementById("user_playlist").value =
         params[mode].userPlaylistId ?? "";
     document.getElementById("featured_playlist").value =
@@ -384,7 +377,6 @@ function updateParams() {
 
     document.getElementById("play_sfx").checked = params.playSFX;
     document.getElementById("mute_explicit").checked = params.muteExplicit;
-    document.getElementById("golden_lives").checked = params.golds;
     document.getElementById("hardcore").checked = params.hardcore;
     document.getElementById("hide_popularity").checked = params.hidePopularity;
     document.getElementById("sound_only").checked = params.soundOnly;
@@ -441,9 +433,9 @@ function getArtistMarqueeLinearGradient(hsl, to) {
 }
 
 function getQueryString(query) {
-    if (mode === "songs") return query.genres.join(" ");
+    if (mode === "songs") return query.genre;
     if (mode === "albums") return `year:${query.years}`;
-    if (mode === "artists") return `genre:${query.genres[0]}`;
+    if (mode === "artists") return `genre:${query.genre}`;
 }
 
 function trackPlayerTimeUpdated(currentTime) {
@@ -566,6 +558,7 @@ async function play() {
 
     lives = params.hardcore ? 1 : NUM_LIVES;
     streak = 0;
+    hasSkip = false;
     const lifeClassStr = params.hardcore ? "life hardcore" : "life";
     document.getElementById("lives").innerHTML =
         `<svg class="${lifeClassStr}" viewBox="0 0 16 16"><path d="M15.724 4.22A4.313 4.313 0 0012.192.814a4.269 4.269 0 00-3.622 1.13.837.837 0 01-1.14 0 4.272 4.272 0 00-6.21 5.855l5.916 7.05a1.128 1.128 0 001.727 0l5.916-7.05a4.228 4.228 0 00.945-3.577z"></path></svg>`.repeat(
@@ -603,7 +596,7 @@ async function play() {
     golden = false;
     updateSide(1);
     revealPopularity(1, true);
-    golden = params.golds && !params.hardcore && Math.random() < GOLDEN_CHANCE;
+    golden = !params.hardcore && !params.zen && Math.random() < GOLDEN_CHANCE;
     if (golden && params.playSFX) {
         GOLD_APPEAR_SFX.volume = linearVolume / 2;
         GOLD_APPEAR_SFX.load();
@@ -699,7 +692,7 @@ async function loadUrls() {
             case "top": {
                 const maxOffset = (
                     await getData(
-                        `https://api.spotify.com/v1/me/top/tracks?limit=1`,
+                        `https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=1`,
                         false
                     )
                 ).total;
@@ -719,7 +712,7 @@ async function loadUrls() {
 
                 for (let offset = 0; offset < maxOffset; offset++)
                     urlsLeft.push(
-                        `https://api.spotify.com/v1/me/top/tracks?limit=1&offset=${offset}`
+                        `https://api.spotify.com/v1/me/top/tracks?time_range=short_term&limit=1&offset=${offset}`
                     );
                 break;
             }
@@ -813,17 +806,13 @@ async function loadUrls() {
                 break;
             }
             case "search": {
-                const averageGenrePopularity =
-                        params[mode].query.genres.reduce((sum, genre) => {
-                            const genrePopularity =
-                                GENRE_DIFFICULTY_POPULARITIES[genre][
-                                    params[mode].difficulty
-                                ];
-                            return sum + genrePopularity;
-                        }, 0) / params[mode].query.genres.length,
+                const genrePopularity =
+                        GENRE_DIFFICULTY_POPULARITIES[params[mode].query.genre][
+                            params[mode].difficulty
+                        ],
                     minPopularity = Math.min(
                         100 - MIN_POPULARITY_RANGE,
-                        Math.ceil(averageGenrePopularity)
+                        Math.ceil(genrePopularity)
                     ),
                     // maxPopularity =
                     //     params[mode].difficulty === "high"
@@ -849,46 +838,32 @@ async function loadUrls() {
                         getQueryString(params[mode].query)
                     );
 
-                const initialRecommendations = await Promise.all(
-                    params[mode].query.genres.map((genre) =>
-                        getData(
-                            `https://api.spotify.com/v1/recommendations?limit=100&market=US&seed_genres=${genre}&min_popularity=${Math.min(
-                                100 - MIN_POPULARITY_RANGE,
-                                GENRE_DIFFICULTY_POPULARITIES[genre][
-                                    params[mode].difficulty
-                                ]
-                            )}`,
-                            false
-                        )
-                    )
+                const initialRecommendations = await getData(
+                    `https://api.spotify.com/v1/recommendations?limit=100&market=US&seed_genres=${params[mode].query.genre}&min_popularity=${minPopularity}`,
+                    false
                 );
 
                 const seedTracks = [];
-                initialRecommendations.forEach((recommendation) => {
-                    const tracks = recommendation.tracks;
-                    const genreTracks = [];
-                    const usedIndices = new Set();
+                const tracks = initialRecommendations.tracks;
+                const usedIndices = new Set();
 
-                    while (
-                        genreTracks.length <
-                            (params[mode].query.genres.length > 1 ? 1 : 3) &&
-                        usedIndices.size < tracks.length
-                    ) {
-                        const randomIndex = Math.floor(
-                            Math.random() * tracks.length
-                        );
-                        if (!usedIndices.has(randomIndex)) {
-                            genreTracks.push(tracks[randomIndex]);
-                            usedIndices.add(randomIndex);
-                        }
+                while (
+                    seedTracks.length < 3 &&
+                    usedIndices.size < tracks.length
+                ) {
+                    const randomIndex = Math.floor(
+                        Math.random() * tracks.length
+                    );
+                    if (!usedIndices.has(randomIndex)) {
+                        seedTracks.push(tracks[randomIndex]);
+                        usedIndices.add(randomIndex);
                     }
-                    seedTracks.push(...genreTracks);
-                });
+                }
 
                 const trackRecommendationData = await getData(
-                        `https://api.spotify.com/v1/recommendations?limit=100&market=US&seed_genres=${params[
-                            mode
-                        ].query.genres.join("%2C")}&seed_tracks=${seedTracks
+                        `https://api.spotify.com/v1/recommendations?limit=100&market=US&seed_genres=${
+                            params[mode].query.genre
+                        }&seed_tracks=${seedTracks
                             .map((track) => track.id)
                             .join("%2C")}&min_popularity=${minPopularity}`,
                         false
@@ -896,34 +871,16 @@ async function loadUrls() {
                     lastOffset = trackRecommendationData.tracks.length;
 
                 let genreData = null;
-                let foundGenreIdx = -1;
-                for (let i = 0; i < params[mode].query.genres.length; i++) {
-                    try {
-                        genreData = await getData(
-                            `https://api.spotify.com/v1/browse/categories/${params[
-                                mode
-                            ].query.genres[i].replace(/-/g, "")}?locale=en_US`
-                        );
-                        foundGenreIdx = i;
-                        break;
-                    } catch {
-                        continue;
-                    }
-                }
+                try {
+                    genreData = await getData(
+                        `https://api.spotify.com/v1/browse/categories/${params[
+                            mode
+                        ].query.genre.replace(/-/g, "")}?locale=en_US`
+                    );
+                } catch {}
 
                 const elSourceImg = document.getElementById("source_img");
-                let sourceGenres;
                 if (genreData != null) {
-                    const foundGenre = params[mode].query.genres[foundGenreIdx];
-                    sourceGenres = [
-                        foundGenre,
-                        ...params[mode].query.genres.filter(
-                            (genre) => genre !== foundGenre
-                        ),
-                    ]
-                        .map((genre) => formatGenre(genre))
-                        .join(", ");
-
                     document.getElementById("source_img_search").style.display =
                         "none";
                     elSourceImg.style.display = "initial";
@@ -931,9 +888,6 @@ async function loadUrls() {
                     document.getElementById("source").href =
                         "https://open.spotify.com/genre/" + genreData.id;
                 } else {
-                    sourceGenres = params[mode].query.genres
-                        .map((genre) => formatGenre(genre))
-                        .join(", ");
                     document.getElementById("source_img").style.display =
                         "none";
                     document.getElementById("source_img_search").style.display =
@@ -946,7 +900,9 @@ async function loadUrls() {
 
                 document.getElementById(
                     "source_text"
-                ).innerText = `${sourceGenres} (${lastOffset})`;
+                ).innerText = `${formatGenre(
+                    params[mode].query.genre
+                )} (${lastOffset})`;
 
                 for (let i = 0; i < trackRecommendationData.tracks.length; i++)
                     urlsLeft.push(
@@ -1090,7 +1046,7 @@ async function loadUrls() {
             case "top": {
                 const maxOffset = (
                     await getData(
-                        `https://api.spotify.com/v1/me/top/artists?limit=1`,
+                        `https://api.spotify.com/v1/me/top/artists?time_range=long_term&limit=1`,
                         false
                     )
                 ).total;
@@ -1110,7 +1066,7 @@ async function loadUrls() {
 
                 for (let offset = 0; offset < maxOffset; offset++)
                     urlsLeft.push(
-                        `https://api.spotify.com/v1/me/top/artists?limit=1&offset=${offset}`
+                        `https://api.spotify.com/v1/me/top/artists?time_range=long_term&limit=1&offset=${offset}`
                     );
                 break;
             }
@@ -1131,7 +1087,7 @@ async function loadUrls() {
                     const genreData = await getData(
                         `https://api.spotify.com/v1/browse/categories/${params[
                             mode
-                        ].query.genres[0].replace(/-/g, "")}?locale=en_US`
+                        ].query.genre.replace(/-/g, "")}?locale=en_US`
                     );
 
                     document.getElementById("source_img_search").style.display =
@@ -1151,7 +1107,7 @@ async function loadUrls() {
                 document.getElementById(
                     "source_text"
                 ).innerText = `${formatGenre(
-                    params[mode].query.genres[0]
+                    params[mode].query.genre
                 )} (${lastOffset})`;
 
                 for (let offset = 0; offset < lastOffset; offset++)
@@ -1834,12 +1790,14 @@ function like(elLikeBtn, sideNum) {
         });
 }
 
+function skip() {}
+
 function updateStreak(type) {
     const $elStreakBar = $("#streak_bar"),
         $elStreakNumber = $("#streak_number");
 
     if (type === 4) {
-        $elStreakNumber.text(0);
+        $elStreakNumber.text(STREAK_LENGTH);
         const barColor = getBarColor(0);
 
         $elStreakBar.css({
@@ -1870,7 +1828,7 @@ function updateStreak(type) {
 
     if (type !== 2)
         setTimeout(() => {
-            $elStreakNumber.text(newStreak);
+            $elStreakNumber.text(STREAK_LENGTH - (newStreak % STREAK_LENGTH));
         }, STREAK_ANIMATION_DURATION * 500);
 
     $({ progress: (curSkipProgress * 100) / STREAK_LENGTH }).animate(
@@ -1887,18 +1845,23 @@ function updateStreak(type) {
                     borderRightColor: barColor,
                 });
 
-                if (type !== 2) {
-                    $elStreakNumber.css("color", barColor);
-                }
+                $elStreakNumber.css("color", barColor);
             },
             complete: () => {
                 if (type !== 2) {
                     streak = newStreak;
 
                     if (streak % STREAK_LENGTH === 0 && streak > 0) {
-                        STREAK_BONUS_SFX.volume = linearVolume / 2;
+                        STREAK_BONUS_SFX.volume = linearVolume / 1.3;
                         STREAK_BONUS_SFX.load();
                         STREAK_BONUS_SFX.play();
+
+                        hasSkip = true;
+                        document.getElementById(
+                            "streak_progress"
+                        ).style.display = "none";
+                        document.getElementById("skip_button").style.display =
+                            "flex";
 
                         updateStreak(2);
                     }
@@ -1924,11 +1887,18 @@ function checkGuess(higher) {
                 : artistData2
         ).popularity;
 
-    const correct = higher
-        ? popularity2 >= popularity1
-        : popularity2 <= popularity1;
+    const skip = higher === null,
+        correct = higher
+            ? popularity2 >= popularity1
+            : popularity2 <= popularity1;
 
-    revealPopularity(2, true, correct);
+    if (skip) {
+        hasSkip = false;
+        document.getElementById("skip_button").style.display = "none";
+        document.getElementById("streak_progress").style.display = "flex";
+    }
+
+    revealPopularity(2, true, skip ? false : correct);
 
     let checkPromises = [
         new Promise((resolve) =>
@@ -1941,7 +1911,7 @@ function checkGuess(higher) {
         ),
     ];
 
-    if (params.zen || correct || lives > 1)
+    if (params.zen || skip || correct || lives > 1)
         checkPromises.push(
             new Promise(async (resolve, reject) => {
                 try {
@@ -1960,6 +1930,14 @@ function checkGuess(higher) {
         );
 
     Promise.allSettled(checkPromises).then((results) => {
+        if (skip) {
+            if (results[1].status === "rejected") {
+                document.getElementById("skip_button").style.display = "none";
+                setTimeout(noMoreItems, 0.25 * 1000);
+            } else nextRound();
+            return;
+        }
+
         if (correct) {
             const elCurrentScore = document.getElementById("current_score"),
                 elCurrentHighScore =
@@ -1967,7 +1945,7 @@ function checkGuess(higher) {
 
             score++;
             if (golden) gainLife();
-            if (!params.hardcore && !params.zen) updateStreak(1);
+            if (!params.hardcore && !params.zen && !hasSkip) updateStreak(1);
 
             elCurrentScore.style.animation = "bump 0.25s linear";
             elCurrentScore.onanimationend = () => {
@@ -1997,7 +1975,7 @@ function checkGuess(higher) {
             }
         } else {
             loseLife();
-            if (!params.zen) updateStreak(0);
+            if (!params.zen && !hasSkip) updateStreak(0);
         }
 
         if (!lives) gameOver();
@@ -2031,11 +2009,11 @@ function loseLife() {
 
     if (params.playSFX) {
         if (lives > 0) {
-            LOST_LIFE_SFX.volume = linearVolume / 2;
+            LOST_LIFE_SFX.volume = linearVolume / 2.5;
             LOST_LIFE_SFX.load();
             LOST_LIFE_SFX.play();
         } else {
-            GAME_OVER_SFX.volume = linearVolume / 2;
+            GAME_OVER_SFX.volume = linearVolume;
             GAME_OVER_SFX.load();
             GAME_OVER_SFX.play();
         }
@@ -2051,6 +2029,7 @@ function loseLife() {
                 elLives.style.display = "none";
                 document.getElementById("streak_progress").style.display =
                     "none";
+                document.getElementById("skip_button").style.display = "none";
             }
         };
     }
@@ -2073,6 +2052,8 @@ function revealPopularity(
     const $elPopularity = $(`#${sideNum === 1 ? "left" : "right"}_popularity`),
         $elBar = $(`#${sideNum === 1 ? "left" : "right"}_bar`),
         onRevealComplete = () => {
+            GOLD_APPEAR_SFX.pause();
+            GOLD_APPEAR_SFX.currentTime = 0;
             if (correct) {
                 if (params.playSFX) {
                     CORRECT_SFX.volume = linearVolume / 2;
@@ -2252,7 +2233,7 @@ function nextRound() {
         updateSide(1);
         revealPopularity(1);
         golden =
-            params.golds && !params.hardcore && Math.random() < GOLDEN_CHANCE;
+            !params.hardcore && !params.zen && Math.random() < GOLDEN_CHANCE;
         if (golden && params.playSFX) {
             GOLD_APPEAR_SFX.volume = linearVolume / 2;
             GOLD_APPEAR_SFX.load();
@@ -2345,6 +2326,7 @@ function restart() {
         document.getElementById("source").style.display =
         document.getElementById("top_info_container").style.display =
         document.getElementById("streak_progress").style.display =
+        document.getElementById("skip_button").style.display =
         document.getElementById("user_action").style.display =
         document.getElementById("play_btn").style.display =
         document.getElementById("params").style.display =
@@ -2457,23 +2439,13 @@ function changeParams(newParams) {
     )
         newParams.query.years = "";
 
-    if (newParams.golds !== undefined) {
-        params.golds = newParams.golds;
-        delete newParams.golds;
-
-        if (params.golds) {
-            params.hardcore = false;
-            document.getElementById("hardcore").checked = false;
-        }
-    } else if (newParams.hardcore !== undefined) {
+    if (newParams.hardcore !== undefined) {
         params.hardcore = newParams.hardcore;
         delete newParams.hardcore;
 
         if (params.hardcore) {
             params.zen = false;
             document.getElementById("zen").checked = false;
-            params.golds = false;
-            document.getElementById("golden_lives").checked = false;
         }
     } else if (newParams.hidePopularity !== undefined) {
         params.hidePopularity = newParams.hidePopularity;
@@ -2530,7 +2502,7 @@ function updatePlayValidity(forceDisable = false) {
             (params[mode].use === "search" &&
                 (mode === "albums"
                     ? params[mode].query.years
-                    : params[mode].query.genres.length > 0)) ||
+                    : params[mode].query.genre !== "")) ||
             (params[mode].use === "uri" &&
                 (mode === "songs"
                     ? ALBUM_ARTIST_PLAYLIST_URI_REGEX
@@ -2630,8 +2602,6 @@ function updateParamValidity() {
             el.style.display = "none";
         });
         document.getElementById("use_search_label").textContent = "Genre";
-        document.getElementById("genres").setAttribute("multiple", "true");
-        document.getElementById("genres").setAttribute("size", "8");
         if (
             mode === "songs" &&
             localStorage.getItem("show_genre_tutorial") !== "false"
@@ -2662,8 +2632,6 @@ function updateParamValidity() {
             el.style.display = "none";
         });
         document.getElementById("use_search_label").textContent = "Genre";
-        document.getElementById("genres").removeAttribute("multiple");
-        document.getElementById("genres").removeAttribute("size");
 
         // if (
         //     params[mode].use === "user_playlist" ||
@@ -2777,7 +2745,6 @@ function signIn(showDialog = false) {
 function resetParams() {
     changeParams({
         ...DEFAULT_PARAMS[mode],
-        golds: params.golds,
         hardcore: params.hardcore,
         hidePopularity: params.hidePopularity,
         soundOnly: params.soundOnly,

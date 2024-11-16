@@ -344,6 +344,22 @@ label {
     color: #232323;
 }
 
+#skip_button {
+    display: none;
+    color: #b3b3b3;
+    font-size: 4dvh;
+    cursor: pointer;
+    padding-top: 1dvh;
+}
+
+#skip_button:hover {
+    color: #fff;
+}
+
+#skip_button:active {
+    color: #b3b3b3;
+}
+
 .popularity {
     color: #fff;
 }

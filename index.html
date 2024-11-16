@@ -215,6 +215,7 @@
                 </div>
                 <h6 id="streak_number">7</h6>
             </div>
+            <button id="skip_button" onclick="checkGuess(null)">Skip</button>
         </div>
 
         <div id="user_info">
@@ -312,11 +313,9 @@
                     />
                     <br class="hide_songs hide_artists" />
                     <select
-                        id="genres"
+                        id="genre"
                         class="hide_albums"
-                        multiple
-                        size="8"
-                        onchange="changeParams({query: {...params[mode].query, genres: Array.from(this.selectedOptions).map(option => option.value)}}); if (localStorage.getItem('show_genre_tutorial') !== 'false') hideGenreTutorial();"
+                        onchange="changeParams({query: {...params[mode].query, genre: this.value}}); hideGenreTutorial()"
                     ></select>
                     <br class="hide_albums" />
                     <div
@@ -516,22 +515,6 @@
                 <div class="checkbox_group left">
                     <span>
                         <input
-                            id="golden_lives"
-                            type="checkbox"
-                            oninput="changeParams({golds: this.checked})"
-                        />
-                        <label
-                            for="golden_lives"
-                            title="Random extra-life chances"
-                            >Golden Lives</label
-                        >
-                    </span>
-                </div>
-
-                <!-- Group 2: Centered -->
-                <div class="checkbox_group center">
-                    <span>
-                        <input
                             id="hardcore"
                             type="checkbox"
                             oninput="changeParams({hardcore: this.checked})"
@@ -542,6 +525,20 @@
                             >Hardcore</label
                         >
                     </span>
+                    <span>
+                        <input
+                            id="zen"
+                            type="checkbox"
+                            oninput="changeParams({zen: this.checked})"
+                        />
+                        <label for="zen" title="Unlimited lives, no high score"
+                            >Endless</label
+                        >
+                    </span>
+                </div>
+
+                <!-- Group 2: Centered -->
+                <div class="checkbox_group center">
                     <!-- <br /> -->
                     <span>
                         <input
@@ -566,17 +563,6 @@
                             for="sound_only"
                             title="No song, album, or artist name and no art"
                             >Blindness</label
-                        >
-                    </span>
-                    <br />
-                    <span>
-                        <input
-                            id="zen"
-                            type="checkbox"
-                            oninput="changeParams({zen: this.checked})"
-                        />
-                        <label for="zen" title="Unlimited lives, no high score"
-                            >Endless</label
                         >
                     </span>
                 </div>
