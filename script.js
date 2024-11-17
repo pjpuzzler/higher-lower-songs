@@ -1660,7 +1660,7 @@ function clickTrack(elAlbumArtBtn, sideNum) {
 
 function playTrack(sideNum) {
     const $elTrackPlayer = $("#track_player");
-
+    fading = false;
     $elTrackPlayer.stop();
     $elTrackPlayer[0].volume = volume;
 
@@ -2308,10 +2308,6 @@ function noMoreItems() {
 }
 
 function gameOver() {
-    $("#track_player")[0].src = "";
-    document.getElementById("album_art_1_btn").style.animation =
-        document.getElementById("album_art_2_btn").style.animation = "initial";
-
     if (params.soundOnly) {
         updateSide(1, true);
         updateSide(2, true);
@@ -2324,6 +2320,9 @@ function gameOver() {
 }
 
 function showRestart() {
+    $("#track_player")[0].src = "";
+    document.getElementById("album_art_1_btn").style.animation =
+        document.getElementById("album_art_2_btn").style.animation = "initial";
     document.getElementById("vs_container").style.display = "none";
     document.getElementById("restart").style.display = "initial";
 }
