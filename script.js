@@ -1469,7 +1469,7 @@ function updateSide(sideNum, reveal = false) {
     elAlbumArt.src = "";
     if (reveal || !params.soundOnly) {
         elAlbumArt.style.visibility = "visible";
-        elAlbumArtBtn.style.border = golden ? "0.25dvh solid #fdd017" : "none";
+        elAlbumArtBtn.style.border = "none";
         elAlbumArt.src = albumArtUrl;
     } else {
         elAlbumArt.style.visibility = "hidden";
@@ -1477,6 +1477,9 @@ function updateSide(sideNum, reveal = false) {
             golden ? "#fdd017" : "#fff"
         }`;
     }
+
+    if (golden) elAlbumArtBtn.classList.add("golden_art");
+    else elAlbumArtBtn.classList.remove("golden_art");
 
     const elTrackTitle = document.getElementById(`track_title_${sideNum}`);
 
@@ -1679,13 +1682,7 @@ function playTrack(sideNum) {
         elAlbumArtBtnOther = document.getElementById(
             `album_art_${sideNum === 1 ? 2 : 1}_btn`
         );
-
-    // const tempo = sideNum === 1 ? trackData1.tempo : trackData2.tempo;
-    const tempo = 120;
-
-    elAlbumArtBtn.style.animation = `pulse ${
-        (60 / (tempo || 120)) * 4
-    }s infinite ease-in-out`;
+    elAlbumArtBtn.style.animation = `pulse var(--pulse_duration) infinite ease-in-out`;
 
     elAlbumArtBtnOther.style.animation = "initial";
 }

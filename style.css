@@ -166,6 +166,26 @@ label {
 
 .album_art_btn {
     overflow: hidden;
+    position: relative;
+}
+
+.golden_art::before {
+    content: '';
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(
+        -45deg,
+        transparent 40%,
+        rgba(253, 208, 23, 0.20) 43%,
+        rgba(253, 208, 23, 0.40) 50%,
+        rgba(253, 208, 23, 0.20) 57%,
+        transparent 60%
+    );
+    background-size: 300%;
+    background-position-x: 150%;
+    animation: shimmer 2.5s infinite linear;
+    pointer-events: none;
 }
 
 .album_art_album {
@@ -1272,6 +1292,12 @@ label {
 @keyframes lose_life {
     100% {
         transform: scale(0);
+    }
+}
+
+@keyframes shimmer {
+    to {
+        background-position-x: 0%
     }
 }
 
