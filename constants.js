@@ -54,7 +54,7 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
             // maxSearchResults: 500,
             difficulty: null,
             query: {
-                years: `${CURR_YEAR - 10}-${CURR_YEAR}`,
+                years: `${CURR_YEAR - 5}-${CURR_YEAR}`,
             },
             use: "search",
             uri: "",
