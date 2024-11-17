@@ -295,6 +295,7 @@ let params,
     hasSkip = false,
     streak = 0,
     fading = false,
+    ending = false,
     score = 0,
     mode,
     marqueeTimesoutIds = [null, null, null, null, null, null],
@@ -459,7 +460,7 @@ function fadeOut() {
         (SAMPLE_DURATION - $elTrackPlayer[0].currentTime) * 1000,
         () => {
             fading = false;
-            $elTrackPlayer[0].volume = volume;
+            if (!ending) $elTrackPlayer[0].volume = volume;
         }
     );
 }
@@ -1660,7 +1661,7 @@ function clickTrack(elAlbumArtBtn, sideNum) {
 function playTrack(sideNum) {
     const $elTrackPlayer = $("#track_player");
 
-    // $elTrackPlayer.stop();
+    $elTrackPlayer.stop();
     $elTrackPlayer[0].volume = volume;
 
     $elTrackPlayer[0].src =
@@ -1898,6 +1899,18 @@ function checkGuess(higher) {
         document.getElementById("skip_button").style.display = "none";
         document.getElementById("streak_progress").style.display = "flex";
     }
+
+    const $elTrackPlayer = $("#track_player");
+    ending = true;
+    $elTrackPlayer.animate(
+        { volume: 0 },
+        ((params.hidePopularity ? 0 : POPULARITY_ANIMATION_DURATION) +
+            SHOW_POPULARITY_DURATION) *
+            1000,
+        () => {
+            ending = false;
+        }
+    );
 
     revealPopularity(2, true, skip ? false : correct);
 
@@ -2295,6 +2308,10 @@ function noMoreItems() {
 }
 
 function gameOver() {
+    $("#track_player")[0].src = "";
+    document.getElementById("album_art_1_btn").style.animation =
+        document.getElementById("album_art_2_btn").style.animation = "initial";
+
     if (params.soundOnly) {
         updateSide(1, true);
         updateSide(2, true);
