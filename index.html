@@ -326,6 +326,10 @@
                     >
                         <label style="color: lime">^ Choose a genre</label>
                         <br />
+                        <label style="color: lime"
+                            >v Set to 'Low' to include more obscure songs, or
+                            'High' for only the hits</label
+                        >
                     </div>
 
                     <input
@@ -336,13 +340,13 @@
                         max="2"
                         value="1"
                         step="1"
-                        oninput="let difficulty = ['low', 'medium', 'high'][this.value]; changeParams({difficulty}); this.nextElementSibling.innerText = `Min Popularity (${difficulty[0].toUpperCase() + difficulty.slice(1)})`"
+                        oninput="let difficulty = ['low', 'medium', 'high'][this.value]; changeParams({difficulty}); this.nextElementSibling.innerText = `Challenge (${difficulty[0].toUpperCase() + difficulty.slice(1)})`"
                     />
                     <label
                         class="hide_albums hide_artists"
                         for="difficulty"
                         title="How obscure the songs can be"
-                        >Min Popularity (Medium)</label
+                        >Challenge (Medium)</label
                     >
                     <br class="hide_albums hide_artists" />
                 </div>

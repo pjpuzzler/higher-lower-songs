@@ -312,7 +312,7 @@ function updateParams() {
         elDifficulty.value = ["low", "medium", "high"].indexOf(
             params[mode].difficulty
         );
-        elDifficulty.nextElementSibling.innerText = `Min Popularity (${
+        elDifficulty.nextElementSibling.innerText = `Challenge (${
             params[mode].difficulty[0].toUpperCase() +
             params[mode].difficulty.slice(1)
         })`;
