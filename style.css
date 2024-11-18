@@ -886,7 +886,7 @@ label {
 }
 
 #use_featured_playlist_label {
-    font-style: italic;
+    /* font-style: italic; */
 }
 
 @media screen and (orientation:portrait) {
