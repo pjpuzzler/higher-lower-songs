@@ -259,7 +259,7 @@ if (!_token) {
         headers: {
             Authorization:
                 "Basic " +
-                window.btoa(CLIENT_ID + ":617dc851edac413997a536413a312350"),
+                window.btoa(CLIENT_ID + ":b70cb856044a46388dbacd8c753dd232"),
         },
         data: "grant_type=client_credentials",
         success: (data) => {
