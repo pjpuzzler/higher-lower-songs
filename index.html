@@ -225,10 +225,7 @@
             <a id="user_action"></a>
             <br />
             <h4 id="sign_in_tutorial" style="display: none">
-                <i
-                    >(More audio previews, play using your library, like/unlike
-                    songs)</i
-                >
+                <i>(Play using your library, like & unlike songs)</i>
             </h4>
         </div>
 
@@ -293,38 +290,39 @@
                     id="use_search_label"
                     for="use_search"
                     title="Items from a Spotify search"
-                    >Genre</label
+                    >Search</label
                 >
                 <br />
                 <div class="params_indent">
-                    <input
-                        id="from_year"
-                        type="number"
-                        class="hide_songs hide_artists"
-                        min="1000"
-                        oninput="changeParams({query: {...params[mode].query, years: `${this.value}-${document.getElementById('to_year').value}`}}); if (this.value !== '') document.getElementById('to_year').min = this.value"
-                    />
-                    <label class="hide_songs hide_artists">-</label>
-                    <input
-                        id="to_year"
-                        type="number"
-                        class="hide_songs hide_artists"
-                        min="1000"
-                        oninput="changeParams({query: {...params[mode].query, years: `${document.getElementById('from_year').value}-${this.value}`}}); if (this.value !== '') document.getElementById('from_year').max = this.value"
-                    />
-                    <br class="hide_songs hide_artists" />
                     <select
                         id="genre"
                         class="hide_albums"
                         onchange="changeParams({query: {...params[mode].query, genre: this.value}}); hideGenreTutorial()"
                     ></select>
+                    <label
+                        class="hide_albums"
+                        for="genre"
+                        title="Genre to search"
+                        >Genre</label
+                    >
                     <br class="hide_albums" />
+
+                    <input
+                        id="year"
+                        type="text"
+                        oninput="changeParams({query: {...params[mode].query, year: this.value}})"
+                    />
+                    <label for="year" title="Year(s) to search">Years</label>
+                    <br />
+
                     <div
                         id="genre_tutorial"
                         class="hide_albums hide_artists"
                         style="display: none"
                     >
-                        <label style="color: lime">^ Choose a genre</label>
+                        <label style="color: lime"
+                            >^ Choose a genre and timeframe</label
+                        >
                         <br />
                         <label style="color: lime"
                             >v Set to 'Low' to include more obscure songs, or
@@ -409,34 +407,6 @@
                         style="color: lime; display: none"
                         >^ Or search for your favorite artist</label
                     >
-                </div>
-                <br class="hide_albums hide_artists" />
-                <input
-                    id="use_featured_playlist"
-                    name="use"
-                    type="radio"
-                    class="hide_albums hide_artists"
-                    onchange="changeParams({use: 'featured_playlist'})"
-                />
-                <label
-                    id="use_featured_playlist_label"
-                    for="use_featured_playlist"
-                    class="hide_albums hide_artists"
-                    title="Songs from a featured Spotify playlist"
-                ></label>
-                <br class="hide_albums hide_artists" />
-                <div class="params_indent hide_albums hide_artists">
-                    <select
-                        id="featured_playlist"
-                        onchange="changeParams({featuredPlaylistId: this.value})"
-                    ></select>
-                    <button
-                        id="featured_playlist_random"
-                        class="param_button"
-                        onclick="randomFeaturedPlaylist()"
-                    >
-                        Random
-                    </button>
                 </div>
                 <br class="hide_albums hide_artists" />
                 <input

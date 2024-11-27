@@ -29,6 +29,9 @@ window.onresize = () => {
 };
 
 const load = async () => {
+    alert(
+        "On November 27, 2024 Spotify deprecated several key API endpoints that the site relied on.\nI am hoping they will bring them back eventually, but as of now the site is down :("
+    );
     updatePlayValidity(true);
 
     mode = localStorage.getItem("mode") ?? DEFAULT_MODE;
@@ -100,116 +103,78 @@ const load = async () => {
         document.getElementById("sign_in_tutorial").style.display = null;
     }
 
-    let loadPromises = [getGenres(), getFeaturedPlaylists()];
-    if (signedIn) loadPromises.push(getUserPlaylists());
+    const popularGenres = [];
+    const otherGenres = [];
+    for (const [genre, difficulties] of Object.entries(
+        GENRE_DIFFICULTY_POPULARITIES
+    )) {
+        const popularity = difficulties.high;
+        if (popularity >= POPULAR_GENRE_MIN_POPULARITY)
+            popularGenres.push({ genre, popularity });
+        else otherGenres.push(genre);
+    }
 
-    Promise.all(loadPromises)
-        .then((values) => {
-            const popularGenres = [];
-            const otherGenres = [];
-            for (const genre of values[0].genres) {
-                if (!(genre in GENRE_DIFFICULTY_POPULARITIES)) {
-                    console.log(`New Genre: ${genre}`);
-                    continue;
-                }
-                const popularity = GENRE_DIFFICULTY_POPULARITIES[genre].high;
-                if (popularity >= POPULAR_GENRE_MIN_POPULARITY)
-                    popularGenres.push({ genre, popularity });
-                else otherGenres.push(genre);
-            }
+    popularGenres.sort((a, b) => b.popularity - a.popularity);
 
-            popularGenres.sort((a, b) => b.popularity - a.popularity);
+    const elGenre = document.getElementById("genre");
+    elGenre.innerHTML = "<option selected></option>";
+    popularGenres.forEach(({ genre }) =>
+        elGenre.add(new Option(formatGenre(genre), genre))
+    );
+    const separator = document.createElement("optgroup");
+    separator.label = "---------";
+    separator.disabled = true;
+    elGenre.appendChild(separator);
+    otherGenres.forEach((genre) =>
+        elGenre.add(new Option(formatGenre(genre), genre))
+    );
 
-            const elGenre = document.getElementById("genre");
-            elGenre.innerHTML = "<option selected></option>";
-            popularGenres.forEach(({ genre }) =>
-                elGenre.add(new Option(formatGenre(genre), genre))
-            );
-            const separator = document.createElement("optgroup");
-            separator.label = "---------";
-            separator.disabled = true; // Make it unclickable
-            elGenre.appendChild(separator);
-            otherGenres.forEach((genre) =>
-                elGenre.add(new Option(formatGenre(genre), genre))
-            );
+    document.getElementById("use_user_playlist_label").style.color = "gray";
+    document.getElementById("use_user_playlist").disabled = true;
+    document.getElementById("user_playlist").disabled = true;
+    document.getElementById("user_playlist_random").disabled = true;
 
-            if (!values[0].genres.includes(params[mode].query.genre))
-                params[mode].query.genre = DEFAULT_PARAMS[mode].query.genre;
+    if (signedIn)
+        getUserPlaylists()
+            .then((userPlaylists) => {
+                const elUserPlaylist = document.getElementById("user_playlist");
 
-            document.getElementById("use_featured_playlist_label").innerText =
-                values[1].message;
+                elUserPlaylist.innerHTML = "<option selected></option>";
 
-            const elFeaturedPlaylist =
-                document.getElementById("featured_playlist");
+                // if (userPlaylists.items.length > 0) {
+                //     document.getElementById(
+                //         "use_user_playlist_label"
+                //     ).style.color = null;
+                //     document.getElementById(
+                //         "use_user_playlist"
+                //     ).disabled = false;
+                //     document.getElementById("user_playlist").disabled = false;
+                //     document.getElementById(
+                //         "user_playlist_random"
+                //     ).disabled = false;
 
-            elFeaturedPlaylist.innerHTML = "<option selected></option>";
+                //     for (const userPlaylist of userPlaylists.items)
+                //         elUserPlaylist.add(
+                //             new Option(userPlaylist.name, userPlaylist.id)
+                //         );
+                // }
 
-            if (!values[1].playlists.items.length)
-                document.getElementById(
-                    "featured_playlist_random"
-                ).disabled = true;
-            else {
-                for (const featuredPlaylist of values[1].playlists.items) {
-                    if (featuredPlaylist)
-                        elFeaturedPlaylist.add(
-                            new Option(
-                                featuredPlaylist.name,
-                                featuredPlaylist.id
-                            )
-                        );
-                }
+                // if (
+                //     !userPlaylists.items.some(
+                //         (userPlaylist) =>
+                //             userPlaylist.id === params.songs.userPlaylistId
+                //     )
+                // )
+                //     params.songs.userPlaylistId =
+                //         DEFAULT_PARAMS.songs.userPlaylistId;
+            })
+            .catch((e) => {
+                alert(JSON.stringify(e));
+                alert("Error getting user playlists");
+            });
 
-                if (
-                    !values[1].playlists.items.some(
-                        (featuredPlaylist) =>
-                            featuredPlaylist?.id ===
-                            params[mode].featuredPlaylistId
-                    )
-                )
-                    params[mode].featuredPlaylistId =
-                        DEFAULT_PARAMS[mode].featuredPlaylistId;
-            }
-
-            const elUserPlaylist = document.getElementById("user_playlist");
-
-            elUserPlaylist.innerHTML = "<option selected></option>";
-
-            if (values.length == 2 || !values[2].items.length) {
-                document.getElementById("use_user_playlist_label").style.color =
-                    "gray";
-                document.getElementById("use_user_playlist").disabled = true;
-                document.getElementById("user_playlist").disabled = true;
-                document.getElementById("user_playlist_random").disabled = true;
-            } else {
-                document.getElementById("use_user_playlist_label").style.color =
-                    null;
-                document.getElementById("use_user_playlist").disabled = false;
-                document.getElementById("user_playlist").disabled = false;
-                document.getElementById(
-                    "user_playlist_random"
-                ).disabled = false;
-
-                for (const userPlaylist of values[2].items)
-                    elUserPlaylist.add(
-                        new Option(userPlaylist.name, userPlaylist.id)
-                    );
-
-                if (
-                    !values[2].items.some(
-                        (userPlaylist) =>
-                            userPlaylist.id === params.userPlaylistId
-                    )
-                )
-                    params.userPlaylistId = DEFAULT_PARAMS.userPlaylistId;
-            }
-
-            updateParams();
-            updatePlayValidity();
-        })
-        .catch((e) => {
-            alert(JSON.stringify(e));
-            alert("Error getting spotify data");
-        });
+    updateParams();
+    updatePlayValidity();
 
     setVolume(Number(localStorage.getItem("volume") ?? DEFAULT_VOLUME));
 
@@ -307,22 +272,20 @@ function setHighScores(data) {
 }
 
 function updateParams() {
-    if (params[mode].difficulty != null) {
+    if (mode === "songs") {
         const elDifficulty = document.getElementById("difficulty");
         elDifficulty.value = ["low", "medium", "high"].indexOf(
-            params[mode].difficulty
+            params.songs.difficulty
         );
         elDifficulty.nextElementSibling.innerText = `Challenge (${
-            params[mode].difficulty[0].toUpperCase() +
-            params[mode].difficulty.slice(1)
+            params.songs.difficulty[0].toUpperCase() +
+            params.songs.difficulty.slice(1)
         })`;
     }
     if (mode !== "albums")
         document.getElementById("genre").value = params[mode].query.genre;
     document.getElementById("user_playlist").value =
         params[mode].userPlaylistId ?? "";
-    document.getElementById("featured_playlist").value =
-        params[mode].featuredPlaylistId ?? "";
 
     const elFromYear = document.getElementById("from_year"),
         elToYear = document.getElementById("to_year");
@@ -336,7 +299,7 @@ function updateParams() {
     document.getElementById("uri_search_type").value =
         params[mode].uriSearch?.type ?? "";
 
-    const years = params[mode].query.years?.split("-") ?? ["", ""];
+    const years = params[mode].query.year?.split("-") ?? ["", ""];
 
     elFromYear.value = years[0];
     elToYear.value = years[1] ?? "";
@@ -352,9 +315,6 @@ function updateParams() {
             break;
         case "user_playlist":
             document.getElementById("use_user_playlist").checked = true;
-            break;
-        case "featured_playlist":
-            document.getElementById("use_featured_playlist").checked = true;
             break;
         case "liked":
             document.getElementById("use_liked").checked = true;
@@ -433,10 +393,11 @@ function getArtistMarqueeLinearGradient(hsl, to) {
     );
 }
 
-function getQueryString(query) {
-    if (mode === "songs") return query.genre;
-    if (mode === "albums") return `year:${query.years}`;
-    if (mode === "artists") return `genre:${query.genre}`;
+function getQueryString(q) {
+    return Object.entries(q)
+        .filter(([_, v]) => v)
+        .map(([k, v]) => `${k}:${v}`)
+        .join(" ");
 }
 
 function trackPlayerTimeUpdated(currentTime) {
@@ -481,18 +442,6 @@ function getUserPlaylists() {
     return Promise.resolve(
         $.ajax({
             url: "https://api.spotify.com/v1/me/playlists?limit=50",
-            type: "GET",
-            beforeSend: (xhr) => {
-                xhr.setRequestHeader("Authorization", "Bearer " + _token);
-            },
-        })
-    );
-}
-
-function getFeaturedPlaylists() {
-    return Promise.resolve(
-        $.ajax({
-            url: "https://api.spotify.com/v1/browse/featured-playlists?locale=en_US&limit=50",
             type: "GET",
             beforeSend: (xhr) => {
                 xhr.setRequestHeader("Authorization", "Bearer " + _token);
@@ -633,33 +582,6 @@ async function loadUrls() {
                 for (let offset = 0; offset < maxOffset; offset++)
                     urlsLeft.push(
                         `https://api.spotify.com/v1/playlists/${params[mode].userPlaylistId}/tracks?market=US&limit=1&offset=${offset}`
-                    );
-                break;
-            }
-            case "featured_playlist": {
-                const featuredPlayListData = await getData(
-                        `https://api.spotify.com/v1/playlists/${params[mode].featuredPlaylistId}?market=US`,
-                        false
-                    ),
-                    maxOffset = featuredPlayListData.tracks.total;
-
-                const elSourceImg = document.getElementById("source_img");
-
-                document.getElementById("source").href =
-                    featuredPlayListData.external_urls.spotify;
-                document.getElementById("source_img_search").style.display =
-                    "none";
-                elSourceImg.style.display = "initial";
-                elSourceImg.src = featuredPlayListData.images[0].url;
-                document.getElementById("source_text").innerText = `${
-                    featuredPlayListData.name.length >= 20
-                        ? featuredPlayListData.name.substring(0, 19) + "..."
-                        : featuredPlayListData.name
-                } (${maxOffset})`;
-
-                for (let offset = 0; offset < maxOffset; offset++)
-                    urlsLeft.push(
-                        `https://api.spotify.com/v1/playlists/${params[mode].featuredPlaylistId}/tracks?market=US&limit=1&offset=${offset}`
                     );
                 break;
             }
@@ -1006,7 +928,7 @@ async function loadUrls() {
                     "/albums";
                 document.getElementById(
                     "source_text"
-                ).innerText = `${params[mode].query.years} (${lastOffset})`;
+                ).innerText = `${queryString} (${lastOffset})`;
 
                 for (let offset = 0; offset < lastOffset; offset++)
                     urlsLeft.push(
@@ -2441,8 +2363,6 @@ function getParamKey() {
         d.identifier = getQueryString(params[mode].query);
     } else if (params[mode].use === "user_playlist")
         d.identifier = `spotify:playlist:${params[mode].userPlaylistId}`;
-    else if (params[mode].use === "featured_playlist")
-        d.identifier = `spotify:playlist:${params[mode].featuredPlaylistId}`;
     else if (params[mode].use === "uri") d.identifier = params[mode].uri;
     else d.identifier = params[mode].use;
 
@@ -2452,19 +2372,10 @@ function getParamKey() {
 function changeParams(newParams) {
     if (newParams.userPlaylistId !== undefined)
         document.getElementById("use_user_playlist").click();
-    else if (newParams.featuredPlaylistId !== undefined)
-        document.getElementById("use_featured_playlist").click();
     else if (newParams.query !== undefined)
         document.getElementById("use_search").click();
     else if (newParams.uri !== undefined)
         document.getElementById("use_uri").click();
-
-    if (
-        newParams.query &&
-        newParams.query.years &&
-        newParams.query.years === "-"
-    )
-        newParams.query.years = "";
 
     if (newParams.hardcore !== undefined) {
         params.hardcore = newParams.hardcore;
@@ -2504,26 +2415,35 @@ function changeParams(newParams) {
     updateHighScore();
 }
 
-function validYearsString(yearsString) {
-    if (!yearsString) return true;
-
-    const years = yearsString.split("-"),
-        fromYear = parseInt(years[0]),
-        toYear = parseInt(years[1]);
-
-    return 0 <= fromYear && fromYear <= toYear && toYear <= CURR_YEAR;
+function validYearString(s) {
+    if (!s) return 0;
+    if (s.length == 4) {
+        const year = parseInt(s);
+        if (1900 <= year <= CURR_YEAR) return 1;
+        return -1;
+    } else if (s.length == 9 && s[5] === "-") {
+        const years = yearsString.split("-"),
+            fromYear = parseInt(years[0]),
+            toYear = parseInt(years[1]);
+        if (
+            1900 <= fromYear <= CURR_YEAR &&
+            1900 <= toYear <= CURR_YEAR &&
+            fromYear <= toYear
+        )
+            return 2;
+        return -1;
+    } else return -1;
 }
 
 function updatePlayValidity(forceDisable = false) {
     const elPlayBtn = document.getElementById("play_btn"),
-        elAdvancedParams = document.getElementById("advanced_params");
+        elAdvancedParams = document.getElementById("advanced_params"),
+        validYear = validYearString(params[mode].query.year);
 
     if (
         !forceDisable &&
         ((params[mode].use === "user_playlist" &&
             params[mode].userPlaylistId) ||
-            (params[mode].use === "featured_playlist" &&
-                params[mode].featuredPlaylistId) ||
             params[mode].use === "liked" ||
             params[mode].use === "top" ||
             (params[mode].use === "search" &&
@@ -2628,7 +2548,6 @@ function updateParamValidity() {
         document.querySelectorAll(".hide_songs").forEach((el) => {
             el.style.display = "none";
         });
-        document.getElementById("use_search_label").textContent = "Genre";
         if (
             mode === "songs" &&
             localStorage.getItem("show_genre_tutorial") !== "false"
@@ -2646,11 +2565,8 @@ function updateParamValidity() {
             el.style.display = "none";
         });
 
-        document.getElementById("use_search_label").textContent = "Years";
-
         // if (
         //     params[mode].use === "user_playlist" ||
-        //     params[mode].use === "featured_playlist" ||
         //     params[mode].use === "top"
         // )
         //     document.getElementById("use_search").click();
@@ -2658,12 +2574,10 @@ function updateParamValidity() {
         document.querySelectorAll(".hide_artists").forEach((el) => {
             el.style.display = "none";
         });
-        document.getElementById("use_search_label").textContent = "Genre";
 
         // if (
         //     params[mode].use === "user_playlist" ||
         //     params[mode].use === "liked" ||
-        //     params[mode].use === "featured_playlist" ||
         //     params[mode].use === "uri"
         // )
         //     document.getElementById("use_search").click();
@@ -2702,17 +2616,6 @@ function randomUserPlaylist() {
         Math.random() * (elUserPlaylist.length - 1) + 1
     );
     changeParams({ userPlaylistId: elUserPlaylist.value });
-}
-
-function randomFeaturedPlaylist() {
-    const elFeaturedPlaylist = document.getElementById("featured_playlist");
-
-    if (elFeaturedPlaylist.length === 1) return;
-
-    elFeaturedPlaylist.selectedIndex = Math.floor(
-        Math.random() * (elFeaturedPlaylist.length - 1) + 1
-    );
-    changeParams({ featuredPlaylistId: elFeaturedPlaylist.value });
 }
 
 // function resetGenre() {
