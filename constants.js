@@ -36,10 +36,9 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
     DEFAULT_MODE = "songs",
     DEFAULT_PARAMS = {
         songs: {
-            difficulty: "medium",
             query: {
                 genre: "",
-                year: "",
+                year: `${CURR_YEAR - 5}-${CURR_YEAR}`,
             },
             use: "search",
             userPlaylistId: "",
@@ -51,7 +50,7 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
         },
         albums: {
             query: {
-                year: "",
+                year: `${CURR_YEAR - 5}-${CURR_YEAR}`,
             },
             use: "search",
             uri: "",
@@ -62,7 +61,7 @@ const REDIRECT_URI = "https://pjpuzzler.github.io/higher-lower-songs/",
         artists: {
             query: {
                 genre: "",
-                year: "",
+                year: `${CURR_YEAR}`,
             },
             use: "search",
         },

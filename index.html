@@ -310,9 +310,13 @@
                     <input
                         id="year"
                         type="text"
+                        maxlength="9"
+                        size="9"
                         oninput="changeParams({query: {...params[mode].query, year: this.value}})"
                     />
-                    <label for="year" title="Year(s) to search">Years</label>
+                    <label id="year_label" for="year" title="Year(s) to search"
+                        >Year or Range (hyphen-separated)</label
+                    >
                     <br />
 
                     <div
@@ -321,32 +325,9 @@
                         style="display: none"
                     >
                         <label style="color: lime"
-                            >^ Choose a genre and timeframe</label
-                        >
-                        <br />
-                        <label style="color: lime"
-                            >v Set to 'Low' to include more obscure songs, or
-                            'High' for only the hits</label
+                            >^ Choose a genre and year</label
                         >
                     </div>
-
-                    <input
-                        id="difficulty"
-                        type="range"
-                        class="hide_albums hide_artists"
-                        min="0"
-                        max="2"
-                        value="1"
-                        step="1"
-                        oninput="let difficulty = ['low', 'medium', 'high'][this.value]; changeParams({difficulty}); this.nextElementSibling.innerText = `Challenge (${difficulty[0].toUpperCase() + difficulty.slice(1)})`"
-                    />
-                    <label
-                        class="hide_albums hide_artists"
-                        for="difficulty"
-                        title="How obscure the songs can be"
-                        >Challenge (Medium)</label
-                    >
-                    <br class="hide_albums hide_artists" />
                 </div>
                 <br class="hide_artists" />
                 <input

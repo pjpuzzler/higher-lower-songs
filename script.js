@@ -272,25 +272,12 @@ function setHighScores(data) {
 }
 
 function updateParams() {
-    if (mode === "songs") {
-        const elDifficulty = document.getElementById("difficulty");
-        elDifficulty.value = ["low", "medium", "high"].indexOf(
-            params.songs.difficulty
-        );
-        elDifficulty.nextElementSibling.innerText = `Challenge (${
-            params.songs.difficulty[0].toUpperCase() +
-            params.songs.difficulty.slice(1)
-        })`;
-    }
     if (mode !== "albums")
         document.getElementById("genre").value = params[mode].query.genre;
     document.getElementById("user_playlist").value =
         params[mode].userPlaylistId ?? "";
 
-    const elFromYear = document.getElementById("from_year"),
-        elToYear = document.getElementById("to_year");
-
-    elToYear.max = CURR_YEAR;
+    const elYear = document.getElementById("year");
 
     document.getElementById("uri").value = params[mode].uri ?? "";
 
@@ -299,12 +286,7 @@ function updateParams() {
     document.getElementById("uri_search_type").value =
         params[mode].uriSearch?.type ?? "";
 
-    const years = params[mode].query.year?.split("-") ?? ["", ""];
-
-    elFromYear.value = years[0];
-    elToYear.value = years[1] ?? "";
-    elFromYear.max = elToYear.value;
-    elToYear.min = elFromYear.value;
+    elYear.value = params[mode].query.year;
 
     switch (params[mode].use) {
         case "search":
@@ -729,107 +711,53 @@ async function loadUrls() {
                 break;
             }
             case "search": {
-                const genrePopularity =
-                        GENRE_DIFFICULTY_POPULARITIES[params[mode].query.genre][
-                            params[mode].difficulty
-                        ],
-                    minPopularity = Math.min(
-                        100 - MIN_POPULARITY_RANGE,
-                        Math.ceil(genrePopularity)
-                    ),
-                    // maxPopularity =
-                    //     params[mode].difficulty === "high"
-                    //         ? 100
-                    //         : params[mode].difficulty === "medium"
-                    //         ? Math.max(
-                    //               GENRE_DIFFICULTY_POPULARITIES[
-                    //                   params[mode].query.genre
-                    //               ]["medium"] + MIN_POPULARITY_RANGE,
-                    //               GENRE_DIFFICULTY_POPULARITIES[
-                    //                   params[mode].query.genre
-                    //               ]["high"]
-                    //           )
-                    //         : Math.max(
-                    //               GENRE_DIFFICULTY_POPULARITIES[
-                    //                   params[mode].query.genre
-                    //               ]["low"] + MIN_POPULARITY_RANGE,
-                    //               GENRE_DIFFICULTY_POPULARITIES[
-                    //                   params[mode].query.genre
-                    //               ]["medium"]
-                    //           ),
-                    queryString = encodeURIComponent(
+                const queryString = encodeURIComponent(
                         getQueryString(params[mode].query)
-                    );
-
-                const initialRecommendations = await getData(
-                    `https://api.spotify.com/v1/recommendations?limit=100&market=US&seed_genres=${params[mode].query.genre}&min_popularity=${minPopularity}`,
-                    false
-                );
-
-                const seedTracks = [];
-                const tracks = initialRecommendations.tracks;
-                const usedIndices = new Set();
-
-                while (
-                    seedTracks.length < 3 &&
-                    usedIndices.size < tracks.length
-                ) {
-                    const randomIndex = Math.floor(
-                        Math.random() * tracks.length
-                    );
-                    if (!usedIndices.has(randomIndex)) {
-                        seedTracks.push(tracks[randomIndex]);
-                        usedIndices.add(randomIndex);
-                    }
-                }
-
-                const trackRecommendationData = await getData(
-                        `https://api.spotify.com/v1/recommendations?limit=100&market=US&seed_genres=${
-                            params[mode].query.genre
-                        }&seed_tracks=${seedTracks
-                            .map((track) => track.id)
-                            .join("%2C")}&min_popularity=${minPopularity}`,
-                        false
                     ),
-                    lastOffset = trackRecommendationData.tracks.length;
-
-                let genreData = null;
-                try {
-                    genreData = await getData(
-                        `https://api.spotify.com/v1/browse/categories/${params[
-                            mode
-                        ].query.genre.replace(/-/g, "")}?locale=en_US`
-                    );
-                } catch {}
+                    maxOffset = (
+                        await getData(
+                            `https://api.spotify.com/v1/search?q=${queryString}&type=track&market=US&limit=1`,
+                            false
+                        )
+                    ).tracks.total,
+                    lastOffset = maxOffset;
 
                 const elSourceImg = document.getElementById("source_img");
-                if (genreData != null) {
+                try {
+                    const genreData = await getData(
+                        `https://api.spotify.com/v1/browse/categories/${params[
+                            mode
+                        ].query.genre.replace(/-/g, "")}?locale=en_US`,
+                        false
+                    );
+
                     document.getElementById("source_img_search").style.display =
                         "none";
                     elSourceImg.style.display = "initial";
                     elSourceImg.src = genreData.icons[0].url;
-                    document.getElementById("source").href =
-                        "https://open.spotify.com/genre/" + genreData.id;
-                } else {
-                    document.getElementById("source_img").style.display =
-                        "none";
+                } catch {
+                    elSourceImg.style.display = "none";
                     document.getElementById("source_img_search").style.display =
                         "initial";
-                    document.getElementById("source").href =
-                        "https://open.spotify.com/search/" +
-                        queryString +
-                        "/genres";
                 }
 
-                document.getElementById(
-                    "source_text"
-                ).innerText = `${formatGenre(
-                    params[mode].query.genre
-                )} (${lastOffset})`;
+                document.getElementById("source").href =
+                    "https://open.spotify.com/search/" +
+                    queryString +
+                    "/tracks";
 
-                for (let i = 0; i < trackRecommendationData.tracks.length; i++)
+                let sourceText = "";
+                if (params[mode].query.genre)
+                    sourceText += formatGenre(params[mode].query.genre) + " ";
+                if (params[mode].query.year)
+                    sourceText += `year:${params[mode].query.year}` + " ";
+                sourceText += `(${lastOffset})`;
+
+                document.getElementById("source_text").innerText = sourceText;
+
+                for (let offset = 0; offset < lastOffset; offset++)
                     urlsLeft.push(
-                        `https://api.spotify.com/v1/tracks/${trackRecommendationData.tracks[i].id}?market=US`
+                        `https://api.spotify.com/v1/search?q=${queryString}&type=track&market=US&limit=1&offset=${offset}`
                     );
                 break;
             }
@@ -921,14 +849,13 @@ async function loadUrls() {
                 document.getElementById("source_img").style.display = "none";
                 document.getElementById("source_img_search").style.display =
                     "initial";
-
                 document.getElementById("source").href =
                     "https://open.spotify.com/search/" +
                     queryString +
                     "/albums";
                 document.getElementById(
                     "source_text"
-                ).innerText = `${queryString} (${lastOffset})`;
+                ).innerText = `year:${params[mode].query.year} (${lastOffset})`;
 
                 for (let offset = 0; offset < lastOffset; offset++)
                     urlsLeft.push(
@@ -1010,7 +937,8 @@ async function loadUrls() {
                     const genreData = await getData(
                         `https://api.spotify.com/v1/browse/categories/${params[
                             mode
-                        ].query.genre.replace(/-/g, "")}?locale=en_US`
+                        ].query.genre.replace(/-/g, "")}?locale=en_US`,
+                        false
                     );
 
                     document.getElementById("source_img_search").style.display =
@@ -1027,11 +955,15 @@ async function loadUrls() {
                     "https://open.spotify.com/search/" +
                     queryString +
                     "/artists";
-                document.getElementById(
-                    "source_text"
-                ).innerText = `${formatGenre(
-                    params[mode].query.genre
-                )} (${lastOffset})`;
+
+                let sourceText = "";
+                if (params[mode].query.genre)
+                    sourceText += formatGenre(params[mode].query.genre) + " ";
+                if (params[mode].query.year)
+                    sourceText += `year:${params[mode].query.year}` + " ";
+                sourceText += `(${lastOffset})`;
+
+                document.getElementById("source_text").innerText = sourceText;
 
                 for (let offset = 0; offset < lastOffset; offset++)
                     urlsLeft.push(
@@ -1055,8 +987,6 @@ function getData(url, returnFirstItem = true, type = null) {
                 if (!returnFirstItem) return resolve(data);
 
                 if (type === "songs") {
-                    if (params[mode].use === "search") return resolve(data);
-
                     const trackData =
                         data.tracks?.items[0] ??
                         data.items?.[0].track ??
@@ -1064,9 +994,34 @@ function getData(url, returnFirstItem = true, type = null) {
 
                     if (!trackData || trackData.is_local) return reject();
 
-                    if (trackData.preview_url && trackData.popularity)
-                        resolve(trackData);
-                    else {
+                    // https://api.deezer.com/track/isrc:QZP7F2336910
+
+                    if (
+                        // trackData.preview_url &&
+                        trackData.popularity
+                    ) {
+                        const isrc = trackData.external_ids?.isrc;
+                        if (isrc) {
+                            $.ajax({
+                                url: `https://api.deezer.com/track/isrc:${isrc}`,
+                                type: "GET",
+                                success: (deezerData) => {
+                                    if (deezerData.preview) {
+                                        trackData.preview_url =
+                                            deezerData.preview;
+                                    }
+                                    resolve(trackData);
+                                },
+                                error: () => {
+                                    // Resolve without preview URL if Deezer call fails
+                                    resolve(trackData);
+                                },
+                            });
+                        } else {
+                            resolve(trackData);
+                        }
+                    } else {
+                        console.log("missing popularity");
                         $.ajax({
                             url: `https://api.spotify.com/v1/tracks/${trackData.id}?market=US`,
                             type: "GET",
@@ -2359,7 +2314,6 @@ function getParamKey() {
         soundOnly: params.soundOnly,
     };
     if (params[mode].use === "search") {
-        if (mode === "songs") d.difficulty = params[mode].difficulty;
         d.identifier = getQueryString(params[mode].query);
     } else if (params[mode].use === "user_playlist")
         d.identifier = `spotify:playlist:${params[mode].userPlaylistId}`;
@@ -2415,14 +2369,14 @@ function changeParams(newParams) {
     updateHighScore();
 }
 
-function validYearString(s) {
+function getYearCode(s) {
     if (!s) return 0;
     if (s.length == 4) {
         const year = parseInt(s);
         if (1900 <= year <= CURR_YEAR) return 1;
         return -1;
-    } else if (s.length == 9 && s[5] === "-") {
-        const years = yearsString.split("-"),
+    } else if (s.length == 9 && s[4] === "-") {
+        const years = s.split("-"),
             fromYear = parseInt(years[0]),
             toYear = parseInt(years[1]);
         if (
@@ -2437,8 +2391,9 @@ function validYearString(s) {
 
 function updatePlayValidity(forceDisable = false) {
     const elPlayBtn = document.getElementById("play_btn"),
-        elAdvancedParams = document.getElementById("advanced_params"),
-        validYear = validYearString(params[mode].query.year);
+        elAdvancedParams = document.getElementById("advanced_params");
+
+    if (!forceDisable) var yearCode = getYearCode(params[mode].query.year);
 
     if (
         !forceDisable &&
@@ -2447,9 +2402,15 @@ function updatePlayValidity(forceDisable = false) {
             params[mode].use === "liked" ||
             params[mode].use === "top" ||
             (params[mode].use === "search" &&
-                (mode === "albums"
-                    ? params[mode].query.years
-                    : params[mode].query.genre !== "")) ||
+                (mode === "songs"
+                    ? yearCode >= 1 ||
+                      (params[mode].query.genre && yearCode !== -1)
+                    : mode === "albums"
+                    ? yearCode >= 1
+                    : yearCode === 1 ||
+                      (params[mode].query.genre &&
+                          yearCode !== -1 &&
+                          yearCode !== 2))) ||
             (params[mode].use === "uri" &&
                 (mode === "songs"
                     ? ALBUM_ARTIST_PLAYLIST_URI_REGEX
@@ -2505,7 +2466,9 @@ function updateParamValidity() {
         elUseTop = document.getElementById("use_top"),
         elUseLikedLabel = document.getElementById("use_liked_label"),
         elUseTopLabel = document.getElementById("use_top_label"),
-        elUseUriLabel = document.getElementById("use_uri_label");
+        elUseUriLabel = document.getElementById("use_uri_label"),
+        elYearLabel = document.getElementById("year_label"),
+        elYear = document.getElementById("year");
 
     elUseLikedLabel.style.color = elUseLiked.disabled = null;
 
@@ -2525,6 +2488,9 @@ function updateParamValidity() {
             el.style.display = null;
     });
 
+    elYear.maxLength = 9;
+    elYear.size = 9;
+    elYearLabel.innerText = "Year or Range (hyphen-separated)";
     elUseUriLabel.innerText = "Album/Artist/Playlist URI";
 
     updateUriPlaceholders();
@@ -2571,6 +2537,10 @@ function updateParamValidity() {
         // )
         //     document.getElementById("use_search").click();
     } else if (mode === "artists") {
+        elYear.maxLength = 4;
+        elYear.size = 4;
+        elYearLabel.innerText = "Year";
+
         document.querySelectorAll(".hide_artists").forEach((el) => {
             el.style.display = "none";
         });
