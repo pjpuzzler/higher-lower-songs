@@ -29,9 +29,6 @@ window.onresize = () => {
 };
 
 const load = async () => {
-    alert(
-        "On November 27, 2024 Spotify deprecated several key API endpoints that the site relied on.\nI am hoping they will bring them back eventually, but as of now the site is down :("
-    );
     updatePlayValidity(true);
 
     mode = localStorage.getItem("mode") ?? DEFAULT_MODE;
@@ -1003,7 +1000,11 @@ function getData(url, returnFirstItem = true, type = null) {
                         const isrc = trackData.external_ids?.isrc;
                         if (isrc) {
                             $.ajax({
-                                url: `https://api.deezer.com/track/isrc:${isrc}`,
+                                url:
+                                    "https://corsproxy.io/?" +
+                                    encodeURIComponent(
+                                        `https://api.deezer.com/track/isrc:${isrc}`
+                                    ),
                                 type: "GET",
                                 success: (deezerData) => {
                                     if (deezerData.preview) {
@@ -1032,7 +1033,33 @@ function getData(url, returnFirstItem = true, type = null) {
                                 );
                             },
                             success: (data) => {
-                                resolve(data);
+                                const isrc = data.external_ids?.isrc;
+                                if (isrc) {
+                                    $.ajax({
+                                        url:
+                                            "https://corsproxy.io/?" +
+                                            encodeURIComponent(
+                                                `https://api.deezer.com/track/isrc:${isrc}`
+                                            ),
+                                        type: "GET",
+                                        success: (deezerData) => {
+                                            console.log(
+                                                JSON.stringify(deezerData)
+                                            );
+                                            if (deezerData.preview) {
+                                                data.preview_url =
+                                                    deezerData.preview;
+                                            }
+                                            resolve(data);
+                                        },
+                                        error: () => {
+                                            // Resolve without preview URL if Deezer call fails
+                                            resolve(data);
+                                        },
+                                    });
+                                } else {
+                                    resolve(data);
+                                }
                             },
                             error: reject,
                         });
@@ -2086,7 +2113,6 @@ async function getRandomArtistData() {
         );
         topTracks = topTracks.filter(
             (track) =>
-                track.preview_url &&
                 track.artists[0].id === artistData.id &&
                 (!params.muteExplicit || !track.explicit)
         );
@@ -2094,11 +2120,35 @@ async function getRandomArtistData() {
         invalidForSoundOnly = params.soundOnly && !topTracks.length;
     } while (!artistData.popularity || invalidForSoundOnly);
 
-    if (topTracks.length) {
-        const previewTrack =
-            topTracks[Math.floor(Math.random() * topTracks.length)];
-        artistData.preview_track = previewTrack;
-    } else artistData.preview_track = null;
+    artistData.preview_track = null;
+
+    let foundPreviewTrack = false;
+    while (topTracks.length && !foundPreviewTrack) {
+        const i = Math.floor(Math.random() * topTracks.length),
+            topTrack = topTracks[i];
+
+        const isrc = topTrack.external_ids?.isrc;
+        if (isrc) {
+            await $.ajax({
+                url:
+                    "https://corsproxy.io/?" +
+                    encodeURIComponent(
+                        `https://api.deezer.com/track/isrc:${isrc}`
+                    ),
+                type: "GET",
+                success: (deezerData) => {
+                    if (deezerData.preview) {
+                        topTrack.preview_url = deezerData.preview;
+                        artistData.preview_track = topTrack;
+                        foundPreviewTrack = true;
+                    }
+                },
+                error: () => {},
+            });
+        }
+
+        topTracks.splice(i, 1);
+    }
 
     return artistData;
 }
