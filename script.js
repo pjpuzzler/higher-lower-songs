@@ -115,7 +115,7 @@ const load = async () => {
         else otherGenres.push(genre);
     }
 
-    popularGenres.sort((a, b) => b.popularity - a.popularity);
+    // popularGenres.sort((a, b) => b.popularity - a.popularity);
 
     const elGenre = document.getElementById("genre");
     elGenre.innerHTML = "<option value='' selected>Any</option>";
