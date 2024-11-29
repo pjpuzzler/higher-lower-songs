@@ -29,9 +29,9 @@ window.onresize = () => {
 };
 
 const load = async () => {
-    alert(
-        "Animated backgrounds are buggy/slow and are a WIP.\nAlso on November 27, 2024 Spotify got rid of a bunch of API endpoints which made the site significantly slower/worse.\nHopefully they bring them back :("
-    );
+    // alert(
+    //     "Animated backgrounds are buggy/slow and are a WIP.\nAlso on November 27, 2024 Spotify got rid of a bunch of API endpoints which made the site significantly slower/worse.\nHopefully they bring them back :("
+    // );
 
     updatePlayValidity(true);
 
@@ -160,7 +160,7 @@ const load = async () => {
         if (
             !userPlaylists.items.some(
                 (userPlaylist) =>
-                    userPlaylist.id === params.songs.userPlaylistId
+                    userPlaylist?.id === params.songs.userPlaylistId
             )
         )
             params.songs.userPlaylistId = DEFAULT_PARAMS.songs.userPlaylistId;
@@ -470,6 +470,13 @@ async function play() {
         return notEnoughResults();
     }
 
+    golden = !params.hardcore && !params.zen && Math.random() < GOLDEN_CHANCE;
+
+    await Promise.all([
+        updateSide(1, false, false),
+        updateSide(2, false, golden),
+    ]);
+
     document.getElementsByTagName("body")[0].className = "adaptive";
 
     const elHalves = document.getElementsByClassName("half"),
@@ -520,16 +527,13 @@ async function play() {
         elSourceImg.classList.add("album_art_artist");
     }
 
-    golden = false;
-    updateSide(1);
     revealPopularity(1, true);
-    golden = !params.hardcore && !params.zen && Math.random() < GOLDEN_CHANCE;
+
     if (golden && params.playSFX) {
         GOLD_APPEAR_SFX.volume = linearVolume / 2;
         GOLD_APPEAR_SFX.load();
         GOLD_APPEAR_SFX.play();
     }
-    updateSide(2, false);
 }
 
 async function loadUrls() {
@@ -1254,7 +1258,49 @@ function updateMarquees(sideNum) {
     }, MARQUEE_PAUSE_DURATION * 1000);
 }
 
-function updateSide(sideNum, reveal = false) {
+async function getMovie(trackData) {
+    try {
+        const response = await $.getJSON(
+            "https://api.allorigins.win/get?url=" +
+                encodeURIComponent(
+                    `https://itunes.apple.com/search?term=${encodeURIComponent(
+                        trackData.name + " " + trackData.artists[0].name
+                    )}&entity=musicVideo&limit=1`
+                )
+        );
+
+        const itunesData = JSON.parse(response.contents);
+        console.log(itunesData);
+
+        for (const result of itunesData.results) {
+            if (
+                result.trackName.toLowerCase().startsWith(
+                    trackData.name
+                        .toLowerCase()
+                        .replace(/\(feat.*$/, "")
+                        .trim()
+                ) &&
+                result.artistName
+                    .toLowerCase()
+                    .startsWith(trackData.artists[0].name.toLowerCase()) &&
+                result.previewUrl
+            ) {
+                return result.previewUrl;
+            }
+        }
+        return null;
+    } catch (error) {
+        console.error("Error fetching movie data:", error);
+        return null;
+    }
+}
+
+function updateSide(
+    sideNum,
+    reveal = false,
+    goldenSide = false,
+    useRight = false
+) {
     const albumData = sideNum === 1 ? albumData1 : albumData2,
         artistData = sideNum === 1 ? artistData1 : artistData2,
         trackData =
@@ -1317,6 +1363,7 @@ function updateSide(sideNum, reveal = false) {
             `artist_${sideNum}_right_gradient`
         );
 
+    elVideo.src = trackData.videoSrc ?? "";
     elTrackLeftGradient.style.background =
         elTrackRightGradient.style.background =
         elArtistLeftGradient.style.background =
@@ -1324,22 +1371,26 @@ function updateSide(sideNum, reveal = false) {
             "initial";
 
     if (reveal || !params.soundOnly) {
-        if (!reveal && sideNum === 1 && score > 0) {
+        if (!reveal && sideNum === 1 && useRight) {
             elHalf.style.background =
                 document.getElementById("right_half").style.background;
-            elTrackLeftGradient.style.background = document.getElementById(
-                "track_2_left_gradient"
-            ).style.background;
-            elTrackRightGradient.style.background = document.getElementById(
-                "track_2_right_gradient"
-            ).style.background;
-            elArtistLeftGradient.style.background = document.getElementById(
-                "artist_2_left_gradient"
-            ).style.background;
-            elArtistRightGradient.style.background = document.getElementById(
-                "artist_2_right_gradient"
-            ).style.background;
-        } else {
+
+            if (!trackData.videoSrc) {
+                elTrackLeftGradient.style.background = document.getElementById(
+                    "track_2_left_gradient"
+                ).style.background;
+                elTrackRightGradient.style.background = document.getElementById(
+                    "track_2_right_gradient"
+                ).style.background;
+                elArtistLeftGradient.style.background = document.getElementById(
+                    "artist_2_left_gradient"
+                ).style.background;
+                elArtistRightGradient.style.background =
+                    document.getElementById(
+                        "artist_2_right_gradient"
+                    ).style.background;
+            }
+        } else if (!trackData.videoSrc) {
             Vibrant.from(albumArtUrl)
                 .getPalette()
                 .then((palette) => {
@@ -1366,35 +1417,22 @@ function updateSide(sideNum, reveal = false) {
                         rightArtistMarqueeGradient;
                 });
 
-            $.getJSON(
-                "https://api.allorigins.win/get?url=" +
-                    encodeURIComponent(
-                        `https://itunes.apple.com/search?term=${encodeURIComponent(
-                            trackData.name + " " + trackData.artists[0].name
-                        )}&entity=musicVideo`
-                    ),
-                function (data) {
-                    const itunesData = JSON.parse(data.contents);
-                    console.log(itunesData);
-                    for (const result of itunesData.results) {
-                        if (
-                            result.trackName.toLowerCase().startsWith(
-                                trackData.name
-                                    .toLowerCase()
-                                    .replace(/\(feat.*$/, "")
-                                    .trim()
-                            ) &&
-                            result.artistName
-                                .toLowerCase()
-                                .startsWith(
-                                    trackData.artists[0].name.toLowerCase()
-                                ) &&
-                            result.previewUrl
-                        )
-                            elVideo.src = result.previewUrl;
-                    }
-                }
-            );
+            // moviePromise = getMovie(trackData).then(async (previewUrl) => {
+            //     if (previewUrl) {
+            //         elVideo.src = previewUrl;
+            //         await new Promise((resolve, reject) => {
+            //             elVideo.onloadeddata = resolve;
+            //             elVideo.onerror = () =>
+            //                 reject(new Error("Failed to load video"));
+            //         });
+
+            //         elTrackLeftGradient.style.background =
+            //             elTrackRightGradient.style.background =
+            //             elArtistLeftGradient.style.background =
+            //             elArtistRightGradient.style.background =
+            //                 "initial";
+            //     }
+            // });
         }
     }
 
@@ -1406,11 +1444,11 @@ function updateSide(sideNum, reveal = false) {
     } else {
         elAlbumArt.style.visibility = "hidden";
         elAlbumArtBtn.style.border = `0.25dvh solid ${
-            golden ? "#fdd017" : "#fff"
+            goldenSide ? "#fdd017" : "#fff"
         }`;
     }
 
-    if (golden) elAlbumArtBtn.classList.add("golden_art");
+    if (goldenSide) elAlbumArtBtn.classList.add("golden_art");
     else elAlbumArtBtn.classList.remove("golden_art");
 
     const elTrackTitle = document.getElementById(`track_title_${sideNum}`);
@@ -1450,7 +1488,7 @@ function updateSide(sideNum, reveal = false) {
                 elA.href = trackData.external_urls.spotify;
                 elA.target = "_blank";
                 elA.className = "artist_link";
-                if (golden) elA.classList.add("golden_secondary");
+                if (goldenSide) elA.classList.add("golden_secondary");
                 elA.draggable = false;
 
                 elI.appendChild(elA);
@@ -1470,7 +1508,7 @@ function updateSide(sideNum, reveal = false) {
                 elA.href = artist.external_urls.spotify;
                 elA.target = "_blank";
                 elA.className = "artist_link";
-                if (golden) elA.classList.add("golden_secondary");
+                if (goldenSide) elA.classList.add("golden_secondary");
                 elA.draggable = false;
 
                 elArtist.appendChild(elA);
@@ -1486,7 +1524,7 @@ function updateSide(sideNum, reveal = false) {
 
                     // spanElement.appendChild(elTextNode);
 
-                    if (golden) spanElement.style.color = "#bf9b30";
+                    if (goldenSide) spanElement.style.color = "#bf9b30";
 
                     elArtist.appendChild(spanElement);
                 }
@@ -1498,7 +1536,7 @@ function updateSide(sideNum, reveal = false) {
                 spanElement.innerHTML = "&nbsp;-&nbsp;";
 
                 // spanElement.appendChild(elTextNode);
-                if (golden) spanElement.style.color = "#bf9b30";
+                if (goldenSide) spanElement.style.color = "#bf9b30";
 
                 elArtist.appendChild(spanElement);
 
@@ -1508,7 +1546,7 @@ function updateSide(sideNum, reveal = false) {
                 elA.href = trackData.external_urls.spotify;
                 elA.target = "_blank";
                 elA.className = "artist_link";
-                if (golden) elA.classList.add("golden_secondary");
+                if (goldenSide) elA.classList.add("golden_secondary");
                 elA.draggable = false;
 
                 elI.appendChild(elA);
@@ -1524,19 +1562,19 @@ function updateSide(sideNum, reveal = false) {
     if (signedIn && (reveal || !params.soundOnly)) {
         if (mode === "songs")
             hasTrackSaved(trackData.id).then((saved) => {
-                updateLikeBtn(sideNum, saved[0], golden && sideNum === 2);
+                updateLikeBtn(sideNum, saved[0], goldenSide && sideNum === 2);
             });
         else if (mode === "albums")
             hasAlbumSaved(albumData.id).then((saved) => {
-                updateLikeBtn(sideNum, saved[0], golden && sideNum === 2);
+                updateLikeBtn(sideNum, saved[0], goldenSide && sideNum === 2);
             });
         else if (mode === "artists")
             hasArtistSaved(artistData.id).then((saved) => {
-                updateLikeBtn(sideNum, saved[0], golden && sideNum === 2);
+                updateLikeBtn(sideNum, saved[0], goldenSide && sideNum === 2);
             });
     } else elLikeBtn.innerHTML = "";
 
-    if (golden) {
+    if (goldenSide) {
         elTrackTitle.classList.add("golden_primary");
         document.querySelectorAll(".guess_btn").forEach((button) => {
             button.classList.add("golden_secondary");
@@ -2099,6 +2137,8 @@ async function getRandomTrackData() {
             break;
     }
 
+    trackData.videoSrc = await getMovie(trackData);
+
     return trackData;
 }
 
@@ -2154,6 +2194,8 @@ async function getRandomAlbumData() {
 
     albumData.explicit = albumData.tracks.items.some((track) => track.explicit);
 
+    albumData.preview_track.videoSrc = await getMovie(albumData.preview_track);
+
     return albumData;
 }
 
@@ -2208,6 +2250,10 @@ async function getRandomArtistData() {
     if (params.soundOnly && artistData.preview_track == null)
         return await getRandomArtistData();
 
+    artistData.preview_track.videoSrc = await getMovie(
+        artistData.preview_track
+    );
+
     return artistData;
 }
 
@@ -2238,17 +2284,19 @@ function nextRound() {
     setTimeout(() => {
         elVs.style.display = "none";
 
-        golden = false;
-        updateSide(1);
-        revealPopularity(1);
         golden =
             !params.hardcore && !params.zen && Math.random() < GOLDEN_CHANCE;
+
+        updateSide(1, false, false, true);
+        updateSide(2, false, golden);
+
+        revealPopularity(1);
+
         if (golden && params.playSFX) {
             GOLD_APPEAR_SFX.volume = linearVolume / 2;
             GOLD_APPEAR_SFX.load();
             GOLD_APPEAR_SFX.play();
         }
-        updateSide(2, false);
 
         if (window.matchMedia("(orientation:portrait)").matches) {
             elSlideHalves[0].style.animation =
