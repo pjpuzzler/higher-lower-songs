@@ -21,6 +21,14 @@
     </head>
     <body>
         <div id="left_half" class="half slide_half">
+            <video
+                id="video_1"
+                class="video-background"
+                autoplay
+                muted
+                loop
+            ></video>
+
             <div class="side_details">
                 <button
                     id="album_art_1_btn"
@@ -84,6 +92,14 @@
         </div>
 
         <div id="right_half" class="half slide_half">
+            <video
+                id="video_2"
+                class="video-background"
+                autoplay
+                muted
+                loop
+            ></video>
+
             <div class="side_details">
                 <button
                     id="album_art_2_btn"
@@ -312,10 +328,10 @@
                         type="text"
                         maxlength="9"
                         size="9"
-                        oninput="changeParams({query: {...params[mode].query, year: this.value}})"
+                        oninput="onYearChange(this.value)"
                     />
                     <label id="year_label" for="year" title="Year(s) to search"
-                        >Year or Range (hyphen-separated)</label
+                        >Year/Range</label
                     >
                     <br />
 

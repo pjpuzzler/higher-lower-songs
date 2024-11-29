@@ -29,6 +29,10 @@ window.onresize = () => {
 };
 
 const load = async () => {
+    alert(
+        "Animated backgrounds are buggy/slow and are a WIP.\nAlso on November 27, 2024 Spotify got rid of a bunch of API endpoints which made the site significantly slower/worse.\nHopefully they bring them back :("
+    );
+
     updatePlayValidity(true);
 
     mode = localStorage.getItem("mode") ?? DEFAULT_MODE;
@@ -114,7 +118,7 @@ const load = async () => {
     popularGenres.sort((a, b) => b.popularity - a.popularity);
 
     const elGenre = document.getElementById("genre");
-    elGenre.innerHTML = "<option selected></option>";
+    elGenre.innerHTML = "<option value='' selected>All</option>";
     popularGenres.forEach(({ genre }) =>
         elGenre.add(new Option(formatGenre(genre), genre))
     );
@@ -131,44 +135,36 @@ const load = async () => {
     document.getElementById("user_playlist").disabled = true;
     document.getElementById("user_playlist_random").disabled = true;
 
-    if (signedIn)
-        getUserPlaylists()
-            .then((userPlaylists) => {
-                const elUserPlaylist = document.getElementById("user_playlist");
+    if (signedIn) {
+        const userPlaylists = await getUserPlaylists(),
+            elUserPlaylist = document.getElementById("user_playlist");
 
-                elUserPlaylist.innerHTML = "<option selected></option>";
+        elUserPlaylist.innerHTML = "<option selected></option>";
 
-                // if (userPlaylists.items.length > 0) {
-                //     document.getElementById(
-                //         "use_user_playlist_label"
-                //     ).style.color = null;
-                //     document.getElementById(
-                //         "use_user_playlist"
-                //     ).disabled = false;
-                //     document.getElementById("user_playlist").disabled = false;
-                //     document.getElementById(
-                //         "user_playlist_random"
-                //     ).disabled = false;
+        if (userPlaylists.items.length > 0) {
+            document.getElementById("use_user_playlist_label").style.color =
+                null;
+            document.getElementById("use_user_playlist").disabled = false;
+            document.getElementById("user_playlist").disabled = false;
+            document.getElementById("user_playlist_random").disabled = false;
 
-                //     for (const userPlaylist of userPlaylists.items)
-                //         elUserPlaylist.add(
-                //             new Option(userPlaylist.name, userPlaylist.id)
-                //         );
-                // }
+            for (const userPlaylist of userPlaylists.items) {
+                try {
+                    elUserPlaylist.add(
+                        new Option(userPlaylist.name, userPlaylist.id)
+                    );
+                } catch {}
+            }
+        }
 
-                // if (
-                //     !userPlaylists.items.some(
-                //         (userPlaylist) =>
-                //             userPlaylist.id === params.songs.userPlaylistId
-                //     )
-                // )
-                //     params.songs.userPlaylistId =
-                //         DEFAULT_PARAMS.songs.userPlaylistId;
-            })
-            .catch((e) => {
-                alert(JSON.stringify(e));
-                alert("Error getting user playlists");
-            });
+        if (
+            !userPlaylists.items.some(
+                (userPlaylist) =>
+                    userPlaylist.id === params.songs.userPlaylistId
+            )
+        )
+            params.songs.userPlaylistId = DEFAULT_PARAMS.songs.userPlaylistId;
+    }
 
     updateParams();
     updatePlayValidity();
@@ -259,6 +255,7 @@ let params,
     fading = false,
     ending = false,
     score = 0,
+    previousYearValue = "",
     mode,
     marqueeTimesoutIds = [null, null, null, null, null, null],
     prevVolume = DEFAULT_VOLUME;
@@ -284,6 +281,7 @@ function updateParams() {
         params[mode].uriSearch?.type ?? "";
 
     elYear.value = params[mode].query.year;
+    previousYearValue = elYear.value;
 
     switch (params[mode].use) {
         case "search":
@@ -927,7 +925,7 @@ async function loadUrls() {
                             false
                         )
                     ).artists.total,
-                    lastOffset = Math.min(100, maxOffset);
+                    lastOffset = maxOffset;
 
                 const elSourceImg = document.getElementById("source_img");
                 try {
@@ -1043,9 +1041,6 @@ function getData(url, returnFirstItem = true, type = null) {
                                             ),
                                         type: "GET",
                                         success: (deezerData) => {
-                                            console.log(
-                                                JSON.stringify(deezerData)
-                                            );
                                             if (deezerData.preview) {
                                                 data.preview_url =
                                                     deezerData.preview;
@@ -1275,7 +1270,8 @@ function updateSide(sideNum, reveal = false) {
             (params.muteExplicit && trackData.explicit),
         explicit = trackData && trackData.explicit,
         elAlbumArtBtn = document.getElementById(`album_art_${sideNum}_btn`),
-        elTrackPlayer = document.getElementById("track_player");
+        elTrackPlayer = document.getElementById("track_player"),
+        elVideo = document.getElementById(`video_${sideNum}`);
 
     if (noAudio) {
         elAlbumArtBtn.style.opacity = 0.5;
@@ -1343,7 +1339,7 @@ function updateSide(sideNum, reveal = false) {
             elArtistRightGradient.style.background = document.getElementById(
                 "artist_2_right_gradient"
             ).style.background;
-        } else
+        } else {
             Vibrant.from(albumArtUrl)
                 .getPalette()
                 .then((palette) => {
@@ -1369,6 +1365,37 @@ function updateSide(sideNum, reveal = false) {
                     elArtistRightGradient.style.background =
                         rightArtistMarqueeGradient;
                 });
+
+            $.getJSON(
+                "https://api.allorigins.win/get?url=" +
+                    encodeURIComponent(
+                        `https://itunes.apple.com/search?term=${encodeURIComponent(
+                            trackData.name + " " + trackData.artists[0].name
+                        )}&entity=musicVideo`
+                    ),
+                function (data) {
+                    const itunesData = JSON.parse(data.contents);
+                    console.log(itunesData);
+                    for (const result of itunesData.results) {
+                        if (
+                            result.trackName.toLowerCase().startsWith(
+                                trackData.name
+                                    .toLowerCase()
+                                    .replace(/\(feat.*$/, "")
+                                    .trim()
+                            ) &&
+                            result.artistName
+                                .toLowerCase()
+                                .startsWith(
+                                    trackData.artists[0].name.toLowerCase()
+                                ) &&
+                            result.previewUrl
+                        )
+                            elVideo.src = result.previewUrl;
+                    }
+                }
+            );
+        }
     }
 
     elAlbumArt.src = "";
@@ -2082,20 +2109,48 @@ async function getRandomAlbumData() {
         if (!urlsLeft.length) throw "out of urls";
         albumData = await getData(getRandomUrl());
         validPreviewTracks = albumData.tracks.items.filter(
-            (track) =>
-                track.preview_url && (!track.explicit || !params.muteExplicit)
+            (track) => !track.explicit || !params.muteExplicit
         );
 
         invalidForSoundOnly = params.soundOnly && !validPreviewTracks.length;
     } while (!albumData.popularity || invalidForSoundOnly);
 
-    if (validPreviewTracks.length) {
-        const previewTrack =
-            validPreviewTracks[
-                Math.floor(Math.random() * validPreviewTracks.length)
-            ];
-        albumData.preview_track = previewTrack;
-    } else albumData.preview_track = null;
+    albumData.preview_track = null;
+
+    let foundPreviewTrack = false;
+    while (validPreviewTracks.length && !foundPreviewTrack) {
+        const i = Math.floor(Math.random() * validPreviewTracks.length),
+            topTrack = validPreviewTracks[i];
+
+        const topTrackData = await getData(
+                `https://api.spotify.com/v1/tracks/${topTrack.id}?market=US`,
+                false
+            ),
+            isrc = topTrackData?.external_ids?.isrc;
+        if (isrc) {
+            await $.ajax({
+                url:
+                    "https://corsproxy.io/?" +
+                    encodeURIComponent(
+                        `https://api.deezer.com/track/isrc:${isrc}`
+                    ),
+                type: "GET",
+                success: (deezerData) => {
+                    if (deezerData.preview) {
+                        topTrack.preview_url = deezerData.preview;
+                        albumData.preview_track = topTrack;
+                        foundPreviewTrack = true;
+                    }
+                },
+                error: () => {},
+            });
+        }
+
+        validPreviewTracks.splice(i, 1);
+    }
+
+    if (params.soundOnly && albumData.preview_track == null)
+        return await getRandomAlbumData();
 
     albumData.explicit = albumData.tracks.items.some((track) => track.explicit);
 
@@ -2149,6 +2204,9 @@ async function getRandomArtistData() {
 
         topTracks.splice(i, 1);
     }
+
+    if (params.soundOnly && artistData.preview_track == null)
+        return await getRandomArtistData();
 
     return artistData;
 }
@@ -2540,7 +2598,7 @@ function updateParamValidity() {
 
     elYear.maxLength = 9;
     elYear.size = 9;
-    elYearLabel.innerText = "Year or Range (hyphen-separated)";
+    elYearLabel.innerText = "Year/Range";
     elUseUriLabel.innerText = "Album/Artist/Playlist URI";
 
     updateUriPlaceholders();
@@ -2738,4 +2796,26 @@ async function uriSearch(clear = false) {
     elUri.oninput();
 
     if (type === "artist" && elUri.value) hideArtistTutorial();
+}
+
+function isValidYearOnChange(value) {
+    let i = value.length - 1;
+    if (i === -1) return true;
+    if (i === 4) return value[i] === "-";
+    if (i === 0 || i === 5) return value[i] === "1" || value[i] === "2";
+    if (i === 1 || i === 6)
+        return (
+            (value[i - 1] === "1" && value[i] === "9") ||
+            (value[i - 1] === "2" && value[i] === "0")
+        );
+    else return /^[0-9]$/.test(value[i]);
+}
+
+function onYearChange(value) {
+    const elYear = document.getElementById("year");
+
+    if (!isValidYearOnChange(value)) elYear.value = previousYearValue;
+    else previousYearValue = value;
+
+    changeParams({ query: { ...params[mode].query, year: elYear.value } });
 }
