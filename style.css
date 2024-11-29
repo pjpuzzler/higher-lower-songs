@@ -113,11 +113,6 @@ select {
     max-width: 25dvh;
 }
 
-select[multiple] option:checked {
-    background-color: blue; /* You can adjust the color */
-    color: white;
-}
-
 label {
     color: #fff;
 }

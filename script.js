@@ -118,7 +118,7 @@ const load = async () => {
     popularGenres.sort((a, b) => b.popularity - a.popularity);
 
     const elGenre = document.getElementById("genre");
-    elGenre.innerHTML = "<option value='' selected>All</option>";
+    elGenre.innerHTML = "<option value='' selected>Any</option>";
     popularGenres.forEach(({ genre }) =>
         elGenre.add(new Option(formatGenre(genre), genre))
     );
@@ -1273,13 +1273,14 @@ async function getMovie(trackData) {
         console.log(itunesData);
 
         for (const result of itunesData.results) {
+            const resultTrackNameLower = result.trackName.toLowerCase(),
+                trackDataNameLower = trackData.name.toLowerCase();
             if (
-                result.trackName.toLowerCase().startsWith(
-                    trackData.name
-                        .toLowerCase()
-                        .replace(/\(feat.*$/, "")
-                        .trim()
+                resultTrackNameLower.startsWith(
+                    trackDataNameLower.replace(/\(feat.*$/, "").trim()
                 ) &&
+                resultTrackNameLower.includes("remix") ===
+                    trackDataNameLower.includes("remix") &&
                 result.artistName
                     .toLowerCase()
                     .startsWith(trackData.artists[0].name.toLowerCase()) &&

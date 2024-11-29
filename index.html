@@ -321,6 +321,13 @@
                         title="Genre to search"
                         >Genre</label
                     >
+                    <button
+                        id="genre_reset"
+                        class="param_button hide_albums"
+                        onclick="const elGenre = document.getElementById('genre'); elGenre.selectedIndex = 0; elGenre.onchange()"
+                    >
+                        Reset
+                    </button>
                     <br class="hide_albums" />
 
                     <input
@@ -333,6 +340,13 @@
                     <label id="year_label" for="year" title="Year(s) to search"
                         >Year/Range</label
                     >
+                    <button
+                        id="year_clear"
+                        class="param_button"
+                        onclick="const elYear = document.getElementById('year'); elYear.value = ''; elYear.oninput()"
+                    >
+                        Clear
+                    </button>
                     <br />
 
                     <div
