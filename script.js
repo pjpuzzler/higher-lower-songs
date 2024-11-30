@@ -1260,34 +1260,34 @@ function updateMarquees(sideNum) {
 
 async function getMovie(trackData) {
     try {
-        const response = await $.getJSON(
-            "https://api.allorigins.win/get?url=" +
-                encodeURIComponent(
-                    `https://itunes.apple.com/search?term=${encodeURIComponent(
-                        trackData.name + " " + trackData.artists[0].name
-                    )}&entity=musicVideo&limit=1`
-                )
-        );
+        const trackNameStripped = trackData.name
+                .replace(/\((feat|with).*$/, "")
+                .trim(),
+            response = await $.getJSON(
+                "https://api.allorigins.win/get?url=" +
+                    encodeURIComponent(
+                        `https://itunes.apple.com/search?term=${encodeURIComponent(
+                            trackNameStripped + " " + trackData.artists[0].name
+                        )}&entity=musicVideo&limit=1`
+                    )
+            );
 
         const itunesData = JSON.parse(response.contents);
         console.log(itunesData);
 
         for (const result of itunesData.results) {
             const resultTrackNameLower = result.trackName.toLowerCase(),
-                trackDataNameLower = trackData.name.toLowerCase();
+                trackNameLower = trackNameStripped.toLowerCase();
             if (
-                resultTrackNameLower.startsWith(
-                    trackDataNameLower.replace(/\(feat.*$/, "").trim()
-                ) &&
+                resultTrackNameLower.startsWith(trackNameLower) &&
                 resultTrackNameLower.includes("remix") ===
-                    trackDataNameLower.includes("remix") &&
+                    trackData.name.includes("remix") &&
                 result.artistName
                     .toLowerCase()
                     .startsWith(trackData.artists[0].name.toLowerCase()) &&
                 result.previewUrl
-            ) {
+            )
                 return result.previewUrl;
-            }
         }
         return null;
     } catch (error) {
@@ -1319,24 +1319,6 @@ function updateSide(
         elAlbumArtBtn = document.getElementById(`album_art_${sideNum}_btn`),
         elTrackPlayer = document.getElementById("track_player"),
         elVideo = document.getElementById(`video_${sideNum}`);
-
-    if (noAudio) {
-        elAlbumArtBtn.style.opacity = 0.5;
-        elAlbumArtBtn.style.cursor = "initial";
-        elAlbumArtBtn.disabled = true;
-        elAlbumArtBtn.classList.remove("album_art_hover");
-        elAlbumArtBtn.style.animation = "initial";
-    } else {
-        elAlbumArtBtn.style.opacity = 1;
-        elAlbumArtBtn.style.cursor = "pointer";
-        elAlbumArtBtn.disabled = false;
-        elAlbumArtBtn.classList.add("album_art_hover");
-    }
-
-    if (!reveal) {
-        if (sideNum === 2 && !noAudio) playTrack(2);
-        else elTrackPlayer.src = "";
-    }
 
     const elHalf = document.getElementById(
             `${sideNum === 1 ? "left" : "right"}_half`
@@ -1435,6 +1417,24 @@ function updateSide(
             //     }
             // });
         }
+    }
+
+    if (noAudio) {
+        elAlbumArtBtn.style.opacity = 0.5;
+        elAlbumArtBtn.style.cursor = "initial";
+        elAlbumArtBtn.disabled = true;
+        elAlbumArtBtn.classList.remove("album_art_hover");
+        elAlbumArtBtn.style.animation = "initial";
+    } else {
+        elAlbumArtBtn.style.opacity = 1;
+        elAlbumArtBtn.style.cursor = "pointer";
+        elAlbumArtBtn.disabled = false;
+        elAlbumArtBtn.classList.add("album_art_hover");
+    }
+
+    if (!reveal) {
+        if (sideNum === 2 && !noAudio) playTrack(2);
+        else elTrackPlayer.src = "";
     }
 
     elAlbumArt.src = "";
