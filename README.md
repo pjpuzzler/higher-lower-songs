@@ -1,4 +1,4 @@
-# Play [Here](https://pjpuzzler.github.io/higher-lower-songs)
+# [Play Here](https://pjpuzzler.github.io/higher-lower-songs)
 
 A version of the Higher Lower game, but for music.
 
