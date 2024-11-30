@@ -1,9 +1,7 @@
-# [Higher-Lower Songs](https://pjpuzzler.github.io/higher-lower-songs)
+# [Play](https://pjpuzzler.github.io/higher-lower-songs)
 
-A version of the Higher Lower game, made specifically for Spotify  
+A version of the Higher Lower game, but for music.
 
-Spotify API is used to get all data, including current popularity (0-100), which is the score.
+Popularity is a ranking (0-100) that Spotify estimates the song's popularity to be RIGHT NOW.
 
-Vibrant.js is used to get colors for Spotify-like background gradients (https://jariz.github.io/vibrant.js/)
-
-All respective rights go to Spotify and the owners of the songs
+Credit to Vibrant.js for Spotify-like background gradients (https://jariz.github.io/vibrant.js/) as well as Spotify, iTunes and the respective artists.
