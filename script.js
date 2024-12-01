@@ -1346,7 +1346,6 @@ function updateSide(
             `artist_${sideNum}_right_gradient`
         );
 
-    elVideo.src = trackData.videoSrc ?? "";
     elTrackLeftGradient.style.background =
         elTrackRightGradient.style.background =
         elArtistLeftGradient.style.background =
@@ -1354,6 +1353,8 @@ function updateSide(
             "initial";
 
     if (reveal || !params.soundOnly) {
+        elVideo.src = trackData.videoSrc ?? "";
+
         if (!reveal && sideNum === 1 && useRight) {
             elHalf.style.background =
                 document.getElementById("right_half").style.background;
