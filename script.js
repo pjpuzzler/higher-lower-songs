@@ -1268,7 +1268,7 @@ async function getMovie(trackData) {
                     encodeURIComponent(
                         `https://itunes.apple.com/search?term=${encodeURIComponent(
                             trackNameStripped + " " + trackData.artists[0].name
-                        )}&entity=musicVideo&limit=1`
+                        )}&entity=musicVideo&limit=${MUSIC_VIDEO_LIMIT}`
                     )
             );
 
