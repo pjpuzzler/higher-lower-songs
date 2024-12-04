@@ -1281,7 +1281,8 @@ async function getMovie(trackData) {
             if (
                 resultTrackNameLower.startsWith(trackNameLower) &&
                 resultTrackNameLower.includes("remix") ===
-                    trackData.name.includes("remix") &&
+                    trackData.name.toLowerCase().includes("remix") &&
+                !resultTrackNameLower.includes("lyric") &&
                 result.artistName
                     .toLowerCase()
                     .startsWith(trackData.artists[0].name.toLowerCase()) &&
