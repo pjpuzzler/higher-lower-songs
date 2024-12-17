@@ -1003,10 +1003,8 @@ function getData(url, returnFirstItem = true, type = null) {
                         if (isrc) {
                             $.ajax({
                                 url:
-                                    "https://corsproxy.io/?" +
-                                    encodeURIComponent(
-                                        `https://api.deezer.com/track/isrc:${isrc}`
-                                    ),
+                                    "https://api.codetabs.com/v1/proxy?quest=" +
+                                    `https://api.deezer.com/track/isrc:${isrc}`,
                                 type: "GET",
                                 success: (deezerData) => {
                                     if (deezerData.preview) {
