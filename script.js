@@ -1003,7 +1003,7 @@ function getData(url, returnFirstItem = true, type = null) {
                         if (isrc) {
                             $.ajax({
                                 url:
-                                    "https://api.codetabs.com/v1/proxy?quest=" +
+                                    "https://corsproxy.io/?url=" +
                                     `https://api.deezer.com/track/isrc:${isrc}`,
                                 type: "GET",
                                 success: (deezerData) => {
@@ -1037,7 +1037,7 @@ function getData(url, returnFirstItem = true, type = null) {
                                 if (isrc) {
                                     $.ajax({
                                         url:
-                                            "https://api.codetabs.com/v1/proxy?quest=" +
+                                            "https://corsproxy.io/?url=" +
                                             `https://api.deezer.com/track/isrc:${isrc}`,
                                         type: "GET",
                                         success: (deezerData) => {
@@ -2169,7 +2169,7 @@ async function getRandomAlbumData() {
         if (isrc) {
             await $.ajax({
                 url:
-                    "https://api.codetabs.com/v1/proxy?quest=" +
+                    "https://corsproxy.io/?url=" +
                     `https://api.deezer.com/track/isrc:${isrc}`,
                 type: "GET",
                 success: (deezerData) => {
@@ -2225,7 +2225,7 @@ async function getRandomArtistData() {
         if (isrc) {
             await $.ajax({
                 url:
-                    "https://api.codetabs.com/v1/proxy?quest=" +
+                    "https://corsproxy.io/?url=" +
                     `https://api.deezer.com/track/isrc:${isrc}`,
                 type: "GET",
                 success: (deezerData) => {
