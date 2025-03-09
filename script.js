@@ -993,31 +993,27 @@ function getData(url, returnFirstItem = true, type = null) {
 
                     if (!trackData || trackData.is_local) return reject();
 
-                    // https://api.deezer.com/track/isrc:QZP7F2336910
-
                     if (
                         // trackData.preview_url &&
                         trackData.popularity
                     ) {
                         const isrc = trackData.external_ids?.isrc;
                         if (isrc) {
-                            $.ajax({
-                                url:
-                                    "https://corsproxy.io/?url=" +
-                                    `https://api.deezer.com/track/isrc:${isrc}`,
-                                type: "GET",
-                                success: (deezerData) => {
+                            fetchJsonp(
+                                `https://api.deezer.com/track/isrc:${isrc}?output=jsonp`
+                            )
+                                .then((response) => response.json())
+                                .then((deezerData) => {
                                     if (deezerData.preview) {
                                         trackData.preview_url =
                                             deezerData.preview;
                                     }
                                     resolve(trackData);
-                                },
-                                error: () => {
+                                })
+                                .catch(() => {
                                     // Resolve without preview URL if Deezer call fails
                                     resolve(trackData);
-                                },
-                            });
+                                });
                         } else {
                             resolve(trackData);
                         }
@@ -1035,23 +1031,21 @@ function getData(url, returnFirstItem = true, type = null) {
                             success: (data) => {
                                 const isrc = data.external_ids?.isrc;
                                 if (isrc) {
-                                    $.ajax({
-                                        url:
-                                            "https://corsproxy.io/?url=" +
-                                            `https://api.deezer.com/track/isrc:${isrc}`,
-                                        type: "GET",
-                                        success: (deezerData) => {
+                                    fetchJsonp(
+                                        `https://api.deezer.com/track/isrc:${isrc}?output=jsonp`
+                                    )
+                                        .then((response) => response.json())
+                                        .then((deezerData) => {
                                             if (deezerData.preview) {
                                                 data.preview_url =
                                                     deezerData.preview;
                                             }
                                             resolve(data);
-                                        },
-                                        error: () => {
+                                        })
+                                        .catch(() => {
                                             // Resolve without preview URL if Deezer call fails
                                             resolve(data);
-                                        },
-                                    });
+                                        });
                                 } else {
                                     resolve(data);
                                 }
@@ -1260,15 +1254,13 @@ async function getMovie(trackData) {
                 .replace(/\((feat|with).*$/, "")
                 .trim(),
             response = await $.getJSON(
-                "https://api.allorigins.win/get?url=" +
-                    encodeURIComponent(
-                        `https://itunes.apple.com/search?term=${encodeURIComponent(
-                            trackNameStripped + " " + trackData.artists[0].name
-                        )}&entity=musicVideo&limit=${MUSIC_VIDEO_LIMIT}`
-                    )
+                `https://itunes.apple.com/search?term=${encodeURIComponent(
+                    trackNameStripped + " " + trackData.artists[0].name
+                )}&entity=musicVideo&limit=${MUSIC_VIDEO_LIMIT}`
             );
 
-        const itunesData = JSON.parse(response.contents);
+        // console.log(JSON.stringify(response));
+        const itunesData = response;
         console.log(itunesData);
 
         for (const result of itunesData.results) {
@@ -2167,20 +2159,18 @@ async function getRandomAlbumData() {
             ),
             isrc = topTrackData?.external_ids?.isrc;
         if (isrc) {
-            await $.ajax({
-                url:
-                    "https://corsproxy.io/?url=" +
-                    `https://api.deezer.com/track/isrc:${isrc}`,
-                type: "GET",
-                success: (deezerData) => {
-                    if (deezerData.preview) {
-                        topTrack.preview_url = deezerData.preview;
-                        albumData.preview_track = topTrack;
-                        foundPreviewTrack = true;
-                    }
-                },
-                error: () => {},
-            });
+            try {
+                const response = await fetchJsonp(
+                    `https://api.deezer.com/track/isrc:${isrc}?output=jsonp`
+                );
+                const deezerData = await response.json();
+
+                if (deezerData.preview) {
+                    topTrack.preview_url = deezerData.preview;
+                    albumData.preview_track = topTrack;
+                    foundPreviewTrack = true;
+                }
+            } catch (error) {}
         }
 
         validPreviewTracks.splice(i, 1);
@@ -2223,20 +2213,18 @@ async function getRandomArtistData() {
 
         const isrc = topTrack.external_ids?.isrc;
         if (isrc) {
-            await $.ajax({
-                url:
-                    "https://corsproxy.io/?url=" +
-                    `https://api.deezer.com/track/isrc:${isrc}`,
-                type: "GET",
-                success: (deezerData) => {
-                    if (deezerData.preview) {
-                        topTrack.preview_url = deezerData.preview;
-                        artistData.preview_track = topTrack;
-                        foundPreviewTrack = true;
-                    }
-                },
-                error: () => {},
-            });
+            try {
+                const response = await fetchJsonp(
+                    `https://api.deezer.com/track/isrc:${isrc}?output=jsonp`
+                );
+                const deezerData = await response.json();
+
+                if (deezerData.preview) {
+                    topTrack.preview_url = deezerData.preview;
+                    artistData.preview_track = topTrack;
+                    foundPreviewTrack = true;
+                }
+            } catch (error) {}
         }
 
         topTracks.splice(i, 1);
