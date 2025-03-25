@@ -1341,6 +1341,8 @@ function updateSide(
         elArtistRightGradient.style.background =
             "initial";
 
+    elVideo.src = "";
+
     if (reveal || !params.soundOnly) {
         elVideo.src = trackData.videoSrc ?? "";
 
