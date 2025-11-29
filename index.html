@@ -1,604 +1,573 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="UTF-8" />
-        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-        <meta
-            name="viewport"
-            content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+
+    <title>Higher Lower Songs</title>
+
+    <link rel="stylesheet" href="style.css" />
+    <link rel="shortcut icon" href="favicon.ico" />
+
+    <script src="https://code.jquery.com/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch-jsonp/1.1.1/fetch-jsonp.js"></script>
+    <script type="module" src="firebase.js"></script>
+    <script src="vibrant.js"></script>
+    <script src="constants.js"></script>
+    <script src="script.js"></script>
+  </head>
+  <body>
+    <div id="left_half" class="half slide_half">
+      <video
+        id="video_1"
+        class="video-background"
+        autoplay
+        muted
+        loop
+        webkit-playsinline
+        playsinline
+      ></video>
+
+      <div class="side_details">
+        <button
+          id="album_art_1_btn"
+          class="album_art_btn"
+          onclick="clickTrack(this, 1)"
+        >
+          <img id="album_art_1" class="album_art" draggable="false" />
+        </button>
+        <div class="track_details">
+          <div id="left_track_info" class="track_info">
+            <h3>
+              <div id="track_1_left_gradient" class="left_gradient"></div>
+              <div id="track_1_right_gradient" class="right_gradient"></div>
+              <a
+                id="track_title_1"
+                class="track_title_link"
+                target="_blank"
+                draggable="false"
+              ></a>
+            </h3>
+            <div id="artist_row_1" class="artist_row">
+              <div id="explicit_1" class="explicit">E</div>
+              <div id="artist_container_1" class="artist_container">
+                <div
+                  id="artist_1_left_gradient"
+                  class="left_gradient artist_gradient"
+                ></div>
+                <div
+                  id="artist_1_right_gradient"
+                  class="right_gradient artist_gradient"
+                ></div>
+                <h4 id="artist_1" class="all_artist_link"></h4>
+              </div>
+            </div>
+          </div>
+          <button
+            id="like_btn_1"
+            class="like_btn"
+            onclick="like(this, 1)"
+          ></button>
+        </div>
+
+        <div class="guessing">
+          <div class="progress">
+            <div class="bar_overflow">
+              <div id="left_bar" class="bar"></div>
+            </div>
+            <h2 id="left_popularity" class="popularity"></h2>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="right_half" class="half slide_half">
+      <video
+        id="video_2"
+        class="video-background"
+        autoplay
+        muted
+        loop
+        webkit-playsinline
+        playsinline
+      ></video>
+
+      <div class="side_details">
+        <button
+          id="album_art_2_btn"
+          class="album_art_btn"
+          onclick="clickTrack(this, 2)"
+        >
+          <img id="album_art_2" class="album_art" draggable="false" />
+        </button>
+        <div class="track_details">
+          <div id="right_track_info" class="track_info">
+            <h3>
+              <div id="track_2_left_gradient" class="left_gradient"></div>
+              <div id="track_2_right_gradient" class="right_gradient"></div>
+              <a
+                id="track_title_2"
+                class="track_title_link"
+                target="_blank"
+                draggable="false"
+              ></a>
+            </h3>
+            <div id="artist_row_2" class="artist_row">
+              <div id="explicit_2" class="explicit">E</div>
+              <div id="artist_container_2" class="artist_container">
+                <div
+                  id="artist_2_left_gradient"
+                  class="left_gradient artist_gradient"
+                ></div>
+                <div
+                  id="artist_2_right_gradient"
+                  class="right_gradient artist_gradient"
+                ></div>
+                <h4 id="artist_2" class="all_artist_link"></h4>
+              </div>
+            </div>
+          </div>
+          <button
+            id="like_btn_2"
+            class="like_btn"
+            onclick="like(this, 2)"
+          ></button>
+        </div>
+
+        <div class="guessing">
+          <button
+            id="guess_higher"
+            class="guess_btn"
+            onclick="checkGuess(true)"
+          >
+            Higher
+          </button>
+          <button
+            id="guess_lower"
+            class="guess_btn"
+            onclick="checkGuess(false)"
+          >
+            Lower
+          </button>
+          <div id="right_progress" class="progress">
+            <div class="bar_overflow">
+              <div id="right_bar" class="bar"></div>
+            </div>
+            <h2 id="right_popularity" class="popularity"></h2>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="vs_container">
+      <div id="vs">vs</div>
+    </div>
+
+    <button id="restart" onclick="restart()">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        id="replay"
+      >
+        <path
+          d="M12 5V2.21c0-.45-.54-.67-.85-.35l-3.8 3.79c-.2.2-.2.51 0 .71l3.79 3.79c.32.31.86.09.86-.36V7c3.73 0 6.68 3.42 5.86 7.29-.47 2.27-2.31 4.1-4.57 4.57-3.57.75-6.75-1.7-7.23-5.01-.07-.48-.49-.85-.98-.85-.6 0-1.08.53-1 1.13.62 4.39 4.8 7.64 9.53 6.72 3.12-.61 5.63-3.12 6.24-6.24C20.84 9.48 16.94 5 12 5z"
+        ></path>
+      </svg>
+    </button>
+
+    <div id="high_score">
+      <h6 id="current_high_score"></h6>
+    </div>
+
+    <div id="modes">
+      <input
+        type="radio"
+        id="song_mode"
+        name="modes"
+        onchange="changeMode('songs')"
+      />
+      <label for="song_mode">Songs</label>
+
+      <input
+        type="radio"
+        id="album_mode"
+        name="modes"
+        onchange="changeMode('albums')"
+      />
+      <label for="album_mode">Albums</label>
+
+      <input
+        type="radio"
+        id="artist_mode"
+        name="modes"
+        onchange="changeMode('artists')"
+      />
+      <label for="artist_mode">Artists</label>
+    </div>
+
+    <div id="top_info_container">
+      <div id="lives" draggable="false"></div>
+      <div id="streak_progress" class="progress">
+        <div id="streak_bar_overflow">
+          <div id="streak_bar"></div>
+        </div>
+        <h6 id="streak_number">7</h6>
+      </div>
+      <button id="skip_button" onclick="checkGuess(null)">Skip</button>
+    </div>
+
+    <div id="user_info">
+      <div id="user_image_container"></div>
+      <h6 id="user_display_name"></h6>
+
+      <a id="user_action"></a>
+      <br />
+      <h4 id="sign_in_tutorial" style="display: none">
+        <i>(Play using your library, like & unlike songs)</i>
+      </h4>
+    </div>
+
+    <div id="score">
+      <h5 id="current_score">0</h5>
+    </div>
+
+    <a id="source" target="_blank" draggable="false">
+      <img id="source_img" draggable="false" />
+      <svg id="source_img_search" viewBox="0 0 24 24">
+        <path
+          d="M10.533 1.279c-5.18 0-9.407 4.14-9.407 9.279s4.226 9.279 9.407 9.279c2.234 0 4.29-.77 5.907-2.058l4.353 4.353a1 1 0 101.414-1.414l-4.344-4.344a9.157 9.157 0 002.077-5.816c0-5.14-4.226-9.28-9.407-9.28zm-7.407 9.279c0-4.006 3.302-7.28 7.407-7.28s7.407 3.274 7.407 7.28-3.302 7.279-7.407 7.279-7.407-3.273-7.407-7.28z"
+        ></path>
+      </svg>
+      <h6 id="source_text"></h6>
+    </a>
+
+    <div id="volume">
+      <button id="mute_btn" onclick="toggleMute()">
+        <svg id="mute_img" viewBox="0 0 16 16">
+          <path
+            d="M9.741.85a.75.75 0 01.375.65v13a.75.75 0 01-1.125.65l-6.925-4a3.642 3.642 0 01-1.33-4.967 3.639 3.639 0 011.33-1.332l6.925-4a.75.75 0 01.75 0zm-6.924 5.3a2.139 2.139 0 000 3.7l5.8 3.35V2.8l-5.8 3.35zm8.683 4.29V5.56a2.75 2.75 0 010 4.88z"
+          ></path>
+          <path
+            d="M11.5 13.614a5.752 5.752 0 000-11.228v1.55a4.252 4.252 0 010 8.127v1.55z"
+          ></path>
+        </svg>
+      </button>
+      <input
+        id="volume_slider"
+        type="range"
+        min="0"
+        max="100"
+        oninput="setVolume(this.value / 100)"
+      />
+    </div>
+
+    <audio
+      id="track_player"
+      ontimeupdate="trackPlayerTimeUpdated(this.currentTime)"
+      loop
+    ></audio>
+    <audio id="track_player2" loop></audio>
+
+    <button id="play_btn" class="valid_play_btn" onclick="play()">
+      <svg id="play_btn_svg" viewBox="0 0 16 16">
+        <path
+          d="M3 1.713a.7.7 0 011.05-.607l10.89 6.288a.7.7 0 010 1.212L4.05 14.894A.7.7 0 013 14.288V1.713z"
+        ></path>
+      </svg>
+    </button>
+
+    <div id="params">
+      <div id="advanced_params">
+        <input
+          id="use_search"
+          name="use"
+          type="radio"
+          onchange="changeParams({use: 'search'})"
         />
+        <label
+          id="use_search_label"
+          for="use_search"
+          title="Items from a Spotify search"
+          >Search</label
+        >
+        <br />
+        <div class="params_indent">
+          <select
+            id="genre"
+            class="hide_albums"
+            onchange="changeParams({query: {...params[mode].query, genre: this.value}}); hideGenreTutorial()"
+          ></select>
+          <label class="hide_albums" for="genre" title="Genre to search"
+            >Genre</label
+          >
+          <button
+            id="genre_reset"
+            class="param_button hide_albums"
+            onclick="const elGenre = document.getElementById('genre'); elGenre.selectedIndex = 0; elGenre.onchange()"
+          >
+            Reset
+          </button>
+          <br class="hide_albums" />
 
-        <title>Higher Lower Songs</title>
+          <input
+            id="year"
+            type="text"
+            maxlength="9"
+            size="9"
+            oninput="onYearChange(this.value)"
+          />
+          <label id="year_label" for="year" title="Year(s) to search"
+            >Year/Range</label
+          >
+          <button
+            id="year_clear"
+            class="param_button"
+            onclick="const elYear = document.getElementById('year'); elYear.value = ''; elYear.oninput()"
+          >
+            Clear
+          </button>
+          <br />
 
-        <link rel="stylesheet" href="style.css" />
-        <link rel="shortcut icon" href="favicon.ico" />
-
-        <script src="https://code.jquery.com/jquery.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/fetch-jsonp/1.1.1/fetch-jsonp.js"></script>
-        <script type="module" src="firebase.js"></script>
-        <script src="vibrant.js"></script>
-        <script src="constants.js"></script>
-        <script src="script.js"></script>
-    </head>
-    <body>
-        <div id="left_half" class="half slide_half">
-            <video
-                id="video_1"
-                class="video-background"
-                autoplay
-                muted
-                loop
-                webkit-playsinline
-                playsinline
-            ></video>
-
-            <div class="side_details">
-                <button
-                    id="album_art_1_btn"
-                    class="album_art_btn"
-                    onclick="clickTrack(this, 1)"
-                >
-                    <img id="album_art_1" class="album_art" draggable="false" />
-                </button>
-                <div class="track_details">
-                    <div id="left_track_info" class="track_info">
-                        <h3>
-                            <div
-                                id="track_1_left_gradient"
-                                class="left_gradient"
-                            ></div>
-                            <div
-                                id="track_1_right_gradient"
-                                class="right_gradient"
-                            ></div>
-                            <a
-                                id="track_title_1"
-                                class="track_title_link"
-                                target="_blank"
-                                draggable="false"
-                            ></a>
-                        </h3>
-                        <div id="artist_row_1" class="artist_row">
-                            <div id="explicit_1" class="explicit">E</div>
-                            <div
-                                id="artist_container_1"
-                                class="artist_container"
-                            >
-                                <div
-                                    id="artist_1_left_gradient"
-                                    class="left_gradient artist_gradient"
-                                ></div>
-                                <div
-                                    id="artist_1_right_gradient"
-                                    class="right_gradient artist_gradient"
-                                ></div>
-                                <h4 id="artist_1" class="all_artist_link"></h4>
-                            </div>
-                        </div>
-                    </div>
-                    <button
-                        id="like_btn_1"
-                        class="like_btn"
-                        onclick="like(this, 1)"
-                    ></button>
-                </div>
-
-                <div class="guessing">
-                    <div class="progress">
-                        <div class="bar_overflow">
-                            <div id="left_bar" class="bar"></div>
-                        </div>
-                        <h2 id="left_popularity" class="popularity"></h2>
-                    </div>
-                </div>
-            </div>
+          <div
+            id="genre_tutorial"
+            class="hide_albums hide_artists"
+            style="display: none"
+          >
+            <label style="color: lime">^ Choose a genre and year</label>
+          </div>
         </div>
-
-        <div id="right_half" class="half slide_half">
-            <video
-                id="video_2"
-                class="video-background"
-                autoplay
-                muted
-                loop
-                webkit-playsinline
-                playsinline
-            ></video>
-
-            <div class="side_details">
-                <button
-                    id="album_art_2_btn"
-                    class="album_art_btn"
-                    onclick="clickTrack(this, 2)"
-                >
-                    <img id="album_art_2" class="album_art" draggable="false" />
-                </button>
-                <div class="track_details">
-                    <div id="right_track_info" class="track_info">
-                        <h3>
-                            <div
-                                id="track_2_left_gradient"
-                                class="left_gradient"
-                            ></div>
-                            <div
-                                id="track_2_right_gradient"
-                                class="right_gradient"
-                            ></div>
-                            <a
-                                id="track_title_2"
-                                class="track_title_link"
-                                target="_blank"
-                                draggable="false"
-                            ></a>
-                        </h3>
-                        <div id="artist_row_2" class="artist_row">
-                            <div id="explicit_2" class="explicit">E</div>
-                            <div
-                                id="artist_container_2"
-                                class="artist_container"
-                            >
-                                <div
-                                    id="artist_2_left_gradient"
-                                    class="left_gradient artist_gradient"
-                                ></div>
-                                <div
-                                    id="artist_2_right_gradient"
-                                    class="right_gradient artist_gradient"
-                                ></div>
-                                <h4 id="artist_2" class="all_artist_link"></h4>
-                            </div>
-                        </div>
-                    </div>
-                    <button
-                        id="like_btn_2"
-                        class="like_btn"
-                        onclick="like(this, 2)"
-                    ></button>
-                </div>
-
-                <div class="guessing">
-                    <button
-                        id="guess_higher"
-                        class="guess_btn"
-                        onclick="checkGuess(true)"
-                    >
-                        Higher
-                    </button>
-                    <button
-                        id="guess_lower"
-                        class="guess_btn"
-                        onclick="checkGuess(false)"
-                    >
-                        Lower
-                    </button>
-                    <div id="right_progress" class="progress">
-                        <div class="bar_overflow">
-                            <div id="right_bar" class="bar"></div>
-                        </div>
-                        <h2 id="right_popularity" class="popularity"></h2>
-                    </div>
-                </div>
-            </div>
+        <br class="hide_artists" />
+        <input
+          id="use_uri"
+          name="use"
+          type="radio"
+          class="hide_artists"
+          onchange="changeParams({use: 'uri'})"
+        />
+        <label
+          id="use_uri_label"
+          for="use_uri"
+          class="hide_artists"
+          title="Items from a Spotify URI"
+          >Album/Artist/Playlist URI</label
+        >
+        <br class="hide_artists" />
+        <div class="params_indent hide_artists">
+          <input
+            id="uri"
+            type="text"
+            placeholder="spotify:artist:0gxyHStUsqpMadRV0Di1Qt"
+            oninput="changeParams({uri: this.value.trim()})"
+          />
+          <br />
+          <button
+            id="uri_search_confirm"
+            class="param_button"
+            onclick="uriSearch()"
+            style="transform: scaleX(-1)"
+          >
+            ⤴️
+          </button>
+          <input
+            id="uri_search"
+            type="text"
+            oninput="changeParams({uriSearch: {...params[mode].uriSearch, q: this.value}}); uriSearch(true)"
+          />
+          <select
+            id="uri_search_type"
+            class="hide_albums"
+            onchange="changeParams({uriSearch: {...params[mode].uriSearch, type: this.value}}); updateUriPlaceholders(); clearUriSearch()"
+          >
+            <option value="album">Album</option>
+            <option value="artist" selected>Artist</option>
+            <option value="playlist">Playlist</option>
+          </select>
+          <label
+            id="uri_search_label"
+            for="uri_search"
+            title="Search for a Spotify URI"
+            >Quick Search</label
+          >
+          <br class="hide_albums hide_artists" />
+          <label
+            id="artist_tutorial"
+            class="hide_albums hide_artists"
+            style="color: lime; display: none"
+            >^ Or search for your favorite artist</label
+          >
         </div>
-        <div id="vs_container">
-            <div id="vs">vs</div>
+        <br class="hide_albums hide_artists" />
+        <input
+          id="use_user_playlist"
+          name="use"
+          type="radio"
+          class="hide_albums hide_artists"
+          onchange="changeParams({use: 'user_playlist'})"
+        />
+        <label
+          id="use_user_playlist_label"
+          for="use_user_playlist"
+          class="hide_albums hide_artists"
+          title="Songs from a playlist in your library"
+          >User Playlist</label
+        >
+        <br class="hide_albums hide_artists" />
+        <div class="params_indent hide_albums hide_artists">
+          <select
+            id="user_playlist"
+            onchange="changeParams({userPlaylistId: this.value})"
+          ></select>
+          <button
+            id="user_playlist_random"
+            class="param_button"
+            onclick="randomUserPlaylist()"
+          >
+            Random
+          </button>
         </div>
+        <br />
+        <input
+          id="use_liked"
+          name="use"
+          type="radio"
+          onchange="changeParams({use: 'liked'})"
+        />
+        <label
+          id="use_liked_label"
+          for="use_liked"
+          title="Items saved to your library"
+          >Liked</label
+        >
+        <br class="hide_albums" />
+        <br class="hide_albums" />
+        <input
+          id="use_top"
+          name="use"
+          type="radio"
+          class="hide_albums"
+          onchange="changeParams({use: 'top'})"
+        />
+        <label
+          id="use_top_label"
+          for="use_top"
+          class="hide_albums"
+          title="Most played items from the past ~6 months"
+          >Top</label
+        >
+      </div>
+      <br />
+      <button
+        id="toggle_advanced_params"
+        class="param_button"
+        onclick="toggleAdvancedParams()"
+      >
+        Show Advanced
+      </button>
+      <button id="reset_params" class="param_button" onclick="resetParams()">
+        Reset
+      </button>
 
-        <button id="restart" onclick="restart()">
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                id="replay"
+      <div id="checkbox_container">
+        <!-- Group 1: Left aligned -->
+        <div class="checkbox_group left">
+          <span>
+            <input
+              id="hardcore"
+              type="checkbox"
+              oninput="changeParams({hardcore: this.checked})"
+            />
+            <label for="hardcore" title="No extra lives or streak bonus"
+              >Hardcore</label
             >
-                <path
-                    d="M12 5V2.21c0-.45-.54-.67-.85-.35l-3.8 3.79c-.2.2-.2.51 0 .71l3.79 3.79c.32.31.86.09.86-.36V7c3.73 0 6.68 3.42 5.86 7.29-.47 2.27-2.31 4.1-4.57 4.57-3.57.75-6.75-1.7-7.23-5.01-.07-.48-.49-.85-.98-.85-.6 0-1.08.53-1 1.13.62 4.39 4.8 7.64 9.53 6.72 3.12-.61 5.63-3.12 6.24-6.24C20.84 9.48 16.94 5 12 5z"
-                ></path>
-            </svg>
-        </button>
-
-        <div id="high_score">
-            <h6 id="current_high_score"></h6>
-        </div>
-
-        <div id="modes">
+          </span>
+          <span>
             <input
-                type="radio"
-                id="song_mode"
-                name="modes"
-                onchange="changeMode('songs')"
+              id="zen"
+              type="checkbox"
+              oninput="changeParams({zen: this.checked})"
             />
-            <label for="song_mode">Songs</label>
-
-            <input
-                type="radio"
-                id="album_mode"
-                name="modes"
-                onchange="changeMode('albums')"
-            />
-            <label for="album_mode">Albums</label>
-
-            <input
-                type="radio"
-                id="artist_mode"
-                name="modes"
-                onchange="changeMode('artists')"
-            />
-            <label for="artist_mode">Artists</label>
-        </div>
-
-        <div id="top_info_container">
-            <div id="lives" draggable="false"></div>
-            <div id="streak_progress" class="progress">
-                <div id="streak_bar_overflow">
-                    <div id="streak_bar"></div>
-                </div>
-                <h6 id="streak_number">7</h6>
-            </div>
-            <button id="skip_button" onclick="checkGuess(null)">Skip</button>
-        </div>
-
-        <div id="user_info">
-            <div id="user_image_container"></div>
-            <h6 id="user_display_name"></h6>
-
-            <a id="user_action"></a>
-            <br />
-            <h4 id="sign_in_tutorial" style="display: none">
-                <i>(Play using your library, like & unlike songs)</i>
-            </h4>
-        </div>
-
-        <div id="score">
-            <h5 id="current_score">0</h5>
-        </div>
-
-        <a id="source" target="_blank" draggable="false">
-            <img id="source_img" draggable="false" />
-            <svg id="source_img_search" viewBox="0 0 24 24">
-                <path
-                    d="M10.533 1.279c-5.18 0-9.407 4.14-9.407 9.279s4.226 9.279 9.407 9.279c2.234 0 4.29-.77 5.907-2.058l4.353 4.353a1 1 0 101.414-1.414l-4.344-4.344a9.157 9.157 0 002.077-5.816c0-5.14-4.226-9.28-9.407-9.28zm-7.407 9.279c0-4.006 3.302-7.28 7.407-7.28s7.407 3.274 7.407 7.28-3.302 7.279-7.407 7.279-7.407-3.273-7.407-7.28z"
-                ></path>
-            </svg>
-            <h6 id="source_text"></h6>
-        </a>
-
-        <div id="volume">
-            <button id="mute_btn" onclick="toggleMute()">
-                <svg id="mute_img" viewBox="0 0 16 16">
-                    <path
-                        d="M9.741.85a.75.75 0 01.375.65v13a.75.75 0 01-1.125.65l-6.925-4a3.642 3.642 0 01-1.33-4.967 3.639 3.639 0 011.33-1.332l6.925-4a.75.75 0 01.75 0zm-6.924 5.3a2.139 2.139 0 000 3.7l5.8 3.35V2.8l-5.8 3.35zm8.683 4.29V5.56a2.75 2.75 0 010 4.88z"
-                    ></path>
-                    <path
-                        d="M11.5 13.614a5.752 5.752 0 000-11.228v1.55a4.252 4.252 0 010 8.127v1.55z"
-                    ></path>
-                </svg>
-            </button>
-            <input
-                id="volume_slider"
-                type="range"
-                min="0"
-                max="100"
-                oninput="setVolume(this.value / 100)"
-            />
-        </div>
-
-        <audio
-            id="track_player"
-            ontimeupdate="trackPlayerTimeUpdated(this.currentTime)"
-            loop
-        ></audio>
-        <audio id="track_player2" loop></audio>
-
-        <button id="play_btn" class="valid_play_btn" onclick="play()">
-            <svg id="play_btn_svg" viewBox="0 0 16 16">
-                <path
-                    d="M3 1.713a.7.7 0 011.05-.607l10.89 6.288a.7.7 0 010 1.212L4.05 14.894A.7.7 0 013 14.288V1.713z"
-                ></path>
-            </svg>
-        </button>
-
-        <div id="params">
-            <div id="advanced_params">
-                <input
-                    id="use_search"
-                    name="use"
-                    type="radio"
-                    onchange="changeParams({use: 'search'})"
-                />
-                <label
-                    id="use_search_label"
-                    for="use_search"
-                    title="Items from a Spotify search"
-                    >Search</label
-                >
-                <br />
-                <div class="params_indent">
-                    <select
-                        id="genre"
-                        class="hide_albums"
-                        onchange="changeParams({query: {...params[mode].query, genre: this.value}}); hideGenreTutorial()"
-                    ></select>
-                    <label
-                        class="hide_albums"
-                        for="genre"
-                        title="Genre to search"
-                        >Genre</label
-                    >
-                    <button
-                        id="genre_reset"
-                        class="param_button hide_albums"
-                        onclick="const elGenre = document.getElementById('genre'); elGenre.selectedIndex = 0; elGenre.onchange()"
-                    >
-                        Reset
-                    </button>
-                    <br class="hide_albums" />
-
-                    <input
-                        id="year"
-                        type="text"
-                        maxlength="9"
-                        size="9"
-                        oninput="onYearChange(this.value)"
-                    />
-                    <label id="year_label" for="year" title="Year(s) to search"
-                        >Year/Range</label
-                    >
-                    <button
-                        id="year_clear"
-                        class="param_button"
-                        onclick="const elYear = document.getElementById('year'); elYear.value = ''; elYear.oninput()"
-                    >
-                        Clear
-                    </button>
-                    <br />
-
-                    <div
-                        id="genre_tutorial"
-                        class="hide_albums hide_artists"
-                        style="display: none"
-                    >
-                        <label style="color: lime"
-                            >^ Choose a genre and year</label
-                        >
-                    </div>
-                </div>
-                <br class="hide_artists" />
-                <input
-                    id="use_uri"
-                    name="use"
-                    type="radio"
-                    class="hide_artists"
-                    onchange="changeParams({use: 'uri'})"
-                />
-                <label
-                    id="use_uri_label"
-                    for="use_uri"
-                    class="hide_artists"
-                    title="Items from a Spotify URI"
-                    >Album/Artist/Playlist URI</label
-                >
-                <br class="hide_artists" />
-                <div class="params_indent hide_artists">
-                    <input
-                        id="uri"
-                        type="text"
-                        placeholder="spotify:artist:0gxyHStUsqpMadRV0Di1Qt"
-                        oninput="changeParams({uri: this.value.trim()})"
-                    />
-                    <br />
-                    <button
-                        id="uri_search_confirm"
-                        class="param_button"
-                        onclick="uriSearch()"
-                        style="transform: scaleX(-1)"
-                    >
-                        ⤴️
-                    </button>
-                    <input
-                        id="uri_search"
-                        type="text"
-                        oninput="changeParams({uriSearch: {...params[mode].uriSearch, q: this.value}}); uriSearch(true)"
-                    />
-                    <select
-                        id="uri_search_type"
-                        class="hide_albums"
-                        onchange="changeParams({uriSearch: {...params[mode].uriSearch, type: this.value}}); updateUriPlaceholders(); clearUriSearch()"
-                    >
-                        <option value="album">Album</option>
-                        <option value="artist" selected>Artist</option>
-                        <option value="playlist">Playlist</option>
-                    </select>
-                    <label
-                        id="uri_search_label"
-                        for="uri_search"
-                        title="Search for a Spotify URI"
-                        >Quick Search</label
-                    >
-                    <br class="hide_albums hide_artists" />
-                    <label
-                        id="artist_tutorial"
-                        class="hide_albums hide_artists"
-                        style="color: lime; display: none"
-                        >^ Or search for your favorite artist</label
-                    >
-                </div>
-                <br class="hide_albums hide_artists" />
-                <input
-                    id="use_user_playlist"
-                    name="use"
-                    type="radio"
-                    class="hide_albums hide_artists"
-                    onchange="changeParams({use: 'user_playlist'})"
-                />
-                <label
-                    id="use_user_playlist_label"
-                    for="use_user_playlist"
-                    class="hide_albums hide_artists"
-                    title="Songs from a playlist in your library"
-                    >User Playlist</label
-                >
-                <br class="hide_albums hide_artists" />
-                <div class="params_indent hide_albums hide_artists">
-                    <select
-                        id="user_playlist"
-                        onchange="changeParams({userPlaylistId: this.value})"
-                    ></select>
-                    <button
-                        id="user_playlist_random"
-                        class="param_button"
-                        onclick="randomUserPlaylist()"
-                    >
-                        Random
-                    </button>
-                </div>
-                <br />
-                <input
-                    id="use_liked"
-                    name="use"
-                    type="radio"
-                    onchange="changeParams({use: 'liked'})"
-                />
-                <label
-                    id="use_liked_label"
-                    for="use_liked"
-                    title="Items saved to your library"
-                    >Liked</label
-                >
-                <br class="hide_albums" />
-                <br class="hide_albums" />
-                <input
-                    id="use_top"
-                    name="use"
-                    type="radio"
-                    class="hide_albums"
-                    onchange="changeParams({use: 'top'})"
-                />
-                <label
-                    id="use_top_label"
-                    for="use_top"
-                    class="hide_albums"
-                    title="Most played items from the past ~6 months"
-                    >Top</label
-                >
-            </div>
-            <br />
-            <button
-                id="toggle_advanced_params"
-                class="param_button"
-                onclick="toggleAdvancedParams()"
+            <label for="zen" title="Unlimited lives, no high score"
+              >Endless</label
             >
-                Show Advanced
-            </button>
-            <button
-                id="reset_params"
-                class="param_button"
-                onclick="resetParams()"
-            >
-                Reset
-            </button>
-
-            <div id="checkbox_container">
-                <!-- Group 1: Left aligned -->
-                <div class="checkbox_group left">
-                    <span>
-                        <input
-                            id="hardcore"
-                            type="checkbox"
-                            oninput="changeParams({hardcore: this.checked})"
-                        />
-                        <label
-                            for="hardcore"
-                            title="No extra lives or streak bonus"
-                            >Hardcore</label
-                        >
-                    </span>
-                    <span>
-                        <input
-                            id="zen"
-                            type="checkbox"
-                            oninput="changeParams({zen: this.checked})"
-                        />
-                        <label for="zen" title="Unlimited lives, no high score"
-                            >Endless</label
-                        >
-                    </span>
-                </div>
-
-                <!-- Group 2: Centered -->
-                <div class="checkbox_group center">
-                    <!-- <br /> -->
-                    <span>
-                        <input
-                            id="hide_popularity"
-                            type="checkbox"
-                            oninput="changeParams({hidePopularity: this.checked})"
-                        />
-                        <label
-                            for="hide_popularity"
-                            title="No popularity numbers"
-                            >Hidden Popularities</label
-                        >
-                    </span>
-                    <!-- <br /> -->
-                    <span>
-                        <input
-                            id="sound_only"
-                            type="checkbox"
-                            oninput="changeParams({soundOnly: this.checked})"
-                        />
-                        <label
-                            for="sound_only"
-                            title="No song, album, or artist name and no art"
-                            >Blindness</label
-                        >
-                    </span>
-                </div>
-
-                <!-- Group 3: Right aligned -->
-                <div class="checkbox_group right">
-                    <span>
-                        <input
-                            id="mute_explicit"
-                            type="checkbox"
-                            oninput="changeParams({muteExplicit: this.checked})"
-                        />
-                        <label
-                            for="mute_explicit"
-                            title="No song preview for songs marked explicit"
-                            >Mute Explicit Audio</label
-                        >
-                    </span>
-                    <!-- <br /> -->
-                    <span>
-                        <input
-                            id="play_sfx"
-                            type="checkbox"
-                            oninput="changeParams({playSFX: this.checked})"
-                        />
-                        <label
-                            for="play_sfx"
-                            title="Play correct, incorrect, level up, and game over SFX"
-                            >Sound Effects</label
-                        >
-                    </span>
-                </div>
-            </div>
+          </span>
         </div>
-    </body>
+
+        <!-- Group 2: Centered -->
+        <div class="checkbox_group center">
+          <!-- <br /> -->
+          <span>
+            <input
+              id="hide_popularity"
+              type="checkbox"
+              oninput="changeParams({hidePopularity: this.checked})"
+            />
+            <label for="hide_popularity" title="No popularity numbers"
+              >Hidden Popularities</label
+            >
+          </span>
+          <!-- <br /> -->
+          <span>
+            <input
+              id="sound_only"
+              type="checkbox"
+              oninput="changeParams({soundOnly: this.checked})"
+            />
+            <label
+              for="sound_only"
+              title="No song, album, or artist name and no art"
+              >Blindness</label
+            >
+          </span>
+        </div>
+
+        <!-- Group 3: Right aligned -->
+        <div class="checkbox_group right">
+          <span>
+            <input
+              id="mute_explicit"
+              type="checkbox"
+              oninput="changeParams({muteExplicit: this.checked})"
+            />
+            <label
+              for="mute_explicit"
+              title="No song preview for songs marked explicit"
+              >Mute Explicit Audio</label
+            >
+          </span>
+          <!-- <br /> -->
+          <span>
+            <input
+              id="play_sfx"
+              type="checkbox"
+              oninput="changeParams({playSFX: this.checked})"
+            />
+            <label
+              for="play_sfx"
+              title="Play correct, incorrect, level up, and game over SFX"
+              >Sound Effects</label
+            >
+          </span>
+        </div>
+      </div>
+    </div>
+  </body>
 </html>
 
 <script type="text/javascript">
-    $(document).ready(function () {
-        var last_valid_selection = null;
+  $(document).ready(function () {
+    var last_valid_selection = null;
 
-        $("#genres").change(function (event) {
-            if ($(this).val().length > 2) {
-                $(this).val(last_valid_selection);
-            } else {
-                last_valid_selection = $(this).val();
-            }
-        });
+    $("#genres").change(function (event) {
+      if ($(this).val().length > 2) {
+        $(this).val(last_valid_selection);
+      } else {
+        last_valid_selection = $(this).val();
+      }
     });
+  });
 </script>
