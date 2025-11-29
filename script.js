@@ -2746,8 +2746,12 @@ function signOut() {
 function base64UrlEncode(arrayBuffer) {
   const bytes = new Uint8Array(arrayBuffer);
   let binary = "";
-  for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  for (let i = 0; i < bytes.byteLength; i++)
+    binary += String.fromCharCode(bytes[i]);
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 }
 
 async function sha256(plain) {
@@ -2800,7 +2804,8 @@ async function exchangeCodeForToken(code) {
   const expiresIn = Number(data.expires_in ?? 3600);
   const expiresAt = Date.now() + expiresIn * 1000 - 30000; // 30s early
   localStorage.setItem("expires_at", String(expiresAt));
-  if (data.refresh_token) localStorage.setItem("refresh_token", data.refresh_token);
+  if (data.refresh_token)
+    localStorage.setItem("refresh_token", data.refresh_token);
   localStorage.setItem("signed_in", true);
 
   // Clean up URL (remove code param)
@@ -2834,7 +2839,8 @@ async function refreshAccessToken() {
   }
 
   const data = await resp.json();
-  if (!data.access_token) throw new Error("No access_token in refresh response");
+  if (!data.access_token)
+    throw new Error("No access_token in refresh response");
 
   _token = data.access_token;
   signedIn = true;
@@ -2842,7 +2848,8 @@ async function refreshAccessToken() {
   const expiresIn = Number(data.expires_in ?? 3600);
   const expiresAt = Date.now() + expiresIn * 1000 - 30000;
   localStorage.setItem("expires_at", String(expiresAt));
-  if (data.refresh_token) localStorage.setItem("refresh_token", data.refresh_token);
+  if (data.refresh_token)
+    localStorage.setItem("refresh_token", data.refresh_token);
   localStorage.setItem("signed_in", true);
 
   waitForLoad();
